@@ -2,9 +2,18 @@
 import argparse
 from datetime import datetime
 
+from tracktime.entry_list import EntryList
+from tracktime.report import Report
+from tracktime.time_entry import TimeEntry
+
 
 def main():
     parser = argparse.ArgumentParser(description='Time tracker')
+    parser.add_argument(
+        '-d',
+        '--directory',
+        help='specify the directory to use for tracktime (defaults to ~/.tracktime)')
+
     subparsers = parser.add_subparsers(
         dest='action', help='specify an action to perform')
     subparsers.required = True
@@ -38,33 +47,32 @@ def main():
     list_parser.add_argument(
         '-d',
         '--date',
-        default=datetime.today(),
+        default=datetime.today().date(),
         help='the date to list time entries for (defaults to today)')
 
     edit_parser = subparsers.add_parser('edit')
     edit_parser.add_argument(
         '-d',
         '--date',
-        default=datetime.today(),
+        default=datetime.today().date(),
         help='the date to edit time entries for (defaults to today)')
 
-    export_parser = subparsers.add_parser('export')
-    export_parser.add_argument(
+    report_parser = subparsers.add_parser('report')
+    report_parser.add_argument(
         '-m',
         '--month',
-        help='specify the month to export (defaults to last month)')
-    export_parser.add_argument(
+        help='specify the month to report on (defaults to last month)')
+    report_parser.add_argument(
         'filename', help='specify the filename to export the report to')
 
     args = parser.parse_args()
-    print(args)
     {
-        'start': None,
-        'stop': None,
-        'list': None,
-        'edit': None,
-        'export': None,
-    }[args.action]
+        'start': TimeEntry.start,
+        'stop': TimeEntry.stop,
+        'list': EntryList.list,
+        'edit': EntryList.edit,
+        'report': Report.create,
+    }[args.action](args)
 
 
 if __name__ == '__main__':
