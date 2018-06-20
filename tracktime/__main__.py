@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 import argparse
+import os
 from datetime import datetime
 
 from tracktime.entry_list import EntryList
@@ -12,6 +13,7 @@ def main():
     parser.add_argument(
         '-d',
         '--directory',
+        default=os.path.expanduser('~/.tracktime'),
         help='specify the directory to use for tracktime (defaults to ~/.tracktime)')
 
     subparsers = parser.add_subparsers(
@@ -61,7 +63,11 @@ def main():
     report_parser.add_argument(
         '-m',
         '--month',
-        help='specify the month to report on (defaults to last month)')
+        help='specify the month to report on (defaults to previous month)')
+    report_parser.add_argument(
+        '-y',
+        '--year',
+        help='specify the year to report on (defaults to the year of the previous month)')
     report_parser.add_argument(
         'filename', help='specify the filename to export the report to')
 
@@ -72,7 +78,7 @@ def main():
         'list': EntryList.list,
         'edit': EntryList.edit,
         'report': Report.create,
-    }[args.action](args)
+    }[args.action](**vars(args))
 
 
 if __name__ == '__main__':
