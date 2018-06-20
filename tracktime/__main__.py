@@ -70,7 +70,9 @@ def main():
         '--year',
         help='specify the year to report on (defaults to the year of the previous month)')
     report_parser.add_argument(
-        'filename', help='specify the filename to export the report to')
+        'filename',
+        nargs='?',
+        help='specify the filename to export the report to')
 
     args = parser.parse_args()
 

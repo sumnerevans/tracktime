@@ -1,6 +1,7 @@
 import csv
 import os
 from pathlib import Path
+from subprocess import call
 
 from tabulate import tabulate
 
@@ -13,19 +14,23 @@ class EntryList:
         self.entries = []
 
         # Load entries from the file
-        directory = Path(tracktime.root_directory)
-        directory = directory.joinpath(str(self.date.year))
-        directory = directory.joinpath('{:02}'.format(self.date.month))
-
-        os.makedirs(directory, exist_ok=True)
-
-        self.filepath = directory.joinpath('{:02}'.format(self.date.day))
+        self.filepath = EntryList._get_path(date, makedirs=True)
 
         from tracktime.time_entry import TimeEntry
         if os.path.exists(self.filepath):
             with open(self.filepath, 'r') as f:
                 for row in csv.DictReader(f):
                     self.entries.append(TimeEntry(**row))
+
+    def _get_path(date, makedirs=False):
+        directory = Path(tracktime.root_directory)
+        directory = directory.joinpath(str(date.year))
+        directory = directory.joinpath('{:02}'.format(date.month))
+
+        if makedirs:
+            os.makedirs(directory, exist_ok=True)
+
+        return directory.joinpath('{:02}'.format(date.day))
 
     def __len__(self):
         return len(self.entries)
@@ -66,5 +71,6 @@ class EntryList:
 
     @staticmethod
     def edit(date, **kwargs):
-        print(date, kwargs)
-        # Open an editor to edit the entries
+        """Open an editor to edit the time entries."""
+        editor = os.environ['EDITOR'] or os.environ['VISUAL']
+        call([editor, EntryList._get_path(date)])
