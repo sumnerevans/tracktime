@@ -1,5 +1,6 @@
 import csv
 import os
+from datetime import datetime
 from pathlib import Path
 from subprocess import call
 
@@ -53,6 +54,8 @@ class EntryList:
             for entry in self.entries:
                 writer.writerow(dict(entry))
 
+        # TODO sync with external providers
+
     @property
     def total(self):
         total_seconds = sum(
@@ -63,6 +66,9 @@ class EntryList:
     @staticmethod
     def list(date, **kwargs):
         """Gives you a list of ``TimeEntry``s for the given date."""
+        if isinstance(date, str):
+            date = datetime.strptime(date, '%Y-%m-%d')
+
         entry_list = EntryList(date)
         print(f'Entries for {date}')
         print('=' * 22)
@@ -77,3 +83,4 @@ class EntryList:
         """Open an editor to edit the time entries."""
         editor = os.environ['EDITOR'] or os.environ['VISUAL']
         call([editor, _get_path(date)])
+        # TODO sync with external providers
