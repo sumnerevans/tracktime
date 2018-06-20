@@ -37,6 +37,8 @@ def main():
         '--description',
         help='specify a description for the time entry')
     start_parser.add_argument(
+        '-c', '--customer', help='specify a customer for the time entry')
+    start_parser.add_argument(
         'task', help='specify the task being worked on', nargs='?')
 
     stop_parser = subparsers.add_parser('stop')
@@ -69,6 +71,8 @@ def main():
         '-y',
         '--year',
         help='specify the year to report on (defaults to the year of the previous month)')
+    report_parser.add_argument(
+        '-c', '--customer', help='customer ID to generate a report for')
     report_parser.add_argument(
         'filename',
         nargs='?',

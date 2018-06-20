@@ -22,11 +22,13 @@ class TimeEntry:
         self.type = kwargs.get('type', None)
         self.task = kwargs.get('task', None)
         self.description = kwargs.get('description', None)
+        self.customer = kwargs.get('customer', None)
 
     def __repr__(self):
-        span = f'{self.start}-{self.stop}' if self.stop else self.start
+        start = '{:%H:%M}'.format(self.start)
+        span = f'{start}-{self.stop:%H:%M}' if self.stop else start
         fields = ' '.join('{}={}'.format(f, getattr(self, f))
-                          for f in ('type', 'task', 'description'))
+                          for f in ('type', 'task', 'customer', 'description'))
         return f'<TimeEntry {span} {fields}>'
 
     def duration(self, allow_unended=False):
@@ -44,6 +46,7 @@ class TimeEntry:
             'stop': self.stop.strftime('%H:%M') if self.stop else None,
             'type': self.type,
             'task': self.task,
+            'customer': self.customer,
             'description': self.description,
         }.items()
 

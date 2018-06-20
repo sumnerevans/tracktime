@@ -8,29 +8,30 @@ from tabulate import tabulate
 import tracktime
 
 
+def _get_path(date, makedirs=False):
+    directory = Path(tracktime.root_directory)
+    directory = directory.joinpath(str(date.year))
+    directory = directory.joinpath('{:02}'.format(date.month))
+
+    if makedirs:
+        os.makedirs(directory, exist_ok=True)
+
+    return directory.joinpath('{:02}'.format(date.day))
+
+
 class EntryList:
     def __init__(self, date):
         self.date = date
         self.entries = []
 
         # Load entries from the file
-        self.filepath = EntryList._get_path(date, makedirs=True)
+        self.filepath = _get_path(date, makedirs=True)
 
         from tracktime.time_entry import TimeEntry
         if os.path.exists(self.filepath):
             with open(self.filepath, 'r') as f:
                 for row in csv.DictReader(f):
                     self.entries.append(TimeEntry(**row))
-
-    def _get_path(date, makedirs=False):
-        directory = Path(tracktime.root_directory)
-        directory = directory.joinpath(str(date.year))
-        directory = directory.joinpath('{:02}'.format(date.month))
-
-        if makedirs:
-            os.makedirs(directory, exist_ok=True)
-
-        return directory.joinpath('{:02}'.format(date.day))
 
     def __len__(self):
         return len(self.entries)
@@ -43,7 +44,9 @@ class EntryList:
 
     def save(self):
         with open(self.filepath, 'w') as f:
-            fieldnames = ['start', 'stop', 'type', 'task', 'description']
+            fieldnames = [
+                'start', 'stop', 'type', 'task', 'customer', 'description'
+            ]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
 
             writer.writeheader()
@@ -54,7 +57,7 @@ class EntryList:
     def total(self):
         total_seconds = sum(
             e.duration(allow_unended=True).seconds for e in self.entries)
-        hours, minutes = total_seconds // 3600, total_seconds // 60
+        hours, minutes = total_seconds // 3600, (total_seconds // 60) % 60
         return f'{hours}:{minutes:02}'
 
     @staticmethod
@@ -73,4 +76,4 @@ class EntryList:
     def edit(date, **kwargs):
         """Open an editor to edit the time entries."""
         editor = os.environ['EDITOR'] or os.environ['VISUAL']
-        call([editor, EntryList._get_path(date)])
+        call([editor, _get_path(date)])
