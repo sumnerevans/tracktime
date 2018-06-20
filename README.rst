@@ -47,3 +47,13 @@ The file will be a CSV with the following fields:
 
 Synchronisation with External Services
 --------------------------------------
+
+Unsupported Edge Cases
+----------------------
+
+- Daylight savings time (if you are trying to track time at 02:00 in the
+  morning, you're doing it wrong)
+- Time entries that span multiple days (if you are working that late, create two
+  entries)
+- Timezones (only switch timezones between days, if you have to switch, just
+  make sure that you keep the timezone consistent for a given day)

@@ -1,5 +1,6 @@
 """Time Entry class"""
 import os
+import time
 from datetime import datetime
 
 from tracktime.entry_list import EntryList
@@ -9,7 +10,15 @@ class TimeEntry:
     def __init__(self, start, **kwargs):
         self.start = start
         self.stop = kwargs.get('stop', None)
-        self.directory = kwargs.get('directory', None)
+
+        if isinstance(self.start, str):
+            timestamp = time.mktime(time.strptime(self.start, '%H:%M'))
+            self.start = datetime.fromtimestamp(timestamp)
+
+        if isinstance(self.stop, str) and len(self.stop) > 0:
+            timestamp = time.mktime(time.strptime(self.stop, '%H:%M'))
+            self.stop = datetime.fromtimestamp(timestamp)
+
         self.type = kwargs.get('type', None)
         self.task = kwargs.get('task', None)
         self.description = kwargs.get('description', None)
@@ -20,13 +29,40 @@ class TimeEntry:
                           for f in ('type', 'task', 'description'))
         return f'<TimeEntry {span} {fields}>'
 
+    def duration(self, allow_unended=False):
+        if not self.stop:
+            if not allow_unended:
+                raise Exception('Unstopped time entries cannot have a duration.')
+            else:
+                self.stop = datetime.now()
+
+        return self.stop - self.start
+
+    def __iter__(self):
+        yield from {
+            'start': self.start.strftime('%H:%M'),
+            'stop': self.stop.strftime('%H:%M') if self.stop else None,
+            'type': self.type,
+            'task': self.task,
+            'description': self.description,
+        }.items()
+
     @staticmethod
     def start(start, **kwargs):
-        entries = EntryList.load(start.date())
+        entries = EntryList(start.date())
+
+        # Stop the previous time entry if it exists.
+        if len(entries) > 0:
+            entries[-1].stop = start
+
         entries.append(TimeEntry(start, **kwargs))
         entries.save()
 
     @staticmethod
     def stop(stop, **kwargs):
-        print(stop, kwargs)
-        print(EntryList().list(datetime.now().date()))
+        entries = EntryList(stop.date())
+        if len(entries) == 0:
+            print('No time entry to end.')
+        else:
+            entries[-1].stop = stop
+            entries.save()

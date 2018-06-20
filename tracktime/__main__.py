@@ -3,6 +3,7 @@ import argparse
 import os
 from datetime import datetime
 
+import tracktime
 from tracktime.entry_list import EntryList
 from tracktime.report import Report
 from tracktime.time_entry import TimeEntry
@@ -72,6 +73,8 @@ def main():
         'filename', help='specify the filename to export the report to')
 
     args = parser.parse_args()
+
+    tracktime.root_directory = args.directory
     {
         'start': TimeEntry.start,
         'stop': TimeEntry.stop,

@@ -1,25 +1,70 @@
+import csv
+import os
+from pathlib import Path
+
+from tabulate import tabulate
+
+import tracktime
+
+
 class EntryList:
     def __init__(self, date):
         self.date = date
         self.entries = []
 
-    def load(self, date):
-        entry_list = EntryList(date)
-        # TODO: load entries from the file
-        return entry_list
+        # Load entries from the file
+        directory = Path(tracktime.root_directory)
+        directory = directory.joinpath(str(self.date.year))
+        directory = directory.joinpath('{:02}'.format(self.date.month))
+
+        os.makedirs(directory, exist_ok=True)
+
+        self.filepath = directory.joinpath('{:02}'.format(self.date.day))
+
+        from tracktime.time_entry import TimeEntry
+        if os.path.exists(self.filepath):
+            with open(self.filepath, 'r') as f:
+                for row in csv.DictReader(f):
+                    self.entries.append(TimeEntry(**row))
+
+    def __len__(self):
+        return len(self.entries)
+
+    def __getitem__(self, key):
+        return self.entries[key]
 
     def append(self, entry):
         self.entries.append(entry)
 
     def save(self):
-        print('save')
-        pass
+        with open(self.filepath, 'w') as f:
+            fieldnames = ['start', 'stop', 'type', 'task', 'description']
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for entry in self.entries:
+                writer.writerow(dict(entry))
+
+    @property
+    def total(self):
+        total_seconds = sum(
+            e.duration(allow_unended=True).seconds for e in self.entries)
+        hours, minutes = total_seconds // 3600, total_seconds // 60
+        return f'{hours}:{minutes:02}'
 
     @staticmethod
     def list(date, **kwargs):
         """Gives you a list of ``TimeEntry``s for the given date."""
-        return EntryList(date).entries
+        entry_list = EntryList(date)
+        print(f'Entries for {date}')
+        print('=' * 22)
+        print()
+        print(tabulate([dict(x) for x in entry_list], headers='keys'))
+
+        print()
+        print(f'Total: {entry_list.total}')
 
     @staticmethod
     def edit(date, **kwargs):
         print(date, kwargs)
+        # Open an editor to edit the entries

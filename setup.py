@@ -36,7 +36,7 @@ setup(
     ],
     keywords='time tracking',
     packages=['tracktime'],
-    install_requires=[],
+    install_requires=['tabulate'],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and
