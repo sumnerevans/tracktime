@@ -2,11 +2,19 @@ import csv
 import os
 from datetime import datetime
 from pathlib import Path
-from subprocess import call
+from subprocess import PIPE, call, run
 
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
 from tracktime.time_parser import parse_time
+
+
+def _test_internet():
+    """
+    Tests whether or not the computer is currently connected to the internet.
+    """
+    command = ['ping', '-c', '1', '8.8.8.8']
+    return run(command, stdout=PIPE, stderr=PIPE).returncode == 0
 
 
 def _get_path(date, makedirs=False):
@@ -66,7 +74,16 @@ class EntryList:
             for entry in self.entries:
                 writer.writerow(dict(entry))
 
-        # TODO sync with external providers
+    def save_and_sync(self):
+        self.save()
+        self.sync()
+
+    def sync(self):
+        """Synchronize with external services."""
+        if not _test_internet():
+            return
+
+        # TODO Figure out how to determine what needs to be synced
 
     def start(self, start, description, type, project, taskid, customer):
         if len(self.entries) > 0:
@@ -93,6 +110,12 @@ class EntryList:
 
     def edit(self):
         """Open an editor to edit the time entries."""
+        # Ensure the header exists.
+        EntryList(date).save()
+
+        # Edit the entries
         editor = os.environ['EDITOR'] or os.environ['VISUAL']
-        call([editor, _get_path(self.date, makedirs=True)])
-        # TODO sync with external providers
+        call([editor, _get_path(date)])
+
+        # Reload and sync the time entries
+        EntryList(date).sync()

@@ -15,9 +15,10 @@ Guiding Principles
 
 - Filesystem based (want to be able to use Git to keep track of my time entries)
 - Easy to edit manually (not a binary format)
+- Must be able to use offline
 
-Protocol
---------
+Structure
+---------
 
 Directory Structure
 ^^^^^^^^^^^^^^^^^^^
@@ -55,11 +56,13 @@ The file will be a CSV with the following fields:
 Synchronisation with External Services
 --------------------------------------
 
+.. TODO
+
 Unsupported Edge Cases
 ----------------------
 
 - Daylight savings time (if you are trying to track time at 02:00 in the
-  morning, you're doing it wrong)
+  morning, I pitty you)
 - Time entries that span multiple days (if you are working that late, create two
   entries)
 - Timezones (only switch timezones between days, if you have to switch, just
