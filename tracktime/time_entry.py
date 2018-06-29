@@ -4,20 +4,16 @@ import time
 from datetime import datetime
 
 from tracktime.entry_list import EntryList
+from tracktime.util import parse_time_today
 
 
 class TimeEntry:
     def __init__(self, start, **kwargs):
-        self.start = start
+        self.start = parse_time_today(start)
         self.stop = kwargs.get('stop', None)
 
-        if isinstance(self.start, str):
-            timestamp = time.mktime(time.strptime(self.start, '%H:%M'))
-            self.start = datetime.fromtimestamp(timestamp)
-
         if isinstance(self.stop, str) and len(self.stop) > 0:
-            timestamp = time.mktime(time.strptime(self.stop, '%H:%M'))
-            self.stop = datetime.fromtimestamp(timestamp)
+            self.stop = parse_time_today(self.stop)
 
         self.type = kwargs.get('type', None)
         self.task = kwargs.get('task', None)
@@ -52,6 +48,7 @@ class TimeEntry:
 
     @staticmethod
     def start(start, **kwargs):
+        start = parse_time_today(start)
         entries = EntryList(start.date())
 
         # Stop the previous time entry if it exists.
@@ -63,6 +60,7 @@ class TimeEntry:
 
     @staticmethod
     def stop(stop, **kwargs):
+        stop = parse_time_today(stop)
         entries = EntryList(stop.date())
         if len(entries) == 0:
             print('No time entry to end.')
