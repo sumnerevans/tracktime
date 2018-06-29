@@ -57,6 +57,10 @@ Synchronisation with External Services
 --------------------------------------
 
 .. TODO
+- How to deal with time entries that are not done through tracktime?
+- How to deal with time entries that are edited outside of tracktime?
+- How to determine whether or not a time entry has been added or not?
+- What if there's an entry that intersects with the one that needs to be added?
 
 Unsupported Edge Cases
 ----------------------

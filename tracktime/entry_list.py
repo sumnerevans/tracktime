@@ -7,6 +7,9 @@ from subprocess import PIPE, call, run
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
 from tracktime.time_parser import parse_time
+from requests import get, post
+from tabulate import tabulate
+
 
 
 def _test_internet():
@@ -35,8 +38,6 @@ class EntryList:
 
         # Load entries from the file
         self.filepath = _get_path(date, makedirs=True)
-
-        from tracktime.time_entry import TimeEntry
         if os.path.exists(self.filepath):
             with open(self.filepath, 'r') as f:
                 for row in csv.DictReader(f):
@@ -80,6 +81,7 @@ class EntryList:
 
     def sync(self):
         """Synchronize with external services."""
+        print('Syncronizing time entries...')
         if not _test_internet():
             return
 
