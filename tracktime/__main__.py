@@ -4,24 +4,18 @@ import os
 from datetime import datetime
 
 import tracktime
-from tracktime.entry_list import EntryList
-from tracktime.report import Report
-from tracktime.time_entry import TimeEntry
+from tracktime import cli
 
 
 def main():
     parser = argparse.ArgumentParser(description='Time tracker')
-    parser.add_argument(
-        '-d',
-        '--directory',
-        default=os.path.expanduser('~/.tracktime'),
-        help='specify the directory to use for tracktime (defaults to ~/.tracktime)')
 
     subparsers = parser.add_subparsers(
         dest='action', help='specify an action to perform')
     subparsers.required = True
 
-    start_parser = subparsers.add_parser('start')
+    start_parser = subparsers.add_parser(
+        'start', description='Start a time entry for today.')
     start_parser.add_argument(
         '-s',
         '--start',
@@ -76,18 +70,18 @@ def main():
     report_parser.add_argument(
         'filename',
         nargs='?',
-        help='specify the filename to export the report to')
+        help='specify the filename to export the report to. '
+        'If none specified, output to stdout')
 
     args = parser.parse_args()
 
-    tracktime.root_directory = args.directory
     {
-        'start': TimeEntry.start,
-        'stop': TimeEntry.stop,
-        'list': EntryList.list,
-        'edit': EntryList.edit,
-        'report': Report.create,
-    }[args.action](**vars(args))
+        'start': cli.start,
+        'stop': cli.stop,
+        'list': cli.list_entries,
+        'edit': cli.edit,
+        'report': cli.report,
+    }[args.action](args)
 
 
 if __name__ == '__main__':

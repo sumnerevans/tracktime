@@ -4,13 +4,13 @@ from datetime import datetime
 from pathlib import Path
 from subprocess import call
 
-from tabulate import tabulate
-
-import tracktime
+from tracktime.config import get_config
+from tracktime.time_entry import TimeEntry
+from tracktime.time_parser import parse_time
 
 
 def _get_path(date, makedirs=False):
-    directory = Path(tracktime.root_directory)
+    directory = Path(get_config()['directory'])
     directory = directory.joinpath(str(date.year))
     directory = directory.joinpath('{:02}'.format(date.month))
 
@@ -32,6 +32,11 @@ class EntryList:
         if os.path.exists(self.filepath):
             with open(self.filepath, 'r') as f:
                 for row in csv.DictReader(f):
+                    # Convert times to datetimes
+                    for k in ('start', 'stop'):
+                        if row[k]:
+                            row[k] = parse_time(row[k])
+
                     self.entries.append(TimeEntry(**row))
 
     def __len__(self):
@@ -39,6 +44,12 @@ class EntryList:
 
     def __getitem__(self, key):
         return self.entries[key]
+
+    @property
+    def total(self):
+        total_seconds = sum(
+            e.duration(allow_unended=True).seconds for e in self.entries)
+        return (total_seconds // 3600, (total_seconds // 60) % 60)
 
     def append(self, entry):
         self.entries.append(entry)
@@ -56,31 +67,24 @@ class EntryList:
 
         # TODO sync with external providers
 
-    @property
-    def total(self):
-        total_seconds = sum(
-            e.duration(allow_unended=True).seconds for e in self.entries)
-        hours, minutes = total_seconds // 3600, (total_seconds // 60) % 60
-        return f'{hours}:{minutes:02}'
+    def start(self, start, type, description, customer, task):
+        if len(self.entries) > 0:
+            self.entries[-1].stop = start
 
-    @staticmethod
-    def list(date, **kwargs):
-        """Gives you a list of ``TimeEntry``s for the given date."""
-        if isinstance(date, str):
-            date = datetime.strptime(date, '%Y-%m-%d')
+        time_entry = TimeEntry(start, type, description, customer, task)
+        self.entries.append(time_entry)
+        self.save()
 
-        entry_list = EntryList(date)
-        print(f'Entries for {date}')
-        print('=' * 22)
-        print()
-        print(tabulate([dict(x) for x in entry_list], headers='keys'))
+    def stop(self, stop):
+        entries = EntryList(stop.date())
+        if len(entries) == 0:
+            raise Exception('No time entry to end.')
+        else:
+            entries[-1].stop = stop
+            entries.save()
 
-        print()
-        print(f'Total: {entry_list.total}')
-
-    @staticmethod
-    def edit(date, **kwargs):
+    def edit(self):
         """Open an editor to edit the time entries."""
         editor = os.environ['EDITOR'] or os.environ['VISUAL']
-        call([editor, _get_path(date)])
+        call([editor, _get_path(self.date, makedirs=True)])
         # TODO sync with external providers
