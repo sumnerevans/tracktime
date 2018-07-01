@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from pathlib import Path
 
 from tabulate import tabulate
 
@@ -10,8 +11,8 @@ from tracktime.time_parser import parse_date, parse_month, parse_time
 
 def start(args):
     start = parse_time(args.start)
-    EntryList(start.date()).start(start, args.type, args.description,
-                                  args.customer, args.task)
+    EntryList(start.date()).start(start, args.description, args.type,
+                                  args.project, args.taskid, args.customer)
 
 
 def stop(args):
@@ -58,6 +59,12 @@ def report(args):
 
     report = Report(start, args.customer)
     if args.filename:
-        report.export_to_pdf(args.filename)
+        path = Path(args.filename)
+        if path.suffix == '.pdf':
+            report.export_to_pdf(path)
+        elif path.suffix == '.html':
+            report.export_to_html(path)
+        else:
+            raise Exception(f'Cannot export to "{path.suffix}" file format.')
     else:
         report.export_to_stdout()

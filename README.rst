@@ -3,6 +3,13 @@ tracktime
 
 Time Tracking solution using CSVs.
 
+Installation
+------------
+
+Report functionality requires ``wkhtmltopdf`` to be installed. Install it using
+your distribution's package manager or visit their `homepage`__ for installation
+instructions specific to your operating system.
+
 Guiding Principles
 ------------------
 

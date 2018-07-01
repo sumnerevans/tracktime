@@ -47,9 +47,9 @@ class EntryList:
 
     @property
     def total(self):
-        total_seconds = sum(
-            e.duration(allow_unended=True).seconds for e in self.entries)
-        return (total_seconds // 3600, (total_seconds // 60) % 60)
+        total_minutes = sum(
+            e.duration(allow_unended=True) for e in self.entries)
+        return (total_minutes // 60, total_minutes % 60)
 
     def append(self, entry):
         self.entries.append(entry)
@@ -57,7 +57,8 @@ class EntryList:
     def save(self):
         with open(self.filepath, 'w') as f:
             fieldnames = [
-                'start', 'stop', 'type', 'task', 'customer', 'description'
+                'start', 'stop', 'type', 'project', 'taskid', 'customer',
+                'description'
             ]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
 
@@ -67,11 +68,18 @@ class EntryList:
 
         # TODO sync with external providers
 
-    def start(self, start, type, description, customer, task):
+    def start(self, start, description, type, project, taskid, customer):
         if len(self.entries) > 0:
             self.entries[-1].stop = start
 
-        time_entry = TimeEntry(start, type, description, customer, task)
+        time_entry = TimeEntry(
+            start,
+            description,
+            type=type,
+            project=project,
+            taskid=taskid,
+            customer=customer,
+        )
         self.entries.append(time_entry)
         self.save()
 

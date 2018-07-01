@@ -1,7 +1,7 @@
 import re
 import time
 from calendar import day_abbr, day_name, month_abbr, month_name
-from datetime import datetime,date,timedelta
+from datetime import date, datetime, timedelta
 
 
 def parse_time(time_representation, date=datetime.now()):
