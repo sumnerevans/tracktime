@@ -58,6 +58,13 @@ def main():
         default=datetime.today().date(),
         help='the date to edit time entries for (defaults to today)')
 
+    sync_parser = subparsers.add_parser('sync')
+    sync_parser.add_argument(
+        '-d',
+        '--date',
+        default=datetime.today().date(),
+        help='the date to synchronize time entries for (defaults to today)')
+
     report_parser = subparsers.add_parser('report')
     report_parser.add_argument(
         '-m',
@@ -82,6 +89,7 @@ def main():
         'stop': cli.stop,
         'list': cli.list_entries,
         'edit': cli.edit,
+        'sync': cli.sync,
         'report': cli.report,
     }[args.action](args)
 

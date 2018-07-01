@@ -40,6 +40,10 @@ def edit(args):
     EntryList(parse_date(args.date)).edit()
 
 
+def sync(args):
+    EntryList(parse_date(args.date)).sync()
+
+
 def report(args):
     if args.year:
         if not args.month:

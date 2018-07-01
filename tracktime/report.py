@@ -90,9 +90,6 @@ class Report:
 
                 total_minutes += entry.duration()
 
-        if len(entry_groups) == 0:
-            raise Exception(f'No entries found for customer "{customer}".')
-
         self.report_table = [
             row.get_dict(self.customer is None)
             for row in entry_groups.values()
