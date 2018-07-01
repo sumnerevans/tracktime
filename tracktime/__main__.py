@@ -33,7 +33,9 @@ def main():
     start_parser.add_argument(
         '-i', '--taskid', help='specify the task being worked on')
     start_parser.add_argument(
-        'description', help='specify a description for the time entry')
+        'description',
+        help='specify a description for the time entry',
+        nargs='?')
 
     stop_parser = subparsers.add_parser('stop')
     stop_parser.add_argument(

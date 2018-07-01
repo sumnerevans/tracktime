@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from pathlib import Path
 
 from tabulate import tabulate
 
@@ -58,6 +59,12 @@ def report(args):
 
     report = Report(start, args.customer)
     if args.filename:
-        report.export_to_pdf(args.filename)
+        path = Path(args.filename)
+        if path.suffix == '.pdf':
+            report.export_to_pdf(path)
+        elif path.suffix == '.html':
+            report.export_to_html(path)
+        else:
+            raise Exception(f'Cannot export to "{path.suffix}" file format.')
     else:
         report.export_to_stdout()

@@ -4,6 +4,8 @@ from calendar import Calendar
 from collections import OrderedDict, defaultdict
 from datetime import date, datetime, timedelta
 
+from docutils import core
+from docutils.writers.html4css1 import HTMLTranslator, Writer
 from tabulate import tabulate
 
 from tracktime import EntryList, config
@@ -102,36 +104,61 @@ class Report:
             'Total ($)': sum(row['Total ($)'] for row in self.report_table),
         })
 
-    def export_to_stdout(self):
-        table = tabulate(
-            self.report_table,
-            headers='keys',
-            floatfmt='.2f',
-            tablefmt=self.configuration.get('tableformat', 'simple'))
-        width = max(72, *(len(line) for line in table.splitlines()))
+    def generate_textual_report(self, tablefmt):
+        time_report_header = 'Time Report - {:%B %Y}'.format(self.month)
+        lines = [
+            time_report_header,
+            '=' * len(time_report_header),
+            '',
+            f'**User:** {self.fullname}',
+            '',
+        ]
 
-        print('TIME REPORT{}{:>20}'.format(' ' * (width - 31),
-                                           self.month.strftime('%B %Y')))
-        print('=' * width)
-        print()
-        print('User:', self.fullname)
-        print()
-        print('Customer:')
+        # If there's a customer, then add it to the report.
         if self.customer:
-            addresses = self.configuration.get('customer_addresses', {})
             aliases = self.configuration.get('customer_aliases', {})
-            lines = [
+            addresses = self.configuration.get('customer_addresses', {})
+            addr_lines = [
                 aliases.get(self.customer, self.customer),
-                *addresses.get(self.customer, '').split('\n'),
+                *addresses.get(self.customer, '').strip().split('\n'),
             ]
-            for line in lines:
-                print('    {}'.format(line))
-        else:
-            print('Internal Report\n')
+            customer = ''
+            for line in addr_lines:
+                customer += '    | {}\n'.format(line)
 
-        print('\nDetailed Time Report:\n')
-        print(table)
+            lines += [
+                f'**Customer:**',
+                '',
+                customer,
+            ]
 
-    def export_to_pdf(self):
+        # Include the report table
+        lines += [
+            '**Detailed Time Report:**',
+            '',
+            tabulate(
+                self.report_table,
+                headers='keys',
+                floatfmt='.2f',
+                tablefmt=tablefmt),
+        ]
+
+        return '\n'.join(lines)
+
+    def export_to_stdout(self):
+        tablefmt = self.configuration.get('tableformat', 'simple')
+        text = self.generate_textual_report(tablefmt)
+        print(text.replace('| ', '').replace('**', ''))
+
+    def export_to_html(self, filename):
+        html_fragment_writer = Writer()
+        html_fragment_writer.translator_class = HTMLTranslator
+
+        with open(filename, 'wb+') as f:
+            html = self.generate_textual_report('rst')
+            f.write(core.publish_string(html, writer=html_fragment_writer))
+
+        print(f'HTML report exported to {filename}.')
+
+    def export_to_pdf(self, filename):
         print('PDF export')
-        print(self)
