@@ -27,13 +27,13 @@ def main():
         help='specify the type of time entry to start',
         choices=['gitlab', 'github', 'gl', 'gh'])
     start_parser.add_argument(
-        '-d',
-        '--description',
-        help='specify a description for the time entry')
+        '-p', '--project', help='specify a project for the time entry')
     start_parser.add_argument(
         '-c', '--customer', help='specify a customer for the time entry')
     start_parser.add_argument(
-        'task', help='specify the task being worked on', nargs='?')
+        '-i', '--taskid', help='specify the task being worked on')
+    start_parser.add_argument(
+        'description', help='specify a description for the time entry')
 
     stop_parser = subparsers.add_parser('stop')
     stop_parser.add_argument(

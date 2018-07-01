@@ -10,8 +10,8 @@ from tracktime.time_parser import parse_date, parse_month, parse_time
 
 def start(args):
     start = parse_time(args.start)
-    EntryList(start.date()).start(start, args.type, args.description,
-                                  args.customer, args.task)
+    EntryList(start.date()).start(start, args.description, args.type,
+                                  args.project, args.taskid, args.customer)
 
 
 def stop(args):
