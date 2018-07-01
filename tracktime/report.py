@@ -51,7 +51,7 @@ class Report:
         # Pull from config
         self.configuration = config.get_config()
         self.fullname = self.configuration['fullname']
-        rates = self.configuration.get('project_rates', {})
+        rates = self.configuration['project_rates']
 
         entry_groups = defaultdict(Report.Project)
         total_minutes = 0
@@ -117,8 +117,8 @@ class Report:
 
         # If there's a customer, then add it to the report.
         if self.customer:
-            aliases = self.configuration.get('customer_aliases', {})
-            addresses = self.configuration.get('customer_addresses', {})
+            aliases = self.configuration['customer_aliases']
+            addresses = self.configuration['customer_addresses']
             addr_lines = [
                 aliases.get(self.customer, self.customer),
                 *addresses.get(self.customer, '').strip().split('\n'),
@@ -152,7 +152,7 @@ class Report:
         return html.decode('utf-8')
 
     def export_to_stdout(self):
-        tablefmt = self.configuration.get('tableformat', 'simple')
+        tablefmt = self.configuration['tableformat']
         text = self.generate_textual_report(tablefmt)
         print(text.replace('| ', '').replace('**', ''))
 
