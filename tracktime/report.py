@@ -4,8 +4,9 @@ from calendar import Calendar
 from collections import OrderedDict, defaultdict
 from datetime import date, datetime, timedelta
 
+import pdfkit
 from docutils import core
-from docutils.writers.html4css1 import HTMLTranslator, Writer
+from docutils.writers import html5_polyglot
 from tabulate import tabulate
 
 from tracktime import EntryList, config
@@ -145,20 +146,22 @@ class Report:
 
         return '\n'.join(lines)
 
+    def generate_html_report(self):
+        rst = self.generate_textual_report('rst')
+        html = core.publish_string(rst, writer=html5_polyglot.Writer())
+        return html.decode('utf-8')
+
     def export_to_stdout(self):
         tablefmt = self.configuration.get('tableformat', 'simple')
         text = self.generate_textual_report(tablefmt)
         print(text.replace('| ', '').replace('**', ''))
 
     def export_to_html(self, filename):
-        html_fragment_writer = Writer()
-        html_fragment_writer.translator_class = HTMLTranslator
-
-        with open(filename, 'wb+') as f:
-            html = self.generate_textual_report('rst')
-            f.write(core.publish_string(html, writer=html_fragment_writer))
+        with open(filename, 'w+') as f:
+            f.write(self.generate_html_report())
 
         print(f'HTML report exported to {filename}.')
 
     def export_to_pdf(self, filename):
-        print('PDF export')
+        pdfkit.from_string(self.generate_html_report(), filename)
+        print(f'PDF report exported to {filename}.')
