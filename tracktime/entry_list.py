@@ -98,7 +98,7 @@ class EntryList:
                 **params
             })
             rel_path = rel_path[1:] if rel_path.startswith('/') else rel_path
-            path = parse.urljoin(get_config()['gitlab_api_root'], rel_path)
+            path = parse.urljoin(config['gitlab_api_root'], rel_path)
             return requester(path, params)
 
         aggregated_time = defaultdict(int)
@@ -118,8 +118,9 @@ class EntryList:
             aggregated_time[uri] = (
                 entry.duration() + aggregated_time.get(uri, 0))
 
-        for proj, duration in aggregated_time.items():
-            result = make_request(f'/projects/{project}/issues/{entry.taskid}/time_stats')
+        for uri_part, duration in aggregated_time.items():
+            print(f'/projects/{uri_part}/time_stats')
+            result = make_request(f'/projects/{uri_part}/time_stats')
             print(result.text)
 
         # TODO Figure out how to determine what needs to be synced
