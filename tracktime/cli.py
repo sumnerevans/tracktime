@@ -3,7 +3,7 @@ from pathlib import Path
 
 from tabulate import tabulate
 
-from tracktime import config
+from tracktime import Synchroniser, config
 from tracktime.entry_list import EntryList
 from tracktime.report import Report
 from tracktime.time_parser import parse_date, parse_month, parse_time
@@ -41,7 +41,11 @@ def edit(args):
 
 
 def sync(args):
-    EntryList(parse_date(args.date)).sync()
+    if args.year and not args.month:
+        print('You must specify a month when year is specified.')
+        return
+
+    Synchroniser(int(args.year), parse_month(args.month)).sync()
 
 
 def report(args):

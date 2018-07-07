@@ -60,10 +60,15 @@ def main():
 
     sync_parser = subparsers.add_parser('sync')
     sync_parser.add_argument(
-        '-d',
-        '--date',
-        default=datetime.today().date(),
-        help='the date to synchronize time entries for (defaults to today)')
+        '-y',
+        '--year',
+        default=datetime.now().year,
+        help='the year to synchronize time entries for (defaults to the current month)')
+    sync_parser.add_argument(
+        '-m',
+        '--month',
+        default=datetime.now().month,
+        help='the month to synchronize time entries for (defaults to the current month)')
 
     report_parser = subparsers.add_parser('report')
     report_parser.add_argument(

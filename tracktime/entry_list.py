@@ -1,11 +1,9 @@
 import csv
 import json
 import os
-from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from subprocess import PIPE, call, run
-from urllib import parse
+from subprocess import call
 
 from requests import get, post
 from tabulate import tabulate
@@ -13,14 +11,6 @@ from tabulate import tabulate
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
 from tracktime.time_parser import parse_time
-
-
-def _test_internet():
-    """
-    Tests whether or not the computer is currently connected to the internet.
-    """
-    command = ['ping', '-c', '1', '8.8.8.8']
-    return run(command, stdout=PIPE, stderr=PIPE).returncode == 0
 
 
 def _get_path(date, makedirs=False):
@@ -83,47 +73,8 @@ class EntryList:
         self.sync()
 
     def sync(self):
-        """Synchronize time entries with external services."""
-        print('Syncronizing time entries...')
-        if not _test_internet():
-            print('No internet connection. Skipping sync.')
-            return
-
-        config = get_config()
-        username = config.get('gitlab_username')
-
-        def make_request(rel_path, requester=get, params={}):
-            params = parse.urlencode({
-                'private_token': config.get('gitlab_api_key'),
-                **params
-            })
-            rel_path = rel_path[1:] if rel_path.startswith('/') else rel_path
-            path = parse.urljoin(config['gitlab_api_root'], rel_path)
-            return requester(path, params)
-
-        aggregated_time = defaultdict(int)
-        for entry in self.entries:
-            # Skip any entries that are not GitLab entries.
-            if entry.type not in ('gl', 'gitlab'):
-                continue
-            # Skip any entries that don't have a project or task.
-            if not entry.project or not entry.taskid:
-                continue
-            # Skip any un-ended entries.
-            if not entry.stop:
-                continue
-
-            project = parse.quote(entry.project).replace('/', '%2F')
-            uri = f'{project}/issues/{entry.taskid}'
-            aggregated_time[uri] = (
-                entry.duration() + aggregated_time.get(uri, 0))
-
-        for uri_part, duration in aggregated_time.items():
-            print(f'/projects/{uri_part}/time_stats')
-            result = make_request(f'/projects/{uri_part}/time_stats')
-            print(result.text)
-
-        # TODO Figure out how to determine what needs to be synced
+        from tracktime.synchroniser import Synchroniser
+        Synchroniser(self.date.year, self.date.month).sync()
 
     def start(self, start, description, type, project, taskid, customer):
         if len(self.entries) > 0:
