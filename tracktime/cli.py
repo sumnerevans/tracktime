@@ -23,6 +23,11 @@ def stop(args):
         print(e)
 
 
+def resume(args):
+    start = parse_time(args.start)
+    EntryList(start.date()).resume(start)
+
+
 def list_entries(args):
     date = parse_date(args.date)
     entry_list = EntryList(date)

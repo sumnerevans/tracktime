@@ -111,12 +111,25 @@ class EntryList:
         self.save_and_sync()
 
     def stop(self, stop):
-        entries = EntryList(stop.date())
-        if len(entries) == 0:
+        if len(self) == 0:
             raise Exception('No time entry to end.')
-        else:
-            entries[-1].stop = stop
-            entries.save_and_sync()
+
+        self.entries[-1].stop = stop
+        self.save_and_sync()
+
+    def resume(self, start):
+        if len(self) == 0:
+            raise Exception('No time entry to resume.')
+
+        old_entry = self.entries[-1]
+        self.start(
+            start,
+            old_entry.description,
+            old_entry.type,
+            old_entry.project,
+            old_entry.taskid,
+            old_entry.customer,
+        )
 
     def edit(self):
         """Open an editor to edit the time entries."""

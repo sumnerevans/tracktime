@@ -43,6 +43,13 @@ def main():
         default=datetime.now(),
         help='specify a stop time for the time entry (defaults to now)')
 
+    resume_parser = subparsers.add_parser('resume')
+    resume_parser.add_argument(
+        '-s',
+        '--start',
+        default=datetime.now(),
+        help='specify the start time for the resumed time entry (defaults to now)')
+
     list_parser = subparsers.add_parser('list')
     list_parser.add_argument(
         '-d',
@@ -91,6 +98,7 @@ def main():
     {
         'start': cli.start,
         'stop': cli.stop,
+        'resume': cli.resume,
         'list': cli.list_entries,
         'edit': cli.edit,
         'sync': cli.sync,
