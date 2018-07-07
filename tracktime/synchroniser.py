@@ -55,8 +55,6 @@ class Synchroniser:
             print('No internet connection. Skipping sync.')
             return
 
-        print('Syncronizing time entries...')
-
         # Create a dictionary of the total time tracked for each GitLab taskid.
         aggregated_time = defaultdict(int)
         for day in range(1, 32):
@@ -123,5 +121,3 @@ class Synchroniser:
                     'taskid': task_tuple[2],
                     'synced': synced,
                 })
-
-        print('Finished syncronizing.')
