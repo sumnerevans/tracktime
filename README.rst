@@ -46,7 +46,8 @@ are the numeric, zero-padded.
 Each day with time tracked will have a corresponding file and have the file
 format as described below.
 
-The ``.synced`` file in each month's directory stores the
+The ``.synced`` file in each month's directory stores the amount of time that
+has been reported to the external services.
 
 Time Tracking File Format
 ^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -3,7 +3,6 @@ import argparse
 import os
 from datetime import datetime
 
-import tracktime
 from tracktime import cli
 
 

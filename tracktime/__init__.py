@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-
 from tracktime.entry_list import EntryList
 from tracktime.report import Report
 from tracktime.synchroniser import Synchroniser

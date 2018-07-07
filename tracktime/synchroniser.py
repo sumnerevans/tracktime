@@ -13,17 +13,6 @@ from tracktime.config import get_config
 
 
 class Synchroniser:
-    class Task:
-        pass
-
-    def _test_internet(self):
-        """
-        Tests whether or not the computer is currently connected to the
-        internet.
-        """
-        command = ['ping', '-c', '1', '8.8.8.8']
-        return run(command, stdout=PIPE, stderr=PIPE).returncode == 0
-
     def __init__(self, year, month):
         self.year = year
         self.month = month
@@ -36,7 +25,15 @@ class Synchroniser:
             '{:02}'.format(self.month),
         )
 
-    def make_request(self, rel_path, requester=post, params={}):
+    def _test_internet(self):
+        """
+        Tests whether or not the computer is currently connected to the
+        internet.
+        """
+        command = ['ping', '-c', '1', '8.8.8.8']
+        return run(command, stdout=PIPE, stderr=PIPE).returncode == 0
+
+    def _make_request(self, rel_path, requester=post, params={}):
         params = parse.urlencode({
             'private_token': self.config.get('gitlab_api_key'),
             **params
@@ -47,7 +44,7 @@ class Synchroniser:
 
     def sync(self):
         """Synchronize time entries with external services."""
-        if not self.config.get('sync_time', False):
+        if not self.config['sync_time']:
             print('Time sync disabled in configuration file.')
             return
 
@@ -102,7 +99,7 @@ class Synchroniser:
             project = parse.quote(project).replace('/', '%2F')
             uri = f'/projects/{project}/issues/{taskid}/add_spent_time'
             params = {'duration': f'{time_diff}m'}
-            result = self.make_request(uri, params=params)
+            result = self._make_request(uri, params=params)
 
             # If successful, update the amount that has been synced.
             if result.status_code == 201:
