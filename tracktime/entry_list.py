@@ -1,8 +1,12 @@
 import csv
+import json
 import os
 from datetime import datetime
 from pathlib import Path
 from subprocess import call
+
+from requests import get, post
+from tabulate import tabulate
 
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
@@ -27,8 +31,6 @@ class EntryList:
 
         # Load entries from the file
         self.filepath = _get_path(date, makedirs=True)
-
-        from tracktime.time_entry import TimeEntry
         if os.path.exists(self.filepath):
             with open(self.filepath, 'r') as f:
                 for row in csv.DictReader(f):
@@ -66,7 +68,13 @@ class EntryList:
             for entry in self.entries:
                 writer.writerow(dict(entry))
 
-        # TODO sync with external providers
+    def save_and_sync(self):
+        self.save()
+        self.sync()
+
+    def sync(self):
+        from tracktime.synchroniser import Synchroniser
+        Synchroniser(self.date.year, self.date.month).sync()
 
     def start(self, start, description, type, project, taskid, customer):
         if len(self.entries) > 0:
@@ -81,7 +89,7 @@ class EntryList:
             customer=customer,
         )
         self.entries.append(time_entry)
-        self.save()
+        self.save_and_sync()
 
     def stop(self, stop):
         entries = EntryList(stop.date())
@@ -89,10 +97,16 @@ class EntryList:
             raise Exception('No time entry to end.')
         else:
             entries[-1].stop = stop
-            entries.save()
+            entries.save_and_sync()
 
     def edit(self):
         """Open an editor to edit the time entries."""
+        # Ensure the header exists.
+        EntryList(self.date).save()
+
+        # Edit the entries
         editor = os.environ['EDITOR'] or os.environ['VISUAL']
         call([editor, _get_path(self.date, makedirs=True)])
-        # TODO sync with external providers
+
+        # Reload and sync the time entries
+        EntryList(self.date).sync()

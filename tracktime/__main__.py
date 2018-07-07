@@ -3,7 +3,6 @@ import argparse
 import os
 from datetime import datetime
 
-import tracktime
 from tracktime import cli
 
 
@@ -58,6 +57,18 @@ def main():
         default=datetime.today().date(),
         help='the date to edit time entries for (defaults to today)')
 
+    sync_parser = subparsers.add_parser('sync')
+    sync_parser.add_argument(
+        '-y',
+        '--year',
+        default=datetime.now().year,
+        help='the year to synchronize time entries for (defaults to the current month)')
+    sync_parser.add_argument(
+        '-m',
+        '--month',
+        default=datetime.now().month,
+        help='the month to synchronize time entries for (defaults to the current month)')
+
     report_parser = subparsers.add_parser('report')
     report_parser.add_argument(
         '-m',
@@ -82,6 +93,7 @@ def main():
         'stop': cli.stop,
         'list': cli.list_entries,
         'edit': cli.edit,
+        'sync': cli.sync,
         'report': cli.report,
     }[args.action](args)
 
