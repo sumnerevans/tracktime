@@ -53,8 +53,30 @@ class EntryList:
             e.duration(allow_unended=True) for e in self.entries)
         return (total_minutes // 60, total_minutes % 60)
 
-    def append(self, entry):
-        self.entries.append(entry)
+    def add_entry(self, entry):
+        # Determine where the entry does in the list.
+        index = len(self.entries) + 1  # default to the end
+        for i, e in enumerate(self.entries):
+            if e.stop and e.start <= entry.start <= e.stop:
+                # The entry is being started in the middle of this one.
+                entry.stop = e.stop
+                e.stop = entry.start
+                index = i + 1
+                break
+
+            if entry.start < e.start:
+                # The entry is being started before this.
+                entry.stop = e.start
+                index = i
+                break
+
+            # There is an unended time entry. Stop it, and start the new one.
+            if e.start <= entry.start and not e.stop:
+                e.stop = entry.start
+                index = i + 1
+                break
+
+        self.entries.insert(index, entry)
 
     def save(self):
         with open(self.filepath, 'w') as f:
@@ -77,9 +99,6 @@ class EntryList:
         Synchroniser(self.date.year, self.date.month).sync()
 
     def start(self, start, description, type, project, taskid, customer):
-        if len(self.entries) > 0:
-            self.entries[-1].stop = start
-
         time_entry = TimeEntry(
             start,
             description,
@@ -88,7 +107,7 @@ class EntryList:
             taskid=taskid,
             customer=customer,
         )
-        self.entries.append(time_entry)
+        self.add_entry(time_entry)
         self.save_and_sync()
 
     def stop(self, stop):

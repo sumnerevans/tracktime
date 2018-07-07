@@ -25,6 +25,16 @@ class TimeEntry:
         if type in abbrs.keys():
             self.type = abbrs[type]
 
+    @property
+    def stop(self):
+        return self._stop
+
+    @stop.setter
+    def stop(self, value):
+        if value and value < self.start:
+            raise Exception('Cannot stop a time entry before it was started.')
+        self._stop = value
+
     def __repr__(self):
         start = '{:%H:%M}'.format(self.start)
         span = f'{start}-{self.stop:%H:%M}' if self.stop else start
