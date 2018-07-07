@@ -21,8 +21,36 @@ Guiding Principles
 - Easy to edit manually (not a binary format)
 - Must be able to use offline
 
-Structure
----------
+Configuration Options
+---------------------
+
+There are a number of configuration options that can be set in
+``~/.config/tracktime/tracktimerc``. The ``tracktimerc`` file is in YAML
+format. Here is a link to an `example configuration`_. Below is a list of each
+of the options and what they do.
+
+- ``fullname`` (``string``) - your full name. This is used for generating reports.
+- ``sync_time`` (``boolean``, defaults to ``false``) - determines whether or not
+  to synchronise with external services.
+- ``gitlab_username`` (``string``) - your GitLab username. Used to sync with GitLab.
+- ``gitlab_api_key`` (``string``) - your GitLab API Key. Must be created with
+  full API access. Used to sync with GitLab.
+- ``tableformat`` (``string``, defaults to ``simple``) - the type of table to
+  generate when exporting a report to stdout. (See the `tabulate documentation`_
+  for details on what formats are supported.)
+- ``project_rates`` (``dictionary``) - a dictionary of project-rate pairs. Used
+  to calculate totals for the report export.
+- ``customer_aliases`` (``dictionary``) - a dictionary of alias-full name
+  pairs. Used to expand a name on the report export. Useful when a customer has
+  a really long name.
+- ``customer_addresses`` (``dictionary``) - a dictionary of name-address
+  pairs. Used in the report export.
+
+.. _example configuration: https://gitlab.com/sumner/tracktime/snippets/1731133
+.. _tabulate documentation: https://bitbucket.org/astanin/python-tabulate#rst-header-table-format
+
+Architecture
+------------
 
 Directory Structure
 ^^^^^^^^^^^^^^^^^^^
