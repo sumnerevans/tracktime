@@ -1,0 +1,39 @@
+stages:
+  - build
+  - deploy
+  - verify_deploy
+
+build:
+  image: python:3.6-alpine
+  stage: build
+  before_script:
+    - pip install docutils
+  script:
+    - python setup.py check -mrs
+    - python setup.py sdist
+  artifacts:
+      paths:
+        - dist/*
+
+deploy_pypi:
+  image: python:3.6-alpine
+  stage: deploy
+  only:
+    - master
+  before_script:
+    - 'pip install twine'
+    - './create-pypirc.sh'
+  script:
+    # Upload to the test PyPi instance, then upload to the real one.
+    - twine upload -r pypi_test dist/*
+    - twine upload dist/*
+  after_script:
+    - echo "" > ~/.pypirc && rm -f ~/.pypirc
+
+verify_deploy:
+  image: python:3.6-alpine
+  stage: verify_deploy
+  only:
+    - master
+  script:
+    - pip install tracktime

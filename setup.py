@@ -8,10 +8,11 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+version = '0.1.1'
+
 setup(
     name='tracktime',
-    version='0.1',
-    release='0.1.1',
+    version=version,
     url='https://gitlab.com/sumner/tracktime',
     description='Time tracking library with command line interface.',
     long_description=long_description,
