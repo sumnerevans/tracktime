@@ -8,7 +8,6 @@ import pdfkit
 from docutils import core
 from docutils.writers import html5_polyglot
 from tabulate import tabulate
-
 from tracktime import EntryList, config
 
 
@@ -167,3 +166,7 @@ class Report:
     def export_to_pdf(self, filename):
         pdfkit.from_string(self.generate_html_report(), filename)
         print(f'PDF report exported to {filename}.')
+
+    def export_to_rst(self, filename):
+        with open(filename, 'w+') as f:
+            f.write(self.generate_textual_report('rst'))

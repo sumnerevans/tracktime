@@ -90,6 +90,8 @@ def report(args):
             report.export_to_pdf(path)
         elif path.suffix == '.html':
             report.export_to_html(path)
+        elif path.suffix == '.rst':
+            report.export_to_rst(path)
         else:
             raise Exception(f'Cannot export to "{path.suffix}" file format.')
     else:
