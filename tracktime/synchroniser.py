@@ -7,7 +7,6 @@ from subprocess import PIPE, call, run
 from urllib import parse
 
 from requests import get, post
-
 from tracktime import EntryList
 from tracktime.config import get_config
 
@@ -94,10 +93,12 @@ class Synchroniser:
                 continue
 
             type, project, taskid = task_tuple
-            print(f'Adding {time_diff}m to {project}#{taskid}')
+            print(f'Adding {time_diff}m to {project}{taskid}')
 
             project = parse.quote(project).replace('/', '%2F')
-            uri = f'/projects/{project}/issues/{taskid}/add_spent_time'
+            task_type = {'#': 'issue', '!': 'merge_request'}[taskid[0]]
+            task_number = taskid[1:]
+            uri = f'/projects/{project}/{task_type}s/{task_number}/add_spent_time'
             params = {'duration': f'{time_diff}m'}
             result = self._make_request(uri, params=params)
 
