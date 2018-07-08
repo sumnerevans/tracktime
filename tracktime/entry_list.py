@@ -94,7 +94,7 @@ class EntryList:
         self.sync()
 
     def sync(self):
-        from tracktime.synchroniser import Synchroniser
+        from tracktime.synchronisers import Synchroniser
         Synchroniser(self.date.year, self.date.month).sync()
 
     def start(self, start, description, type, project, taskid, customer):

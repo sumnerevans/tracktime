@@ -4,7 +4,8 @@ from pathlib import Path
 from subprocess import call
 
 from tabulate import tabulate
-from tracktime import Synchroniser, config
+from tracktime import config
+from tracktime.synchronisers import Synchroniser
 from tracktime.entry_list import EntryList, get_path
 from tracktime.report import Report
 from tracktime.time_parser import parse_date, parse_month, parse_time

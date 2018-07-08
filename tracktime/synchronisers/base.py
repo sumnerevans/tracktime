@@ -4,11 +4,24 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from subprocess import PIPE, call, run
-from urllib import parse
 
-from requests import get, post
 from tracktime import EntryList
 from tracktime.config import get_config
+
+
+class ExternalSynchroniser:
+    def sync(self, aggregated_time, synced_time):
+        """
+        Synchronise time over to the external service.
+
+        Arguments:
+        aggregated_time - a dictionary of (type, project, taskid) to duration
+        synced_time - a dictionary of (type, project, taskid) to duration
+
+        Returns:
+        a dictionary of (type, project, taskid) to duration
+        """
+        raise NotImplementedError('ExternalSynchroniser requires "sync" to be implemented.')
 
 
 class Synchroniser:
@@ -32,15 +45,6 @@ class Synchroniser:
         command = ['ping', '-c', '1', '8.8.8.8']
         return run(command, stdout=PIPE, stderr=PIPE).returncode == 0
 
-    def _make_request(self, rel_path, requester=post, params={}):
-        params = parse.urlencode({
-            'private_token': self.config.get('gitlab_api_key'),
-            **params
-        })
-        rel_path = rel_path[1:] if rel_path.startswith('/') else rel_path
-        path = parse.urljoin(self.config['gitlab_api_root'], rel_path)
-        return requester(path, params)
-
     def sync(self):
         """Synchronize time entries with external services."""
         if not self.config['sync_time']:
@@ -61,11 +65,8 @@ class Synchroniser:
                 continue
 
             for entry in EntryList(date(self.year, self.month, day)).entries:
-                # Skip any entries that are not GitLab entries.
-                if entry.type not in ('gl', 'gitlab'):
-                    continue
-                # Skip any entries that don't have a project or task.
-                if not entry.project or not entry.taskid:
+                # Skip any entries that don't have a type, project, or taskid.
+                if not entry.type or not entry.project or not entry.taskid:
                     continue
                 # Skip any un-ended entries.
                 if not entry.stop:
@@ -83,28 +84,8 @@ class Synchroniser:
                     task_tuple = (row['type'], row['project'], row['taskid'])
                     synced_time[task_tuple] = int(row['synced'])
 
-        # Go through all of the aggredated time and determine how much time
-        # needs to be syncrhonised over to GitLab for each taskid.
-        for task_tuple, duration in aggregated_time.items():
-            time_diff = duration - synced_time[task_tuple]
-
-            # Skip tasks that don't have any change.
-            if time_diff == 0:
-                continue
-
-            type, project, taskid = task_tuple
-            print(f'Adding {time_diff}m to {project}{taskid}')
-
-            project = parse.quote(project).replace('/', '%2F')
-            task_type = {'#': 'issue', '!': 'merge_request'}[taskid[0]]
-            task_number = taskid[1:]
-            uri = f'/projects/{project}/{task_type}s/{task_number}/add_spent_time'
-            params = {'duration': f'{time_diff}m'}
-            result = self._make_request(uri, params=params)
-
-            # If successful, update the amount that has been synced.
-            if result.status_code == 201:
-                synced_time[task_tuple] += time_diff
+        from tracktime.synchronisers.gitlab import GitLabSynchroniser
+        GitLabSynchroniser().sync(aggregated_time, synced_time)
 
         # Update the .synced file with the updated amounts.
         with open(synced_file_path, 'w+') as f:
