@@ -96,10 +96,11 @@ class Report:
         ]
 
         # Total Line
+        self.grand_total = sum(row['Total ($)'] for row in self.report_table)
         self.report_table.append({
             'Project': 'TOTAL',
             'Hours': total_minutes / 60,
-            'Total ($)': sum(row['Total ($)'] for row in self.report_table),
+            'Total ($)': self.grand_total,
         })
 
     def generate_textual_report(self, tablefmt):
@@ -129,6 +130,10 @@ class Report:
                 '',
                 customer,
             ]
+
+        # Include the Grand Total
+        lines.append(f'**Grand Total:** ${self.grand_total:.2f}')
+        lines.append('')
 
         # Include the report table
         lines += [
