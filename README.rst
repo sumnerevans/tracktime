@@ -8,9 +8,22 @@ each day.
 Installation
 ------------
 
-Report functionality requires ``wkhtmltopdf`` to be installed. Install it using
-your distribution's package manager or visit their `homepage`__ for installation
-instructions specific to your operating system.
+Using PyPi::
+
+    pip install --user tracktime
+
+On Arch Linux, you can install the ``tracktime`` package from the AUR. For
+example, if you use ``aurman``::
+
+    aurman -S tracktime
+
+Dependencies
+^^^^^^^^^^^^
+
+Report functionality requires ``wkhtmltopdf`` to be installed. If you install
+using the AUR package, this will be installed automatically. Otherwise, you can
+install it using your distribution's package manager or visit their `homepage`__
+for installation instructions specific to your operating system.
 
 __ https://wkhtmltopdf.org/
 
