@@ -3,7 +3,6 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from subprocess import call
 
 from requests import get, post
 from tabulate import tabulate
@@ -13,7 +12,7 @@ from tracktime.time_entry import TimeEntry
 from tracktime.time_parser import parse_time
 
 
-def _get_path(date, makedirs=False):
+def get_path(date, makedirs=False):
     directory = Path(get_config()['directory'])
     directory = directory.joinpath(str(date.year))
     directory = directory.joinpath('{:02}'.format(date.month))
@@ -30,7 +29,7 @@ class EntryList:
         self.entries = []
 
         # Load entries from the file
-        self.filepath = _get_path(date, makedirs=True)
+        self.filepath = get_path(date, makedirs=True)
         if os.path.exists(self.filepath):
             with open(self.filepath, 'r') as f:
                 for row in csv.DictReader(f):
@@ -130,15 +129,3 @@ class EntryList:
             old_entry.taskid,
             old_entry.customer,
         )
-
-    def edit(self):
-        """Open an editor to edit the time entries."""
-        # Ensure the header exists.
-        EntryList(self.date).save()
-
-        # Edit the entries
-        editor = os.environ['EDITOR'] or os.environ['VISUAL']
-        call([editor, _get_path(self.date, makedirs=True)])
-
-        # Reload and sync the time entries
-        EntryList(self.date).sync()
