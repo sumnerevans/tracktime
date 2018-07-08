@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 import argparse
 import os
+import sys
 from datetime import datetime
 
 from tracktime import cli
@@ -93,7 +94,10 @@ def main():
         help='specify the filename to export the report to. '
         'If none specified, output to stdout')
 
-    args = parser.parse_args()
+    if len(sys.argv) > 1:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(['list'])
 
     {
         'start': cli.start,

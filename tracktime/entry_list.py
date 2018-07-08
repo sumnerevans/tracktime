@@ -57,7 +57,7 @@ class EntryList:
         # Determine where the entry does in the list.
         index = len(self.entries) + 1  # default to the end
         for i, e in enumerate(self.entries):
-            if e.stop and e.start <= entry.start <= e.stop:
+            if e.stop and e.start <= entry.start < e.stop:
                 # The entry is being started in the middle of this one.
                 entry.stop = e.stop
                 e.stop = entry.start
