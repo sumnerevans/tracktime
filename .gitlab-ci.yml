@@ -10,6 +10,7 @@ lint:
   before_script:
     - pip install -e .
   script:
+    - python setup.py check -mrs
     - flake8
 
 test:
@@ -17,6 +18,7 @@ test:
   stage: test
   before_script:
     - pip install -e .
+    - pip install pytest
   script:
     - pytest
 
@@ -26,7 +28,6 @@ build:
   before_script:
     - pip install docutils
   script:
-    - python setup.py check -mrs
     - python setup.py sdist
   artifacts:
       paths:
