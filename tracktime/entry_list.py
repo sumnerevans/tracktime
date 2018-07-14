@@ -1,19 +1,25 @@
 import csv
-import json
 import os
-from datetime import datetime
 from pathlib import Path
-from subprocess import call
-
-from requests import get, post
-from tabulate import tabulate
 
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
 from tracktime.time_parser import parse_time
 
 
-def _get_path(date, makedirs=False):
+def get_path(date, makedirs=False):
+    """
+    Returns the path for a given date.
+
+    Arguments:
+    date: the date[time] object representing the date to get a path for.
+    makedirs: (optional) whether or not to create the corresponding directory
+
+    >>> from datetime import date
+    >>> dir = get_config()['directory']
+    >>> str(get_path(date(2018, 1, 1))) == f'{dir}/2018/01/01'
+    True
+    """
     directory = Path(get_config()['directory'])
     directory = directory.joinpath(str(date.year))
     directory = directory.joinpath('{:02}'.format(date.month))
@@ -30,7 +36,7 @@ class EntryList:
         self.entries = []
 
         # Load entries from the file
-        self.filepath = _get_path(date, makedirs=True)
+        self.filepath = get_path(date, makedirs=True)
         if os.path.exists(self.filepath):
             with open(self.filepath, 'r') as f:
                 for row in csv.DictReader(f):
@@ -95,7 +101,7 @@ class EntryList:
         self.sync()
 
     def sync(self):
-        from tracktime.synchroniser import Synchroniser
+        from tracktime.synchronisers import Synchroniser
         Synchroniser(self.date.year, self.date.month).sync()
 
     def start(self, start, description, type, project, taskid, customer):
@@ -130,15 +136,3 @@ class EntryList:
             old_entry.taskid,
             old_entry.customer,
         )
-
-    def edit(self):
-        """Open an editor to edit the time entries."""
-        # Ensure the header exists.
-        EntryList(self.date).save()
-
-        # Edit the entries
-        editor = os.environ['EDITOR'] or os.environ['VISUAL']
-        call([editor, _get_path(self.date, makedirs=True)])
-
-        # Reload and sync the time entries
-        EntryList(self.date).sync()

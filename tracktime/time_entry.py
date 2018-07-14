@@ -1,6 +1,4 @@
 """Time Entry class"""
-import os
-import time
 from datetime import datetime
 
 
@@ -43,9 +41,21 @@ class TimeEntry:
         return f'<TimeEntry {span} {fields}>'
 
     def duration(self, allow_unended=False):
+        """Return the duration of this time entry.
+
+        Arguments:
+        allow_unended: (optional) whether or not to allow the entry to be
+                       unended
+
+        >>> from datetime import datetime
+        >>> start = datetime(2018, 1, 1, 10, 13)
+        >>> stop = datetime(2018, 1, 1, 11, 23)
+        >>> TimeEntry(start, '', stop=stop).duration()
+        70
+        """
         if not self.stop:
             if not allow_unended:
-                raise Exception('Unstopped time entries cannot have a duration.')
+                raise Exception('Unended time entries cannot have a duration.')
             else:
                 self.stop = datetime.now()
 

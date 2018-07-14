@@ -1,10 +1,11 @@
+import os
 from datetime import date, datetime
 from pathlib import Path
+from subprocess import call
 
 from tabulate import tabulate
-
-from tracktime import Synchroniser, config
-from tracktime.entry_list import EntryList
+from tracktime.synchronisers import Synchroniser
+from tracktime.entry_list import EntryList, get_path
 from tracktime.report import Report
 from tracktime.time_parser import parse_date, parse_month, parse_time
 
@@ -42,7 +43,18 @@ def list_entries(args):
 
 
 def edit(args):
-    EntryList(parse_date(args.date)).edit()
+    """Open an editor to edit the time entries."""
+    date = parse_date(args.date)
+
+    # Ensure the header exists.
+    EntryList(date).save()
+
+    # Edit the entries
+    editor = os.environ['EDITOR'] or os.environ['VISUAL']
+    call([editor, get_path(date, makedirs=True)])
+
+    # Reload and sync the time entries
+    EntryList(date).sync()
 
 
 def sync(args):
@@ -77,6 +89,8 @@ def report(args):
             report.export_to_pdf(path)
         elif path.suffix == '.html':
             report.export_to_html(path)
+        elif path.suffix == '.rst':
+            report.export_to_rst(path)
         else:
             raise Exception(f'Cannot export to "{path.suffix}" file format.')
     else:

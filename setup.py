@@ -8,7 +8,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-version = '0.9.0'
+version = '0.9.1'
 
 setup(
     name='tracktime',
@@ -23,7 +23,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: End Users/Desktop',
@@ -37,7 +37,15 @@ setup(
     ],
     keywords='time tracking',
     packages=['tracktime'],
-    install_requires=['tabulate', 'pdfkit', 'docutils', 'requests'],
+    install_requires=[
+        'tabulate',
+        'pdfkit',
+        'docutils',
+        'requests',
+        'flake8',
+        'flake8-pep3101',
+        'pyyaml',
+    ],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and

@@ -1,7 +1,26 @@
 stages:
+  - test
   - build
   - deploy
   - verify_deploy
+
+lint:
+  image: python:3.6-alpine
+  stage: test
+  before_script:
+    - pip install -e .
+  script:
+    - python setup.py check -mrs
+    - flake8
+
+test:
+  image: python:3.6-alpine
+  stage: test
+  before_script:
+    - pip install -e .
+    - pip install pytest
+  script:
+    - pytest -vvv
 
 build:
   image: python:3.6-alpine
@@ -9,7 +28,6 @@ build:
   before_script:
     - pip install docutils
   script:
-    - python setup.py check -mrs
     - python setup.py sdist
   artifacts:
       paths:

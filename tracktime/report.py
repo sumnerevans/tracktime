@@ -1,14 +1,11 @@
-import csv
-import os
 from calendar import Calendar
 from collections import OrderedDict, defaultdict
-from datetime import date, datetime, timedelta
+from datetime import date
 
 import pdfkit
 from docutils import core
 from docutils.writers import html5_polyglot
 from tabulate import tabulate
-
 from tracktime import EntryList, config
 
 
@@ -25,13 +22,43 @@ class Report:
                 self.name, self.customer, self.rate, self.minutes)
 
         def add_minutes(self, minutes):
+            """Add a specified number of minutes to the project's time.
+
+            Arguments:
+            minutes: the number of minutes to add
+
+            >>> r = Report.Project()
+            >>> r.add_minutes(10)
+            >>> r.minutes
+            10
+            """
             self.minutes += minutes
 
         @property
         def total(self):
+            """Calculates the total monetary amount for the project.
+
+            >>> r = Report.Project()
+            >>> r.add_minutes(90)
+            >>> r.rate = 20
+            >>> r.total
+            30.0
+            """
             return self.minutes / 60 * self.rate
 
         def get_dict(self, show_customer):
+            """Gets the dictionary representation of this Project.
+
+            Arguments:
+            show_customer: whether or not to include the customer in the
+                           dictionary
+
+            >>> r = Report.Project(name='Test')
+            >>> dict(r.get_dict(False))
+            {'Project': 'Test', 'Hours': 0.0, 'Rate ($)': 0.0, 'Total ($)': 0.0}
+            >>> dict(r.get_dict(True))
+            {'Project': 'Test', 'Customer': None, 'Hours': 0.0, 'Rate ($)': 0.0, 'Total ($)': 0.0}
+            """
             details = OrderedDict()
             details['Project'] = self.name
 
@@ -167,3 +194,7 @@ class Report:
     def export_to_pdf(self, filename):
         pdfkit.from_string(self.generate_html_report(), filename)
         print(f'PDF report exported to {filename}.')
+
+    def export_to_rst(self, filename):
+        with open(filename, 'w+') as f:
+            f.write(self.generate_textual_report('rst'))

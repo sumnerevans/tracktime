@@ -13,6 +13,25 @@ def parse_time(time_representation, date=datetime.now()):
     :param time_representation: the representation of the time to parse
     :param date: (optional) the date to use in the datetime
     :returns: a datetime representing the time and date
+
+    >>> from datetime import datetime
+
+    If it's not a string, just pass it through.
+    >>> parse_time(datetime(2018, 1, 1, 13, 34))
+    datetime.datetime(2018, 1, 1, 13, 34)
+
+    If it is a string, parse it, using ``date`` as the date for the resulting
+    datetime.
+    >>> parse_time('13:34', date=date(2018, 1, 1))
+    datetime.datetime(2018, 1, 1, 13, 34)
+    >>> parse_time('1334', date=date(2018, 1, 1))
+    datetime.datetime(2018, 1, 1, 13, 34)
+
+    If it is malformed, throw a ValueError
+    >>> parse_time('foo', date=date(2018, 1, 1))
+    Traceback (most recent call last):
+        ...
+    ValueError: Could not parse time.
     """
     if not isinstance(time_representation, str):
         return time_representation
@@ -22,6 +41,7 @@ def parse_time(time_representation, date=datetime.now()):
         r'\d\d:\d\d': '%H:%M',
     }
 
+    # Try to parse the time using the time formats.
     for pattern, dateformat in time_formats.items():
         if re.match(pattern, time_representation):
             timestamp = time.strptime(time_representation, dateformat)
@@ -39,6 +59,27 @@ def parse_date(date_representation):
 
     :param date_representation: the representation of the time to parse
     :returns: a datetime representing midnight on the proper date
+
+    >>> from datetime import datetime
+    >>> now = datetime.now()
+
+    If it's not a string, just pass it through.
+    >>> parse_date(date(2018, 1, 1))
+    datetime.date(2018, 1, 1)
+
+    If it is a string, parse it.
+    >>> d = parse_date('03')
+    >>> assert (now.year, now.month, 3) == (d.year, d.month, d.day)
+    >>> d = parse_date('03-03')
+    >>> assert (now.year, 3, 3) == (d.year, d.month, d.day)
+    >>> d = parse_date('2018-03-03')
+    >>> assert (2018, 3, 3) == (d.year, d.month, d.day)
+
+    If it is malformed, throw a ValueError
+    >>> parse_date('foo')
+    Traceback (most recent call last):
+        ...
+    ValueError: Could not parse date.
     """
     if not isinstance(date_representation, str):
         return date_representation
@@ -82,7 +123,31 @@ def parse_date(date_representation):
     raise ValueError('Could not parse date.')
 
 
-def parse_month(month_representation, year=datetime.now().year):
+def parse_month(month_representation):
+    """Parse a month string.
+
+    Arguments:
+
+    :param month_representation: the representation of the month to parse
+    :returns: a datetime representing midnight on the proper date
+
+    If it's numeric, parse as is.
+    >>> parse_month('01')
+    1
+
+    Otherwise, try to parse it.
+    >>> parse_month('Jan')
+    1
+    >>> parse_month('December')
+    12
+
+    If it is malformed, throw a ValueError.
+    >>> parse_month('foo')                     # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+        ...
+    ValueError: You must specify the month as either the fully qualified month
+        (December), an abbreviated month (Dec), or a number.
+    """
     abbrs = list(month_abbr)  # Jan, Feb, Mar, ...
     names = list(month_name)  # January, February, March, ...
     if month_representation in abbrs:
