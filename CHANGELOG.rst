@@ -1,6 +1,12 @@
 Changelog
 #########
 
+0.9.3
+=====
+
+- **Emergency Bugfix:** Added the ``tracktime.synchronisers`` package by
+  converting to use ``find_packages`` instead of hard-coding a list of packages.
+
 0.9.2
 =====
 

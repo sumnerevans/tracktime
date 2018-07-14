@@ -1,14 +1,14 @@
 import codecs
 import os
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-version = '0.9.2'
+version = '0.9.3'
 
 setup(
     name='tracktime',
@@ -36,7 +36,7 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     keywords='time tracking',
-    packages=['tracktime'],
+    packages=find_packages(exclude=['tests']),
     install_requires=[
         'tabulate',
         'pdfkit',
