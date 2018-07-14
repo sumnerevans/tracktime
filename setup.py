@@ -44,6 +44,7 @@ setup(
         'requests',
         'flake8',
         'flake8-pep3101',
+        'pyyaml',
     ],
 
     # To provide executable scripts, use entry points in preference to the
