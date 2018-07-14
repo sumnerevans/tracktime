@@ -9,6 +9,7 @@ lint:
   stage: test
   before_script:
     - pip install -e .
+    - pip install flake8 flake8-pep3101
   script:
     - python setup.py check -mrs
     - flake8

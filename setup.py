@@ -8,7 +8,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-version = '0.9.1'
+version = '0.9.2'
 
 setup(
     name='tracktime',
@@ -42,8 +42,6 @@ setup(
         'pdfkit',
         'docutils',
         'requests',
-        'flake8',
-        'flake8-pep3101',
         'pyyaml',
     ],
 

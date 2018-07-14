@@ -1,6 +1,12 @@
 Changelog
 #########
 
+0.9.2
+=====
+
+- **Emergency Bugfix:** Removed the ``flake8`` and ``flake8-pep3101``
+  dependencies
+
 0.9.1
 =====
 
