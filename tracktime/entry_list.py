@@ -8,6 +8,18 @@ from tracktime.time_parser import parse_time
 
 
 def get_path(date, makedirs=False):
+    """
+    Returns the path for a given date.
+
+    Arguments:
+    date: the date[time] object representing the date to get a path for.
+    makedirs: (optional) whether or not to create the corresponding directory
+
+    >>> from datetime import date
+    >>> dir = get_config()['directory']
+    >>> str(get_path(date(2018, 1, 1))) == f'{dir}/2018/01/01'
+    True
+    """
     directory = Path(get_config()['directory'])
     directory = directory.joinpath(str(date.year))
     directory = directory.joinpath('{:02}'.format(date.month))
