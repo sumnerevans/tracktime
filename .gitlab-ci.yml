@@ -40,7 +40,6 @@ deploy_pypi:
   only:
     - master
   before_script:
-    - if [ -z "$CI_COMMIT_TAG" ]; then echo 'Skipping deploy on non-tagged commit'; exit 0; fi
     - 'pip install twine'
     - './create-pypirc.sh'
   script:
@@ -55,7 +54,5 @@ verify_deploy:
   stage: verify_deploy
   only:
     - master
-  before_script:
-    - if [ -z "$CI_COMMIT_TAG" ]; then echo 'Skipping deploy verification on non-tagged commit'; exit 0; fi
   script:
     - pip install tracktime
