@@ -3,7 +3,7 @@ import csv
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
-from subprocess import PIPE, call, run
+from subprocess import PIPE, run
 
 from tracktime import EntryList
 from tracktime.config import get_config

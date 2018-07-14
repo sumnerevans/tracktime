@@ -1,8 +1,6 @@
-import csv
-import os
 from calendar import Calendar
 from collections import OrderedDict, defaultdict
-from datetime import date, datetime, timedelta
+from datetime import date
 
 import pdfkit
 from docutils import core

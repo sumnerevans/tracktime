@@ -1,6 +1,4 @@
 """Time Entry class"""
-import os
-import time
 from datetime import datetime
 
 
@@ -45,7 +43,7 @@ class TimeEntry:
     def duration(self, allow_unended=False):
         if not self.stop:
             if not allow_unended:
-                raise Exception('Unstopped time entries cannot have a duration.')
+                raise Exception('Unended time entries cannot have a duration.')
             else:
                 self.stop = datetime.now()
 

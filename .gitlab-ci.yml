@@ -1,7 +1,24 @@
 stages:
+  - test
   - build
   - deploy
   - verify_deploy
+
+lint:
+  image: python:3.6-alpine
+  stage: test
+  before_script:
+    - pip install -e .
+  script:
+    - flake8
+
+test:
+  image: python:3.6-alpine
+  stage: test
+  before_script:
+    - pip install -e .
+  script:
+    - pytest
 
 build:
   image: python:3.6-alpine

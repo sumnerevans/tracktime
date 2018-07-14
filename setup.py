@@ -37,7 +37,14 @@ setup(
     ],
     keywords='time tracking',
     packages=['tracktime'],
-    install_requires=['tabulate', 'pdfkit', 'docutils', 'requests'],
+    install_requires=[
+        'tabulate',
+        'pdfkit',
+        'docutils',
+        'requests',
+        'flake8',
+        'flake8-pep3101',
+    ],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and

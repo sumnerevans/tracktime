@@ -1,11 +1,6 @@
 import csv
-import json
 import os
-from datetime import datetime
 from pathlib import Path
-
-from requests import get, post
-from tabulate import tabulate
 
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
