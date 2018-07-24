@@ -19,9 +19,9 @@ test:
   stage: test
   before_script:
     - pip install -e .
-    - pip install pytest
+    - pip install pytest pytest-cov
   script:
-    - pytest -vvv
+    - pytest
 
 build:
   image: python:3.6-alpine
