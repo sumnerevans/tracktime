@@ -12,11 +12,14 @@ from tracktime.config import get_config
 class ExternalSynchroniser:
     def sync(self, aggregated_time, synced_time):
         """
-        Synchronise time over to the external service.
+        Synchronise time over to the external service. All classes that inherit
+        from ``ExternalSynchroniser`` must implement this function.
 
         Arguments:
-        aggregated_time - a dictionary of (type, project, taskid) to duration
-        synced_time - a dictionary of (type, project, taskid) to duration
+        :param aggregated_time: a dictionary of (type, project, taskid) to
+                                duration
+        :param synced_time:     a dictionary of (type, project, taskid) to
+                                duration
 
         Returns:
         a dictionary of (type, project, taskid) to duration
@@ -26,6 +29,13 @@ class ExternalSynchroniser:
 
 class Synchroniser:
     def __init__(self, year, month):
+        """Initialize the Synchroniser.
+
+        >>> s = Synchroniser(2018, 7)
+        >>> assert (s.year, s.month) == (2018, 7)
+        >>> str(s.month_dir)                               # doctest: +ELLIPSIS
+        '.../2018/07'
+        """
         self.year = year
         self.month = month
 

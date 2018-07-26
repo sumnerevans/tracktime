@@ -74,6 +74,8 @@ def parse_date(date_representation):
     >>> assert (now.year, 3, 3) == (d.year, d.month, d.day)
     >>> d = parse_date('2018-03-03')
     >>> assert (2018, 3, 3) == (d.year, d.month, d.day)
+    >>> d = parse_date('today')
+    >>> assert (now.year, now.month, now.day) == (d.year, d.month, d.day)
 
     If it is malformed, throw a ValueError
     >>> parse_date('foo')
