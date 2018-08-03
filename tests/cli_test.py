@@ -14,5 +14,5 @@ def test_cli():
 
     check_output('tt --help'.split()).decode()
     check_output('tt sync'.split()).decode()
-    check_output('tt sync -y 2'.split()).decode()
+    check_output('tt sync -y 2018'.split()).decode()
     # hsould error
