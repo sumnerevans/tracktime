@@ -21,7 +21,7 @@ class GitLabSynchroniser(ExternalSynchroniser):
     def sync(self, aggregated_time, synced_time):
         """Synchronize time entries with GitLab."""
         # Go through all of the aggredated time and determine how much time
-        # needs to be syncrhonised over to GitLab for each taskid.
+        # needs to be synchronised over to GitLab for each taskid.
         for task_tuple, duration in aggregated_time.items():
             time_diff = duration - synced_time[task_tuple]
 

@@ -107,7 +107,3 @@ def main():
         'sync': cli.sync,
         'report': cli.report,
     }[args.action](args)
-
-
-if __name__ == '__main__':
-    main()

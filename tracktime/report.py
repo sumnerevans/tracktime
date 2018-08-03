@@ -18,6 +18,15 @@ class Report:
             self.minutes = 0
 
         def __repr__(self):
+            """Returns a string representation of the Project.
+
+            >>> r = Report.Project(name='foo')
+            >>> r.customer = 'bar'
+            >>> r.rate = 30
+            >>> r.minutes = 84
+            >>> r
+            <Report.Project foo customer=bar rate=30 minutes=84>
+            """
             return '<Report.Project {} customer={} rate={} minutes={}>'.format(
                 self.name, self.customer, self.rate, self.minutes)
 

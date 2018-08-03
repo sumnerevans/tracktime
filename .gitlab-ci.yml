@@ -22,6 +22,9 @@ test:
     - pip install pytest pytest-cov
   script:
     - pytest
+  artifacts:
+    paths:
+      - htmlcov
 
 build:
   image: python:3.6-alpine
@@ -31,8 +34,8 @@ build:
   script:
     - python setup.py sdist
   artifacts:
-      paths:
-        - dist/*
+    paths:
+      - dist/*
 
 deploy_pypi:
   image: python:3.6-alpine

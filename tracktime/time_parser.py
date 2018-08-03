@@ -14,8 +14,6 @@ def parse_time(time_representation, date=datetime.now()):
     :param date: (optional) the date to use in the datetime
     :returns: a datetime representing the time and date
 
-    >>> from datetime import datetime
-
     If it's not a string, just pass it through.
     >>> parse_time(datetime(2018, 1, 1, 13, 34))
     datetime.datetime(2018, 1, 1, 13, 34)
@@ -60,8 +58,8 @@ def parse_date(date_representation):
     :param date_representation: the representation of the time to parse
     :returns: a datetime representing midnight on the proper date
 
-    >>> from datetime import datetime
     >>> now = datetime.now()
+    >>> yesterday = datetime.now() - timedelta(days=1)
 
     If it's not a string, just pass it through.
     >>> parse_date(date(2018, 1, 1))
@@ -76,6 +74,9 @@ def parse_date(date_representation):
     >>> assert (2018, 3, 3) == (d.year, d.month, d.day)
     >>> d = parse_date('today')
     >>> assert (now.year, now.month, now.day) == (d.year, d.month, d.day)
+    >>> d = parse_date('yesterday')
+    >>> assert ((yesterday.year, yesterday.month, yesterday.day) ==
+    ...         (d.year,         d.month,         d.day))
 
     If it is malformed, throw a ValueError
     >>> parse_date('foo')
