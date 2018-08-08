@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from subprocess import check_output
 
@@ -7,7 +8,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def dummy_config():
     # Create a dummy configuration file
-    config_directory = Path('~/.config/tracktime')
+    config_directory = Path(os.path.expanduser('~/.config/tracktime'))
     config_directory.mkdir(parents=True, exist_ok=True)
     config_path = config_directory.joinpath('tracktimerc')
     if not config_path.exists():
