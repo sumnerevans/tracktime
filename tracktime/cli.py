@@ -26,7 +26,7 @@ def stop(args):
 
 def resume(args):
     start = parse_time(args.start)
-    EntryList(start.date()).resume(start)
+    EntryList(start.date()).resume(start, args.entry)
 
 
 def list_entries(args):

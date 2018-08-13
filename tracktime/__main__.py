@@ -49,6 +49,11 @@ def main():
         '--start',
         default=datetime.now(),
         help='specify the start time for the resumed time entry (defaults to now)')
+    resume_parser.add_argument(
+        'entry',
+        type=int,
+        default=-1,
+        help='the entry to resume (Python-style indexing, defaults to -1)')
 
     list_parser = subparsers.add_parser('list')
     list_parser.add_argument(
