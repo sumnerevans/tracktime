@@ -1,6 +1,13 @@
 Changelog
 #########
 
+0.9.4
+=====
+
+- Ability to resume time entries before the previous
+- Added lots of unit tests
+- Added code coverage statistics
+
 0.9.3
 =====
 
