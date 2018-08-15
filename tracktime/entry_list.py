@@ -123,11 +123,11 @@ class EntryList:
         self.entries[-1].stop = stop
         self.save_and_sync()
 
-    def resume(self, start):
+    def resume(self, start, entry):
         if len(self) == 0:
             raise Exception('No time entry to resume.')
 
-        old_entry = self.entries[-1]
+        old_entry = self.entries[entry]
         self.start(
             start,
             old_entry.description,

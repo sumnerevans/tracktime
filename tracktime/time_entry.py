@@ -29,11 +29,18 @@ class TimeEntry:
 
     @stop.setter
     def stop(self, value):
+        """Stops the time entry at the given stop time."""
         if value and value < self.start:
             raise Exception('Cannot stop a time entry before it was started.')
         self._stop = value
 
     def __repr__(self):
+        """Return the string representation of a TimeEntry.
+
+        >>> start = datetime(2018, 1, 1, 13, 11)
+        >>> TimeEntry(start, 'cool', type='gl', project='foo', taskid='#3', customer='bar')
+        <TimeEntry 13:11 project=foo type=gitlab taskid=#3 customer=bar description=cool>
+        """
         start = '{:%H:%M}'.format(self.start)
         span = f'{start}-{self.stop:%H:%M}' if self.stop else start
         fields = ('project', 'type', 'taskid', 'customer', 'description')
@@ -47,7 +54,6 @@ class TimeEntry:
         allow_unended: (optional) whether or not to allow the entry to be
                        unended
 
-        >>> from datetime import datetime
         >>> start = datetime(2018, 1, 1, 10, 13)
         >>> stop = datetime(2018, 1, 1, 11, 23)
         >>> TimeEntry(start, '', stop=stop).duration()

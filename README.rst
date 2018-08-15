@@ -2,8 +2,18 @@ tracktime
 =========
 
 tracktime is a filesystem-backed time tracking solution. It uses a sane
-directory structure to organize CSV files that store the tasks worked on for
-each day.
+directory structure to organize CSV files that store time tracking data for each
+day.
+
+Features
+--------
+
+- CLI
+- Start/stop/resume time entries
+- List/edit time entries for a given day
+- Generate rST, PDF, HTML reports for a month (optionally restricted to a
+  particular customer)
+- Synchronise time spent to GitLab using the Time Tracking API
 
 Installation
 ------------
@@ -128,6 +138,11 @@ external service.
 
 **This is not a two-way sync! tracktime only pushes changes, it does not poll
 for changes to the external services.**
+
+Supported External Services
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- GitLab
 
 Unsupported Edge Cases
 ----------------------
