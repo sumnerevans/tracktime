@@ -52,7 +52,7 @@ def main():
     resume_parser.add_argument(
         'entry',
         type=int,
-        default=-1,
+        nargs='?',
         help='the entry to resume (Python-style indexing, defaults to -1)')
 
     list_parser = subparsers.add_parser('list')
