@@ -30,7 +30,7 @@ class GitLabSynchroniser(ExternalSynchroniser):
                 continue
 
             type, project, taskid = task_tuple
-            print(f'Adding {time_diff}m to {project}{taskid}')
+            print(f'Adding {time_diff}m to {project}{taskid}...', end='')
 
             project = parse.quote(project).replace('/', '%2F')
             task_type = {'#': 'issue', '!': 'merge_request'}[taskid[0]]
@@ -41,6 +41,10 @@ class GitLabSynchroniser(ExternalSynchroniser):
 
             # If successful, update the amount that has been synced.
             if result.status_code == 201:
+                print(' SUCCESS')
                 synced_time[task_tuple] += time_diff
+            else:
+                print(' FAILED')
+                print(result.text)
 
         return synced_time
