@@ -83,7 +83,7 @@ def report(args):
         else:
             start = date(now.year, parse_month(args.month), 1)
 
-    report = Report(start, args.customer)
+    report = Report(start, args.customer, args.project)
     if args.filename:
         path = Path(args.filename)
         if path.suffix == '.pdf':

@@ -93,6 +93,8 @@ def main():
     report_parser.add_argument(
         '-c', '--customer', help='customer ID to generate a report for')
     report_parser.add_argument(
+        '-p', '--project', help='project name to generate a report for')
+    report_parser.add_argument(
         'filename',
         nargs='?',
         help='specify the filename to export the report to. '

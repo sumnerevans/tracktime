@@ -38,6 +38,7 @@ setup(
     keywords='time tracking',
     packages=find_packages(exclude=['tests']),
     install_requires=[
+        'argcomplete',
         'tabulate',
         'pdfkit',
         'docutils',

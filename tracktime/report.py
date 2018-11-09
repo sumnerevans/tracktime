@@ -80,9 +80,14 @@ class Report:
 
             return details
 
-    def __init__(self, start, customer):
+    def __init__(self, start, customer, project):
         self.month = start
         self.customer = customer
+        self.project = project
+
+        if self.customer and self.project:
+            raise Exception('You cannot specify both a customer and project '
+                            'to report on.')
 
         # Pull from config
         self.configuration = config.get_config()
@@ -104,7 +109,7 @@ class Report:
                 if customer and entry.customer != customer:
                     continue
 
-                # Determine what group this entry belogs in
+                # Determine what group this entry belogs in.
                 if entry.project:
                     group = entry_groups[entry.project]
 

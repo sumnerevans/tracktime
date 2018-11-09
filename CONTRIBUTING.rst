@@ -1,7 +1,7 @@
 Contributing
 ############
 
-Contributions are welcome! Please submit a PR.
+Contributions are welcome! Please submit a MR.
 
 Code Style
 ==========
