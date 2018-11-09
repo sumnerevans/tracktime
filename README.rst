@@ -56,8 +56,15 @@ of the options and what they do.
 - ``sync_time`` (``boolean``, defaults to ``false``) - determines whether or not
   to synchronise with external services.
 - ``gitlab_username`` (``string``) - your GitLab username. Used to sync with GitLab.
-- ``gitlab_api_key`` (``string``) - your GitLab API Key. Must be created with
-  full API access. Used to sync with GitLab.
+- ``gitlab_api_key`` (``string``) - your GitLab API Key or a shell command which
+  returns the API key (this can be useful if you want to store your API key in a
+  password manager). To indicate that it is a shell command, append a vertical
+  bar (``|``) at the end of the command.
+
+  .. note::
+
+    The API Key must be created with full API access. Used to sync with GitLab.
+
 - ``tableformat`` (``string``, defaults to ``simple``) - the type of table to
   generate when exporting a report to stdout. (See the `tabulate documentation`_
   for details on what formats are supported.)
