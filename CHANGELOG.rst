@@ -1,6 +1,13 @@
 Changelog
 #########
 
+0.9.5
+=====
+
+- Ability to report on projects
+- Allow GitLab API Key config item to be an arbitrary shell command
+- Added better logging for synchronizing time entries
+
 0.9.4
 =====
 
