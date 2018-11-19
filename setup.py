@@ -8,7 +8,12 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-version = '0.9.5'
+# Find the version
+with codecs.open(os.path.join(here, 'tracktime/__init__.py'), encoding='utf-8') as f:
+    for line in f:
+        if line.startswith('__version__'):
+            version = eval(line.split()[-1])
+            break
 
 setup(
     name='tracktime',

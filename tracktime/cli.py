@@ -3,10 +3,11 @@ from datetime import date, datetime
 from pathlib import Path
 from subprocess import call
 
+import tracktime
 from tabulate import tabulate
-from tracktime.synchronisers import Synchroniser
 from tracktime.entry_list import EntryList, get_path
 from tracktime.report import Report
+from tracktime.synchronisers import Synchroniser
 from tracktime.time_parser import parse_date, parse_month, parse_time
 
 
@@ -96,3 +97,7 @@ def report(args):
             raise Exception(f'Cannot export to "{path.suffix}" file format.')
     else:
         report.export_to_stdout()
+
+
+def version():
+    print(f'tracktime version {tracktime.__version__}')
