@@ -1,14 +1,21 @@
 import os
 from subprocess import check_output
+from typing import Any, Dict
 
 import yaml
 
+cached_config: Dict[str, Any] = {}
 
-def get_config(filename=None):
+
+def get_config(filename=None) -> Dict[str, Any]:
     """Gets the configuration from ~/.config/tracktime/tracktimerc. If none
     exists, defaults are used.
     """
-    configuration_dict = {
+    global cached_config
+    if cached_config:
+        return cached_config
+
+    cached_config = {
         'customer_addresses': {},
         'customer_aliases': {},
         'directory': os.path.expanduser('~/.tracktime'),
@@ -22,15 +29,15 @@ def get_config(filename=None):
         filename = os.path.expanduser('~/.config/tracktime/tracktimerc')
 
     if not os.path.exists(filename):
-        return configuration_dict
+        return cached_config
 
     with open(filename) as f:
-        configuration_dict.update(yaml.load(f) or {})
+        cached_config.update(yaml.load(f) or {})
 
     # If the API Key is a GPG file, decrypt it.
-    api_key = configuration_dict.get('gitlab_api_key')
+    api_key = cached_config.get('gitlab_api_key')
     if api_key and api_key.endswith('|'):
-        configuration_dict['gitlab_api_key'] = check_output(
+        cached_config['gitlab_api_key'] = check_output(
             api_key[:-1].split()).decode().strip()
 
-    return configuration_dict
+    return cached_config
