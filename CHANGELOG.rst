@@ -1,6 +1,13 @@
 Changelog
 #########
 
+0.9.6
+=====
+
+- Performance fix: configuration cached instead of reloaded every single time
+  from disk.
+- Added ``-v``/``--version`` flag to show version of the program.
+
 0.9.5
 =====
 
