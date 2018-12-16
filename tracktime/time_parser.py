@@ -43,8 +43,8 @@ def parse_time(time_representation, date=datetime.now()):
     for pattern, dateformat in time_formats.items():
         if re.match(pattern, time_representation):
             timestamp = time.strptime(time_representation, dateformat)
-            return datetime(date.year, date.month, date.day,
-                            timestamp.tm_hour, timestamp.tm_min)
+            return datetime(date.year, date.month, date.day, timestamp.tm_hour,
+                            timestamp.tm_min)
 
     raise ValueError('Could not parse time.')
 
@@ -167,3 +167,30 @@ def parse_month(month_representation):
                              'abbreviated month (Dec), or a number.') from e
 
     return month
+
+
+def day_as_ordinal(day):
+    """Gives the ordinal version of the date.
+
+    Arguments:
+
+    :param date_representation: the representation of the time to parse
+    :returns: a string representing the date as an ordinal
+
+    >>> day_as_ordinal(1), day_as_ordinal(2), day_as_ordinal(3)
+    ('1st', '2nd', '3rd')
+    >>> day_as_ordinal(11), day_as_ordinal(12), day_as_ordinal(13)
+    ('11th', '12th', '13th')
+    >>> day_as_ordinal(4), day_as_ordinal(20)
+    ('4th', '20th')
+    """
+    suffix = ''
+    if 4 <= day <= 20:
+        suffix = 'th'
+    elif day % 10 == 1:
+        suffix = 'st'
+    elif day % 10 == 2:
+        suffix = 'nd'
+    elif day % 10 == 3:
+        suffix = 'rd'
+    return f'{day}{suffix}'

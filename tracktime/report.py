@@ -1,3 +1,4 @@
+import sys
 from calendar import Calendar
 from collections import OrderedDict, defaultdict
 from datetime import date
@@ -7,6 +8,7 @@ from docutils import core
 from docutils.writers import html5_polyglot
 from tabulate import tabulate
 from tracktime import EntryList, config
+from tracktime.time_parser import day_as_ordinal
 
 
 class Report:
@@ -126,7 +128,13 @@ class Report:
                 # group.
                 group.name = entry.project
                 group.customer = entry.customer
-                group.minutes += entry.duration()
+                try:
+                    group.minutes += entry.duration()
+                except Exception as e:
+                    print(
+                        f'Unended time entry on the {day_as_ordinal(day)}.',
+                        file=sys.stderr)
+                    sys.exit(1)
                 group.rate = rates.get(entry.project, 0)
 
                 total_minutes += entry.duration()
