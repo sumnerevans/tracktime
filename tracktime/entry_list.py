@@ -4,6 +4,7 @@ from pathlib import Path
 
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
+from datetime import timedelta
 from tracktime.time_parser import parse_time
 
 
@@ -125,9 +126,11 @@ class EntryList:
 
     def resume(self, start, entry):
         if len(self) == 0:
-            raise Exception('No time entry to resume.')
+            yesterday = self.date - timedelta(days=1)
+            old_entry = EntryList(yesterday).entries[-1]
+        else:
+            old_entry = self.entries[entry]
 
-        old_entry = self.entries[entry]
         self.start(
             start,
             old_entry.description,
