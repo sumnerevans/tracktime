@@ -50,8 +50,8 @@ def main():
         '-s',
         '--start',
         default=datetime.now(),
-        help=
-        'specify the start time for the resumed time entry (defaults to now)')
+        help='specify the start time for the resumed time entry'
+        '(defaults to now)')
     resume_parser.add_argument(
         'entry',
         type=int,
@@ -77,16 +77,14 @@ def main():
         '-y',
         '--year',
         default=datetime.now().year,
-        help=
-        'the year to synchronize time entries for (defaults to the current month)'
-    )
+        help='the year to synchronize time entries for'
+        '(defaults to the current month)')
     sync_parser.add_argument(
         '-m',
         '--month',
         default=datetime.now().month,
-        help=
-        'the month to synchronize time entries for (defaults to the current month)'
-    )
+        help='the month to synchronize time entries for'
+        '(defaults to the current month)')
 
     report_parser = subparsers.add_parser('report')
     report_parser.add_argument(
@@ -96,9 +94,8 @@ def main():
     report_parser.add_argument(
         '-y',
         '--year',
-        help=
-        'specify the year to report on (defaults to the year of the previous month)'
-    )
+        help='specify the year to report on '
+        '(defaults to the year of the previous month)')
     report_parser.add_argument(
         '-c', '--customer', help='customer ID to generate a report for')
     report_parser.add_argument(

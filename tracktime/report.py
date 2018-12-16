@@ -130,7 +130,7 @@ class Report:
                 group.customer = entry.customer
                 try:
                     group.minutes += entry.duration()
-                except Exception as e:
+                except Exception:
                     print(
                         f'Unended time entry on the {day_as_ordinal(day)}.',
                         file=sys.stderr)

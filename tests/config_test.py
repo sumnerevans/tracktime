@@ -8,7 +8,9 @@ def test_default_config():
         'customer_addresses': {},
         'customer_aliases': {},
         'directory': os.path.expanduser('~/.tracktime'),
-        'gitlab_api_root': 'https://gitlab.com/api/v4/',
+        'gitlab': {
+            'api_root': 'https://gitlab.com/api/v4/',
+        },
         'project_rates': {},
         'sync_time': False,
         'tableformat': 'simple',
