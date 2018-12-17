@@ -19,7 +19,9 @@ def get_config(filename=None) -> Dict[str, Any]:
         'customer_addresses': {},
         'customer_aliases': {},
         'directory': os.path.expanduser('~/.tracktime'),
-        'gitlab_api_root': 'https://gitlab.com/api/v4/',
+        'gitlab': {
+            'api_root': 'https://gitlab.com/api/v4/',
+        },
         'project_rates': {},
         'sync_time': False,
         'tableformat': 'simple',
@@ -35,9 +37,17 @@ def get_config(filename=None) -> Dict[str, Any]:
         cached_config.update(yaml.load(f) or {})
 
     # If the API Key is a GPG file, decrypt it.
-    api_key = cached_config.get('gitlab_api_key')
-    if api_key and api_key.endswith('|'):
-        cached_config['gitlab_api_key'] = check_output(
-            api_key[:-1].split()).decode().strip()
+    gitlab = cached_config.get('gitlab')
+    if gitlab:
+        api_key = gitlab.get('api_key')
+        if api_key and api_key.endswith('|'):
+            cached_config['gitlab']['api_key'] = check_output(
+                api_key[:-1].split()).decode().strip()
 
+    if 'gitlab_api_key' in cached_config:
+        print('\n'.join([
+            'DEPRECATION WARNING: GitLab configuration has been moved to a',
+            '    dictionary. See new example configuration here:',
+            '    https://gitlab.com/sumner/tracktime/snippets/1731133',
+        ]))
     return cached_config

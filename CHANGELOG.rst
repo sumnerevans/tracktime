@@ -1,6 +1,17 @@
 Changelog
 #########
 
+0.9.7
+=====
+
+- **License change:** Migrated from MIT to GPLv3. Positive in the Freedom
+  Dimension, so to speak.
+- **Deprecation Warning:** GitLab configuration moved to nested dictionary. See
+  the new configuration example:
+  https://gitlab.com/sumner/tracktime/snippets/1731133.
+- Allowed resume across days.
+- Better error message when trying to make a report with unended time entries.
+
 0.9.6
 =====
 

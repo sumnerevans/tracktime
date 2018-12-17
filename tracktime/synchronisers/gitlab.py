@@ -9,8 +9,8 @@ from tracktime.synchronisers.base import ExternalSynchroniser
 class GitLabSynchroniser(ExternalSynchroniser):
     def __init__(self):
         config = get_config()
-        self.api_key = config.get('gitlab_api_key')
-        self.api_root = config.get('gitlab_api_root')
+        self.api_key = config.get('gitlab').get('api_key')
+        self.api_root = config.get('gitlab').get('api_root')
 
     def _make_request(self, rel_path, requester=post, params={}):
         params = parse.urlencode({'private_token': self.api_key, **params})
