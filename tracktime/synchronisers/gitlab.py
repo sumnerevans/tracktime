@@ -23,13 +23,18 @@ class GitLabSynchroniser(ExternalSynchroniser):
         # Go through all of the aggredated time and determine how much time
         # needs to be synchronised over to GitLab for each taskid.
         for task_tuple, duration in aggregated_time.items():
+            type_, project, taskid = task_tuple
+
+            # Skip items which are not GitLab
+            if type_ not in ('gl', 'gitlab'):
+                continue
+
             time_diff = duration - synced_time[task_tuple]
 
             # Skip tasks that don't have any change.
             if time_diff == 0:
                 continue
 
-            type, project, taskid = task_tuple
             print(f'Adding {time_diff}m to {project}{taskid}...', end='')
 
             project = parse.quote(project).replace('/', '%2F')
