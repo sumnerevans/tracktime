@@ -48,22 +48,29 @@ Configuration Options
 ---------------------
 
 There are a number of configuration options that can be set in
-``~/.config/tracktime/tracktimerc``. The ``tracktimerc`` file is in YAML
-format. Here is a link to an `example configuration`_. Below is a list of each
-of the options and what they do.
+``~/.config/tracktime/tracktimerc``. The ``tracktimerc`` file is in YAML format.
+Here is a link to an `example configuration`_. Below is a list of each of the
+options and what they do.
 
-- ``fullname`` (``string``) - your full name. This is used for generating reports.
+- ``fullname`` (``string``) - your full name. This is used for generating
+  reports.
 - ``sync_time`` (``boolean``, defaults to ``false``) - determines whether or not
   to synchronise with external services.
-- ``gitlab_username`` (``string``) - your GitLab username. Used to sync with GitLab.
-- ``gitlab_api_key`` (``string``) - your GitLab API Key or a shell command which
-  returns the API key (this can be useful if you want to store your API key in a
-  password manager). To indicate that it is a shell command, append a vertical
-  bar (``|``) at the end of the command.
+- ``gitlab`` (``dictionary``) - configuration of GitLab parameters
 
-  .. note::
+  - ``api_root`` (``string``, defaults to ``'https://gitlab.com/api/v4/'``) -
+    the GitLab API root to use.
+  - ``api_key`` (``string``) - can be either your GitLab API Key in plain text
+    or a shell command which returns the API key. This second option can be
+    useful if you want to store your API key in a password manager. To indicate
+    that it is a shell command, append a vertical bar (``|``) at the end of the
+    command.
 
-    The API Key must be created with full API access. Used to sync with GitLab.
+    .. note::
+
+      You can create an API key here:
+      https://gitlab.com/profile/personal_access_tokens. The API Key must be
+      created with full API access. Used to sync with GitLab.
 
 - ``tableformat`` (``string``, defaults to ``simple``) - the type of table to
   generate when exporting a report to stdout. (See the `tabulate documentation`_
@@ -155,8 +162,8 @@ Unsupported Edge Cases
 ----------------------
 
 - Daylight savings time (if you are needing to track time at 02:00 in the
-  morning, I pitty you)
+  morning, I pitty you).
 - Time entries that span multiple days (if you are working that late, create two
-  entries)
+  entries).
 - Timezones (only switch timezones between days, if you have to switch, just
-  make sure that you keep the timezone consistent for a given day)
+  make sure that you keep the timezone consistent for a given day).
