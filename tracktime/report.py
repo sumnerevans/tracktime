@@ -108,7 +108,8 @@ class Report:
 
             for entry in EntryList(date(start.year, start.month, day)):
                 # Filter by customer. If customer is null, include everything.
-                if customer and entry.customer != customer:
+                if ((customer and entry.customer != customer)
+                        or (project and entry.project != project)):
                     continue
 
                 # Determine what group this entry belogs in.
