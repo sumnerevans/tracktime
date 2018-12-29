@@ -1,6 +1,14 @@
 Changelog
 #########
 
+0.9.8
+=====
+
+- Fixed bug preventing reporting on projects.
+- Fixed bug where the GitLab synchroniser would try and sync GitHub entries.
+- Fixed a few help formatting issues.
+- Fixed documentation in README.
+
 0.9.7
 =====
 

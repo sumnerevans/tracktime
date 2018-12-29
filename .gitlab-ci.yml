@@ -2,7 +2,7 @@ stages:
   - test
   - build
   - deploy
-  - verify_deploy
+  - verify
 
 lint:
   image: python:3.6-alpine
@@ -54,7 +54,7 @@ deploy_pypi:
 
 verify_deploy:
   image: python:3.6-alpine
-  stage: verify_deploy
+  stage: verify
   only:
     - master
   script:
