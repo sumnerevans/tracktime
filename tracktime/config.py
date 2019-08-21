@@ -8,7 +8,8 @@ cached_config: Dict[str, Any] = {}
 
 
 def get_config(filename=None) -> Dict[str, Any]:
-    """Gets the configuration from ~/.config/tracktime/tracktimerc. If none
+    """
+    Gets the configuration from ~/.config/tracktime/tracktimerc. If none
     exists, defaults are used.
     """
     global cached_config
@@ -18,6 +19,7 @@ def get_config(filename=None) -> Dict[str, Any]:
     cached_config = {
         'customer_addresses': {},
         'customer_aliases': {},
+        # TODO handle Windows
         'directory': os.path.expanduser('~/.tracktime'),
         'gitlab': {
             'api_root': 'https://gitlab.com/api/v4/',
@@ -28,7 +30,10 @@ def get_config(filename=None) -> Dict[str, Any]:
     }
 
     if not filename:
-        filename = os.path.expanduser('~/.config/tracktime/tracktimerc')
+        filename = (os.environ.get('XDG_CONFIG_HOME')
+                    or os.environ.get('APPDATA')
+                    or os.path.join(os.environ.get('HOME'), '.config'))
+        filename = os.path.join(filename, 'tracktime/tracktimerc')
 
     if not os.path.exists(filename):
         return cached_config
@@ -36,7 +41,7 @@ def get_config(filename=None) -> Dict[str, Any]:
     with open(filename) as f:
         cached_config.update(yaml.load(f) or {})
 
-    # If the API Key is a GPG file, decrypt it.
+    # If the API Key is a shell command, execute it.
     gitlab = cached_config.get('gitlab')
     if gitlab:
         api_key = gitlab.get('api_key')
