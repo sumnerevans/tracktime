@@ -17,6 +17,7 @@ def get_config(filename=None) -> Dict[str, Any]:
         return cached_config
 
     cached_config = {
+        'fullname': '<Not Specified>',
         'customer_addresses': {},
         'customer_aliases': {},
         'directory': os.path.expanduser('~/.tracktime'),
@@ -38,7 +39,7 @@ def get_config(filename=None) -> Dict[str, Any]:
         return cached_config
 
     with open(filename) as f:
-        cached_config.update(yaml.load(f) or {})
+        cached_config.update(yaml.load(f, Loader=yaml.FullLoader) or {})
 
     # If the API Key is a shell command, execute it.
     gitlab = cached_config.get('gitlab')
