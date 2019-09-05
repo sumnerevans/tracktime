@@ -19,7 +19,6 @@ def get_config(filename=None) -> Dict[str, Any]:
     cached_config = {
         'customer_addresses': {},
         'customer_aliases': {},
-        # TODO handle Windows
         'directory': os.path.expanduser('~/.tracktime'),
         'gitlab': {
             'api_root': 'https://gitlab.com/api/v4/',

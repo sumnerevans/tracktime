@@ -52,8 +52,12 @@ def edit(args):
     EntryList(date).save()
 
     # Edit the entries
-    editor = os.environ['EDITOR'] or os.environ['VISUAL']
-    call([editor, get_path(date, makedirs=True)])
+    editor = os.environ.get('EDITOR', os.environ.get('VISUAL'))
+    filename = get_path(date, makedirs=True)
+    if editor:
+        call([editor, filename])
+    else:
+        os.system('code ' + str(filename))
 
     # Reload and sync the time entries
     EntryList(date).sync()
