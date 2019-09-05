@@ -86,7 +86,7 @@ class EntryList:
         self.entries.insert(index, entry)
 
     def save(self):
-        with open(self.filepath, 'w') as f:
+        with open(self.filepath, 'w', newline='') as f:
             fieldnames = [
                 'start', 'stop', 'type', 'project', 'taskid', 'customer',
                 'description'

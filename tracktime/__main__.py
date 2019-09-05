@@ -25,8 +25,7 @@ def main():
     start_parser.add_argument(
         '-t',
         '--type',
-        help='specify the type of time entry to start',
-        choices=['gitlab', 'github', 'gl', 'gh'])
+        help='specify the type of time entry to start')
     start_parser.add_argument(
         '-p', '--project', help='specify a project for the time entry')
     start_parser.add_argument(

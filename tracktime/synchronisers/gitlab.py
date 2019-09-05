@@ -26,7 +26,7 @@ class GitLabSynchroniser(ExternalSynchroniser):
             type_, project, taskid = task_tuple
 
             # Skip items which are not GitLab
-            if type_ not in ('gl', 'gitlab'):
+            if type_.lower() not in ('gl', 'gitlab'):
                 continue
 
             time_diff = duration - synced_time[task_tuple]

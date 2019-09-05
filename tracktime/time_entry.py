@@ -14,14 +14,14 @@ class TimeEntry:
         self.start = start
         self.description = description
         self.stop = stop
-        self.type = type
         self.project = project
         self.taskid = taskid
         self.customer = customer
 
-        abbrs = {'gl': 'gitlab', 'gh': 'github'}
-        if type in abbrs.keys():
-            self.type = abbrs[type]
+        self.type = {
+            'gl': 'gitlab',
+            'gh': 'github',
+        }.get(type.lower() if type else None, type)
 
     @property
     def stop(self):
