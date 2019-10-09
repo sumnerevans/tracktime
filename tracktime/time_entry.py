@@ -7,7 +7,7 @@ class TimeEntry:
                  start,
                  description,
                  stop=None,
-                 type=type,
+                 type=None,
                  project=None,
                  taskid=None,
                  customer=None):

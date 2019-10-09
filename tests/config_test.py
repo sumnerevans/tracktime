@@ -5,6 +5,7 @@ from tracktime import config
 
 def test_default_config():
     defaults = {
+        'fullname': '<Not Specified>',
         'customer_addresses': {},
         'customer_aliases': {},
         'directory': os.path.expanduser('~/.tracktime'),
