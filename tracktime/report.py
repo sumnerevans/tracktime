@@ -219,7 +219,7 @@ class Report:
         print(f'HTML report exported to {filename}.')
 
     def export_to_pdf(self, filename):
-        pdfkit.from_string(self.generate_html_report(), filename)
+        pdfkit.from_string(self.generate_html_report(), str(filename))
         print(f'PDF report exported to {filename}.')
 
     def export_to_rst(self, filename):

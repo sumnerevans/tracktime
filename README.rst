@@ -35,6 +35,9 @@ using the AUR package, this will be installed automatically. Otherwise, you can
 install it using your distribution's package manager or visit their `homepage`__
 for installation instructions specific to your operating system.
 
+Additionally, you will need to ensure that the ``wkhtmltopdf`` executable is in
+your ``$PATH``.
+
 __ https://wkhtmltopdf.org/
 
 Guiding Principles
