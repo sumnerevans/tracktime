@@ -71,7 +71,7 @@ def edit(args):
         if sys.platform in ('win32', 'cygwin'):
             editor = 'notepad'
         else:
-            exitor = 'vim'
+            editor = 'vim'
 
     # Open the editor to edit the entries
     filename = str(get_path(date, makedirs=True))
