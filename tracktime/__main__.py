@@ -49,7 +49,7 @@ def main():
         '-s',
         '--start',
         default=datetime.now(),
-        help='specify the start time for the resumed time entry'
+        help='specify the start time for the resumed time entry '
         '(defaults to now)')
     resume_parser.add_argument(
         'entry',
@@ -76,13 +76,13 @@ def main():
         '-y',
         '--year',
         default=datetime.now().year,
-        help='the year to synchronize time entries for'
+        help='the year to synchronize time entries for '
         '(defaults to the current month)')
     sync_parser.add_argument(
         '-m',
         '--month',
         default=datetime.now().month,
-        help='the month to synchronize time entries for'
+        help='the month to synchronize time entries for '
         '(defaults to the current month)')
 
     report_parser = subparsers.add_parser('report')
