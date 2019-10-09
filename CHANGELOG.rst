@@ -1,6 +1,18 @@
 Changelog
 #########
 
+0.9.9
+=====
+
+- Windows Support!
+- Allow for entry types other than GitLab and GitHub
+- **Added config item:** ``editor`` - a string which specifies the editor to use
+  when ``tt edit`` is run.
+- Added default ``fullname`` config so that ``tt report`` works without setup.
+- **Functionality change:** Added customer-specific billing rates. If a
+  reporting group has both customer and project billing rates, the project rate
+  is used.
+
 0.9.8
 =====
 
