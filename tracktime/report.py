@@ -94,7 +94,8 @@ class Report:
         # Pull from config
         self.configuration = config.get_config()
         self.fullname = self.configuration['fullname']
-        rates = self.configuration['project_rates']
+        project_rates = self.configuration['project_rates']
+        customer_rates = self.configuration['customer_rates']
 
         entry_groups = defaultdict(Report.Project)
         total_minutes = 0
@@ -136,7 +137,10 @@ class Report:
                         f'Unended time entry on the {day_as_ordinal(day)}.',
                         file=sys.stderr)
                     sys.exit(1)
-                group.rate = rates.get(entry.project, 0)
+                group.rate = project_rates.get(
+                    entry.project,
+                    customer_rates.get(entry.customer, 0),
+                )
 
                 total_minutes += entry.duration()
 
