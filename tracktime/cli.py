@@ -1,10 +1,13 @@
 import os
+import sys
 from datetime import date, datetime
 from pathlib import Path
 from subprocess import call
 
-import tracktime
 from tabulate import tabulate
+
+import tracktime
+from tracktime.config import get_config
 from tracktime.entry_list import EntryList, get_path
 from tracktime.report import Report
 from tracktime.synchronisers import Synchroniser
@@ -51,13 +54,28 @@ def edit(args):
     # Ensure the header exists.
     EntryList(date).save()
 
-    # Edit the entries
-    editor = os.environ.get('EDITOR', os.environ.get('VISUAL'))
-    filename = get_path(date, makedirs=True)
-    if editor:
-        call([editor, filename])
-    else:
-        os.system('code ' + str(filename))
+    # Determine the editor. Grab it from the config, then look to the EDITOR or
+    # VISUAL enviornment variables.
+    editor = get_config().get(
+        'editor',
+        os.environ.get(
+            'EDITOR',
+            os.environ.get('VISUAL'),
+        ),
+    )
+
+    # Default the editor to something sensible (well, notepad isn't really
+    # sensible as it is total garbage, but at least almost always exists on
+    # Windows).
+    if not editor:
+        if sys.platform in ('win32', 'cygwin'):
+            editor = 'notepad'
+        else:
+            exitor = 'vim'
+
+    # Open the editor to edit the entries
+    filename = str(get_path(date, makedirs=True))
+    call([editor, filename])
 
     # Reload and sync the time entries
     EntryList(date).sync()

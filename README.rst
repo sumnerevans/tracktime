@@ -59,6 +59,10 @@ options and what they do.
   reports.
 - ``sync_time`` (``boolean``, defaults to ``false``) - determines whether or not
   to synchronise with external services.
+- ``editor`` (``string``) - specifies the editor to use when ``tt edit`` is run.
+  If this value is not present, the ``EDITOR`` and ``VISUAL`` environment
+  variables are used as fallback. If none are present, then ``vim`` (on
+  non-Windows OSes) or ``notepad`` (on Windows) is used.
 - ``gitlab`` (``dictionary``) - configuration of GitLab parameters
 
   - ``api_root`` (``string``, defaults to ``'https://gitlab.com/api/v4/'``) -
