@@ -1,7 +1,7 @@
 import sys
-from calendar import Calendar
+import calendar
 from collections import OrderedDict, defaultdict
-from datetime import date
+from datetime import timedelta
 
 import pdfkit
 from docutils import core
@@ -82,8 +82,15 @@ class Report:
 
             return details
 
-    def __init__(self, start, customer, project):
-        self.month = start
+    def date_range(self, start, stop):
+        current = start
+        while current <= stop:
+            yield current
+            current += timedelta(days=1)
+
+    def __init__(self, start_date, end_date, customer, project):
+        self.start_date = start_date
+        self.end_date = end_date
         self.customer = customer
         self.project = project
 
@@ -100,14 +107,9 @@ class Report:
         entry_groups = defaultdict(Report.Project)
         total_minutes = 0
 
-        # Iterate through all of the days of the month for the report.
-        for day in Calendar().itermonthdays(start.year, start.month):
-            if day < 1:
-                # Not sure why this happens, I think it's so that it can avoid
-                # half-weeks.
-                continue
-
-            for entry in EntryList(date(start.year, start.month, day)):
+        # Iterate through all of the days covered by this report.
+        for day in self.date_range(start_date, end_date):
+            for entry in EntryList(day):
                 # Filter by customer. If customer is null, include everything.
                 if ((customer and entry.customer != customer)
                         or (project and entry.project != project)):
@@ -133,9 +135,8 @@ class Report:
                 try:
                     group.minutes += entry.duration()
                 except Exception:
-                    print(
-                        f'Unended time entry on the {day_as_ordinal(day)}.',
-                        file=sys.stderr)
+                    print(f'Unended time entry on the {day_as_ordinal(day)}.',
+                          file=sys.stderr)
                     sys.exit(1)
                 group.rate = project_rates.get(
                     entry.project,
@@ -158,7 +159,21 @@ class Report:
         })
 
     def generate_textual_report(self, tablefmt):
-        time_report_header = 'Time Report - {:%B %Y}'.format(self.month)
+        time_report_header = 'Time Report: {} - {}'.format(
+            self.start_date, self.end_date)
+        if self.start_date.year == self.end_date.year:
+            if (self.start_date.month == 1 and self.start_date.day == 1
+                    and self.end_date.month == 12
+                    and self.end_date.day == 31):
+                # Reporting on the whole year.
+                time_report_header = f'Time Report: {self.start_date.year}'
+            elif self.start_date.month == self.end_date.month:
+                if (self.start_date.day == 1
+                        and self.end_date.day == calendar.monthrange(
+                            self.start_date.year, self.start_date.month)[1]):
+                    # Reporting on a single month.
+                    time_report_header = 'Time Report - {:%B %Y}'.format(
+                        self.start_date)
         lines = [
             time_report_header,
             '=' * len(time_report_header),
@@ -193,11 +208,10 @@ class Report:
         lines += [
             '**Detailed Time Report:**',
             '',
-            tabulate(
-                self.report_table,
-                headers='keys',
-                floatfmt='.2f',
-                tablefmt=tablefmt),
+            tabulate(self.report_table,
+                     headers='keys',
+                     floatfmt='.2f',
+                     tablefmt=tablefmt),
         ]
 
         return '\n'.join(lines)

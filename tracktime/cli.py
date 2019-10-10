@@ -1,6 +1,8 @@
 import os
 import sys
-from datetime import date, datetime
+import calendar
+
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from subprocess import call
 
@@ -30,7 +32,7 @@ def stop(args):
 
 def resume(args):
     start = parse_time(args.start)
-    entry = args.entry or -1
+    entry = args.entry if args.entry is not None else -1
     EntryList(start.date()).resume(start, entry)
 
 
@@ -82,31 +84,57 @@ def edit(args):
 
 
 def sync(args):
-    if args.year and not args.month:
-        print('You must specify a month when year is specified.')
-        return
-
-    Synchroniser(int(args.year), parse_month(args.month)).sync()
+    Synchroniser(parse_month(args.month)).sync()
 
 
 def report(args):
-    if args.year:
-        if not args.month:
-            print('You must specify a month when year is specified.')
-            return
-        start = date(int(args.year), parse_month(args.month), 1)
-    else:
-        now = datetime.today().date()
-        if not args.month:
-            # Default to previous month
-            if now.month == 1:  # It's January, default to last December
-                start = date(now.year - 1, 12, 1)
-            else:
-                start = date(now.year, now.month - 1, 1)
-        else:
-            start = date(now.year, parse_month(args.month), 1)
+    today = datetime.today().date()
 
-    report = Report(start, args.customer, args.project)
+    if args.range_start or args.range_stop:
+        if args.range_start is None or args.range_stop is None:
+            raise Exception('Must specify range start and stop.')
+        # TODO this should allow for more than just date specifications
+        start_date = parse_date(args.range_start)
+        end_date = parse_date(args.range_stop)
+    elif args.year or args.lastyear:  # yearly
+        start_date = date(
+            (int(args.year) if args.year else today.year - 1),
+            1,
+            1,
+        )
+        end_date = date(start_date.year, 12, 31)
+    elif args.today or args.yesterday:  # daily
+        start_date = today - timedelta(days=(1 if args.yesterday else 0))
+        end_date = start_date
+    elif args.lastweek or args.thisweek:  # weekly
+        # TODO make it configurable if the week starts on Sunday or Monday.
+        # Will need to remove the +1 if Monday.
+        start_date = today - timedelta(days=(today.weekday() + 1 +
+                                             (7 if args.lastweek else 0)))
+        end_date = start_date + timedelta(days=7)
+    else:  # monthly
+
+        # Default to last month. Need to do this calculation to correctly get
+        # the previous month across years.
+        last_day_of_last_month = (date(today.year, today.month, 1) -
+                                  timedelta(days=1))
+        start_date = date(
+            last_day_of_last_month.year,
+            last_day_of_last_month.month,
+            1,
+        )
+        if args.month:
+            start_date = parse_month(args.month)
+        elif args.thismonth:
+            start_date = date(today.year, today.month, 1)
+
+        end_date = date(
+            start_date.year,
+            start_date.month,
+            calendar.monthrange(start_date.year, start_date.month)[1],
+        )
+
+    report = Report(start_date, end_date, args.customer, args.project)
     if args.filename:
         path = Path(args.filename)
         if path.suffix == '.pdf':

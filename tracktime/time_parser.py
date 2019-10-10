@@ -126,34 +126,55 @@ def parse_date(date_representation):
     raise ValueError('Could not parse date.')
 
 
-def parse_month(month_representation):
-    """Parse a month string.
+def parse_month(month_representation) -> date:
+    """
+    Parse a month string.
 
     Arguments:
 
     :param month_representation: the representation of the month to parse
-    :returns: a datetime representing midnight on the proper date
+    :returns: a ``date`` representing the first day of the month
 
     If it's numeric, parse as is.
-    >>> parse_month('01')
+    >>> current_year = datetime.now().year
+    >>> assert parse_month('01').year == current_year
+    >>> parse_month('01').month
+    1
+    >>> assert parse_month(1).year == current_year
+    >>> parse_month(1).month
     1
 
+    If it's a month-year combo, parse as is.
+    >>> parse_month('2017-01')
+    datetime.date(2017, 1, 1)
+
     Otherwise, try to parse it.
-    >>> parse_month('Jan')
+    >>> parse_month('Jan').month
     1
-    >>> parse_month('December')
+    >>> parse_month('December').month
     12
 
     If it is malformed, throw a ValueError.
-    >>> parse_month('foo')                     # doctest: +NORMALIZE_WHITESPACE
+    >>> parse_month('foo')
     Traceback (most recent call last):
         ...
-    ValueError: You must specify the month as either the fully qualified month
-        (December), an abbreviated month (Dec), or a number.
+    ValueError: You must specify the month as either ... a month number (01).
+
+    >>> parse_month('foo')
+    Traceback (most recent call last):
+        ...
+    ValueError: You must specify the month as either ... a month number (01).
     """
     abbrs = list(month_abbr)  # Jan, Feb, Mar, ...
     names = list(month_name)  # January, February, March, ...
-    if month_representation in abbrs:
+    year = datetime.now().year
+
+    year_month_match = re.match(r'(\d+)[-/.](\d+)', str(month_representation))
+
+    if year_month_match:
+        year = int(year_month_match.group(1))
+        month = int(year_month_match.group(2))
+    elif month_representation in abbrs:
         month = abbrs.index(month_representation)
     elif month_representation in names:
         month = names.index(month_representation)
@@ -161,12 +182,15 @@ def parse_month(month_representation):
         # The month is specified as a numeric string...
         try:
             month = int(month_representation)
+            if month > 12:
+                raise ValueError('Cannot have month greater than 12.')
         except ValueError as e:
             raise ValueError('You must specify the month as either the '
                              'fully qualified month (December), an '
-                             'abbreviated month (Dec), or a number.') from e
+                             'abbreviated month (Dec), a year with month '
+                             '(2019-01), or a month number (01).') from e
 
-    return month
+    return date(year, month, 1)
 
 
 def day_as_ordinal(day):
