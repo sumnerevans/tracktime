@@ -98,7 +98,7 @@ class Synchroniser:
         GitLabSynchroniser().sync(aggregated_time, synced_time)
 
         # Update the .synced file with the updated amounts.
-        with open(synced_file_path, 'w+') as f:
+        with open(synced_file_path, 'w+', newline='') as f:
             fieldnames = ['type', 'project', 'taskid', 'synced']
             writer = csv.DictWriter(f, fieldnames=fieldnames)
 

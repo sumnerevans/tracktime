@@ -208,6 +208,9 @@ def day_as_ordinal(day):
     >>> day_as_ordinal(4), day_as_ordinal(20)
     ('4th', '20th')
     """
+    if type(day) == date:
+        day = day.day
+
     suffix = ''
     if 4 <= day <= 20:
         suffix = 'th'
