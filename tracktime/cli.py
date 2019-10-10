@@ -96,12 +96,13 @@ def report(args):
         # TODO this should allow for more than just date specifications
         start_date = parse_date(args.range_start)
         end_date = parse_date(args.range_stop)
-    elif args.year or args.lastyear:  # yearly
-        start_date = date(
-            (int(args.year) if args.year else today.year - 1),
-            1,
-            1,
-        )
+    elif args.year or args.lastyear or args.thisyear:  # yearly
+        year = today.year
+        if args.year:
+            year = int(args.year)
+        elif args.lastyear:
+            year = year - 1
+        start_date = date(year, 1, 1)
         end_date = date(start_date.year, 12, 31)
     elif args.today or args.yesterday:  # daily
         start_date = today - timedelta(days=(1 if args.yesterday else 0))

@@ -168,6 +168,11 @@ def main():
         help='shorthand for reporting on last year',
     )
     report_parser.add_argument(
+        '--thisyear',
+        action='store_true',
+        help='shorthand for reporting on this year',
+    )
+    report_parser.add_argument(
         '-c',
         '--customer',
         help='customer ID to generate a report for',

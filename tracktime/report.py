@@ -121,6 +121,7 @@ class Report:
 
                     # Verify that the customer matches the previous entries.
                     if group.customer and group.customer != entry.customer:
+                        print(group.customer, '!=', entry.customer)
                         raise Exception('Two entries with the same project but'
                                         ' different customers.')
                 elif entry.customer:
