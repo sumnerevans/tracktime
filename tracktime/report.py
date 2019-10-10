@@ -1,7 +1,7 @@
 import sys
 import calendar
 from collections import OrderedDict, defaultdict
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pdfkit
 from docutils import core

@@ -3,6 +3,7 @@ from subprocess import check_output
 
 import pytest
 
+
 def test_cli():
     # TODO validate that the output makes sense
     check_output('tt'.split()).decode()
