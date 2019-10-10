@@ -155,12 +155,15 @@ def parse_month(month_representation) -> date:
     12
 
     If it is malformed, throw a ValueError.
-    >>> parse_month('foo')                     # doctest: +NORMALIZE_WHITESPACE
+    >>> parse_month('foo')
     Traceback (most recent call last):
         ...
-    ValueError: You must specify the month as either the fully qualified month
-        (December), an abbreviated month (Dec), a year with month (2019-01), or
-        a month number.
+    ValueError: You must specify the month as either ... a month number (01).
+
+    >>> parse_month('foo')
+    Traceback (most recent call last):
+        ...
+    ValueError: You must specify the month as either ... a month number (01).
     """
     abbrs = list(month_abbr)  # Jan, Feb, Mar, ...
     names = list(month_name)  # January, February, March, ...
