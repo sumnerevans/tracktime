@@ -1,5 +1,5 @@
 import sys
-from calendar import Calendar
+import calendar
 from collections import OrderedDict, defaultdict
 from datetime import date, timedelta
 
@@ -159,9 +159,21 @@ class Report:
         })
 
     def generate_textual_report(self, tablefmt):
-        # time_report_header = 'Time Report - {:%B %Y}'.format(self.month)
-        time_report_header = 'Time Report - {} - {}'.format(
+        time_report_header = 'Time Report: {} - {}'.format(
             self.start_date, self.end_date)
+        if self.start_date.year == self.end_date.year:
+            if (self.start_date.month == 1 and self.start_date.day == 1
+                    and self.end_date.month == 12
+                    and self.end_date.day == 31):
+                # Reporting on the whole year.
+                time_report_header = f'Time Report: {self.start_date.year}'
+            elif self.start_date.month == self.end_date.month:
+                if (self.start_date.day == 1
+                        and self.end_date.day == calendar.monthrange(
+                            self.start_date.year, self.start_date.month)[1]):
+                    # Reporting on a single month.
+                    time_report_header = 'Time Report - {:%B %Y}'.format(
+                        self.start_date)
         lines = [
             time_report_header,
             '=' * len(time_report_header),

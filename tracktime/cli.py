@@ -88,7 +88,7 @@ def sync(args):
 
 
 def report(args):
-    now = datetime.today().date()
+    today = datetime.today().date()
 
     if args.range_start or args.range_stop:
         if args.range_start is None or args.range_stop is None:
@@ -96,20 +96,27 @@ def report(args):
         # TODO this should allow for more than just date specifications
         start_date = parse_date(args.range_start)
         end_date = parse_date(args.range_stop)
-    elif args.year or args.lastyear:
-        start_date = date((int(args.year) if args.year else now.year - 1), 1, 1)
+    elif args.year or args.lastyear:  # yearly
+        start_date = date(
+            (int(args.year) if args.year else today.year - 1),
+            1,
+            1,
+        )
         end_date = date(start_date.year, 12, 31)
-    elif args.today:
-        start_date = now
+    elif args.today or args.yesterday:  # daily
+        start_date = today - timedelta(days=(1 if args.yesterday else 0))
         end_date = start_date
-    elif args.yesterday:
-        start_date = now - timedelta(days=1)
-        end_date = now
+    elif args.lastweek or args.thisweek:  # weekly
+        # TODO make it configurable if the week starts on Sunday or Monday.
+        # Will need to remove the +1 if Monday.
+        start_date = today - timedelta(days=(today.weekday() + 1 +
+                                             (7 if args.lastweek else 0)))
+        end_date = start_date + timedelta(days=7)
     else:  # monthly
 
         # Default to last month. Need to do this calculation to correctly get
         # the previous month across years.
-        last_day_of_last_month = (date(now.year, now.month, 1) -
+        last_day_of_last_month = (date(today.year, today.month, 1) -
                                   timedelta(days=1))
         start_date = date(
             last_day_of_last_month.year,
@@ -119,7 +126,7 @@ def report(args):
         if args.month:
             start_date = parse_month(args.month)
         elif args.thismonth:
-            start_date = date(now.year, now.month, 1)
+            start_date = date(today.year, today.month, 1)
 
         end_date = date(
             start_date.year,

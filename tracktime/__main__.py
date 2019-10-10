@@ -138,6 +138,16 @@ def main():
         help='shorthand for reporting over an entire year',
     )
     report_parser.add_argument(
+        '--lastweek',
+        action='store_true',
+        help='shorthand for reporting on last week (Sunday-Saturday)',
+    )
+    report_parser.add_argument(
+        '--thisweek',
+        action='store_true',
+        help='shorthand for reporting on the current week (Sunday-today)',
+    )
+    report_parser.add_argument(
         '--thismonth',
         action='store_true',
         help='shorthand for reporting on the current month',
@@ -145,17 +155,17 @@ def main():
     report_parser.add_argument(
         '--today',
         action='store_true',
-        help='shorthand for reporting on the current month',
+        help='shorthand for reporting on today',
     )
     report_parser.add_argument(
         '--yesterday',
         action='store_true',
-        help='shorthand for reporting on the current month',
+        help='shorthand for reporting on yesterday',
     )
     report_parser.add_argument(
         '--lastyear',
         action='store_true',
-        help='shorthand for reporting on the current month',
+        help='shorthand for reporting on last year',
     )
     report_parser.add_argument(
         '-c',
