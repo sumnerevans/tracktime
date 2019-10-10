@@ -1,5 +1,7 @@
+import subprocess
 from subprocess import check_output
 
+import pytest
 
 def test_cli():
     # TODO validate that the output makes sense
@@ -14,5 +16,6 @@ def test_cli():
 
     check_output('tt --help'.split()).decode()
     check_output('tt sync'.split()).decode()
-    check_output('tt sync -y 2018'.split()).decode()
-    # should error
+
+    with pytest.raises(subprocess.CalledProcessError):
+        check_output('tt sync 2018'.split()).decode()

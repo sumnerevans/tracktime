@@ -10,100 +10,181 @@ def main():
     parser = argparse.ArgumentParser(description='Time tracker')
 
     parser.add_argument(
-        '-v', '--version', help='show version and exit', action='store_true')
+        '-v',
+        '--version',
+        help='show version and exit',
+        action='store_true',
+    )
 
     subparsers = parser.add_subparsers(
-        dest='action', help='specify an action to perform')
+        dest='action',
+        help='specify an action to perform',
+    )
 
     start_parser = subparsers.add_parser(
-        'start', description='Start a time entry for today.')
+        'start',
+        description='Start a time entry for today.',
+    )
     start_parser.add_argument(
         '-s',
         '--start',
         default=datetime.now(),
-        help='specify a start time for the time entry (defaults to now)')
+        help='specify a start time for the time entry (defaults to now)',
+    )
     start_parser.add_argument(
         '-t',
         '--type',
-        help='specify the type of time entry to start')
+        help='specify the type of time entry to start',
+    )
     start_parser.add_argument(
-        '-p', '--project', help='specify a project for the time entry')
+        '-p',
+        '--project',
+        help='specify a project for the time entry',
+    )
     start_parser.add_argument(
-        '-c', '--customer', help='specify a customer for the time entry')
+        '-c',
+        '--customer',
+        help='specify a customer for the time entry',
+    )
     start_parser.add_argument(
-        '-i', '--taskid', help='specify the task being worked on')
+        '-i',
+        '--taskid',
+        help='specify the task being worked on',
+    )
     start_parser.add_argument(
         'description',
         help='specify a description for the time entry',
-        nargs='?')
+        nargs='?',
+    )
 
-    stop_parser = subparsers.add_parser('stop')
+    stop_parser = subparsers.add_parser(
+        'stop',
+        description='Stop the current time entry.',
+    )
     stop_parser.add_argument(
         '-s',
         '--stop',
         default=datetime.now(),
-        help='specify a stop time for the time entry (defaults to now)')
+        help='specify a stop time for the time entry (defaults to now)',
+    )
 
-    resume_parser = subparsers.add_parser('resume')
+    resume_parser = subparsers.add_parser(
+        'resume',
+        description='Resume an entry from today.',
+    )
     resume_parser.add_argument(
         '-s',
         '--start',
         default=datetime.now(),
         help='specify the start time for the resumed time entry '
-        '(defaults to now)')
+        '(defaults to now)',
+    )
     resume_parser.add_argument(
         'entry',
         type=int,
         nargs='?',
-        help='the entry to resume (Python-style indexing, defaults to -1)')
+        help='the entry to resume (Python-style indexing, defaults to -1)',
+    )
 
-    list_parser = subparsers.add_parser('list')
+    list_parser = subparsers.add_parser(
+        'list',
+        description='List the time entries for a date.',
+    )
     list_parser.add_argument(
         '-d',
         '--date',
         default=datetime.today().date(),
-        help='the date to list time entries for (defaults to today)')
+        help='the date to list time entries for (defaults to today)',
+    )
 
-    edit_parser = subparsers.add_parser('edit')
+    edit_parser = subparsers.add_parser(
+        'edit',
+        description='Edit time entries for a date.',
+    )
     edit_parser.add_argument(
         '-d',
         '--date',
         default=datetime.today().date(),
-        help='the date to edit time entries for (defaults to today)')
+        help='the date to edit time entries for (defaults to today)',
+    )
 
-    sync_parser = subparsers.add_parser('sync')
+    sync_parser = subparsers.add_parser(
+        'sync',
+        description='Synchronize time entries for a month.',
+    )
     sync_parser.add_argument(
-        '-y',
-        '--year',
-        default=datetime.now().year,
-        help='the year to synchronize time entries for '
-        '(defaults to the current month)')
-    sync_parser.add_argument(
-        '-m',
-        '--month',
+        'month',
         default=datetime.now().month,
-        help='the month to synchronize time entries for '
-        '(defaults to the current month)')
+        nargs='?',
+        help=' '.join([
+            'the month to synchronize time entries for (defaults to the',
+            'current month, accepted formats: 01, 1, Jan, January, 2019-01)',
+        ])
+    )
 
-    report_parser = subparsers.add_parser('report')
+    report_parser = subparsers.add_parser(
+        'report',
+        description='Output a report about time spent in a date range.',
+    )
     report_parser.add_argument(
         '-m',
         '--month',
-        help='specify the month to report on (defaults to previous month)')
+        help='shorthand for reporting over an entire month (accepted formats: '
+        '01, 1, Jan, January, 2019-01)',
+    )
     report_parser.add_argument(
         '-y',
         '--year',
-        help='specify the year to report on '
-        '(defaults to the year of the previous month)')
+        help='shorthand for reporting over an entire year',
+    )
     report_parser.add_argument(
-        '-c', '--customer', help='customer ID to generate a report for')
+        '--thismonth',
+        action='store_true',
+        help='shorthand for reporting on the current month',
+    )
     report_parser.add_argument(
-        '-p', '--project', help='project name to generate a report for')
+        '--today',
+        action='store_true',
+        help='shorthand for reporting on the current month',
+    )
+    report_parser.add_argument(
+        '--yesterday',
+        action='store_true',
+        help='shorthand for reporting on the current month',
+    )
+    report_parser.add_argument(
+        '--lastyear',
+        action='store_true',
+        help='shorthand for reporting on the current month',
+    )
+    report_parser.add_argument(
+        '-c',
+        '--customer',
+        help='customer ID to generate a report for',
+    )
+    report_parser.add_argument(
+        '-p',
+        '--project',
+        help='project name to generate a report for',
+    )
+    report_parser.add_argument(
+        'range_start',
+        nargs='?',
+        help='specify the start of the reporting range (defaults to the '
+        'beginning of last month)',
+    )
+    report_parser.add_argument(
+        'range_stop',
+        nargs='?',
+        help='specify the end of the reporting range (defaults to the end of '
+        'last month)',
+    )
     report_parser.add_argument(
         'filename',
         nargs='?',
         help='specify the filename to export the report to. '
-        'If none specified, output to stdout')
+        'If none specified, output to stdout',
+    )
 
     if len(sys.argv) > 1:
         args = parser.parse_args()

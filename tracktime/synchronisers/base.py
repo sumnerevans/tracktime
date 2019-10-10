@@ -28,16 +28,16 @@ class ExternalSynchroniser:
 
 
 class Synchroniser:
-    def __init__(self, year, month):
+    def __init__(self, first_of_month: date):
         """Initialize the Synchroniser.
 
-        >>> s = Synchroniser(2018, 7)
+        >>> s = Synchroniser(date(2018, 7, 1))
         >>> assert (s.year, s.month) == (2018, 7)
         >>> str(s.month_dir)                               # doctest: +ELLIPSIS
         '.../2018/07'
         """
-        self.year = year
-        self.month = month
+        self.year = first_of_month.year
+        self.month = first_of_month.month
 
         self.config = get_config()
 

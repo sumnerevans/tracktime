@@ -4,7 +4,7 @@ from pathlib import Path
 
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
-from datetime import timedelta
+from datetime import timedelta, date
 from tracktime.time_parser import parse_time
 
 
@@ -103,7 +103,7 @@ class EntryList:
 
     def sync(self):
         from tracktime.synchronisers import Synchroniser
-        Synchroniser(self.date.year, self.date.month).sync()
+        Synchroniser(date(self.date.year, self.date.month, 1)).sync()
 
     def start(self, start, description, type, project, taskid, customer):
         time_entry = TimeEntry(
