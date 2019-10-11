@@ -52,7 +52,7 @@ class Report:
                 self.report_map[(
                     entry.customer,
                     entry.project,
-                )][entry.taskid][entry.description].add(entry)
+                )][entry.taskid][entry.description.upper()].add(entry)
 
                 self.max_customer_project_chars = max(
                     self.max_customer_project_chars,
@@ -207,7 +207,7 @@ class Report:
             lines.append('')
 
             for task_name, task_descriptions in tasks.items():
-                task_name = (task_name or '<NO TASK>').upper()
+                task_name = task_name or '<NO TASK>'
                 lines.append(pad_entry(task_name, task_descriptions.minutes))
 
                 # Skip the <NO DESCRIPTION> if that's the only one
@@ -219,7 +219,7 @@ class Report:
                 lines.append('')
 
                 for description, entries in task_descriptions.items():
-                    description = (description or '<NO DESCRIPTION>').upper()
+                    description = description or '<NO DESCRIPTION>'
                     lines.append(
                         pad_entry(
                             description,
