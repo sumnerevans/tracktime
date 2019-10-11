@@ -173,8 +173,9 @@ class Report:
 
             return table
 
-        def pad_entry(text, minutes):
-            return (text.ljust(40) + ' ' * 7 +
+        def pad_entry(text, minutes, indent_level=0):
+            return ((' ' * (1 + indent_level * 2) + ' * ' + text).ljust(40) +
+                    ' ' * 7 +
                     '{:.2f}'.format(self.to_hours(minutes)).rjust(10))
 
         lines += [
@@ -204,17 +205,22 @@ class Report:
 
             for task_name, task_descriptions in tasks.items():
                 lines.append('')
-                lines.append(
-                    pad_entry(
-                        f" * {task_name.upper() or '<no task>'}",
-                        task_descriptions.minutes,
-                    ))
+                task_name = (task_name or '<NO TASK>').upper()
+                lines.append(pad_entry(task_name, task_descriptions.minutes))
+
+                # Skip the <NO DESCRIPTION> if that's the only one
+                if (len(task_descriptions) == 1
+                        and '' in task_descriptions.keys()):
+                    continue
 
                 for description, entries in task_descriptions.items():
+                    description = (description or '<NO DESCRIPTION>').upper()
                     lines.append(
                         pad_entry(
-                            f"   * {description.upper() or '<no description>'}",
-                            entries.minutes))
+                            description,
+                            entries.minutes,
+                            indent_level=1,
+                        ))
 
         return '\n'.join(lines)
 
