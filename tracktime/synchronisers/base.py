@@ -1,5 +1,7 @@
 """Synchroniser module"""
 import csv
+import sys
+
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
@@ -51,8 +53,13 @@ class Synchroniser:
         """
         Tests whether or not the computer is currently connected to the
         internet.
+
+        Uses ping of 8.8.8.8 to do this test. On Windows, it uses the ``-n``
+        flag to specify to only do one ping. On POSIX OSes, it uses the ``-c``
+        flag to specify the same.
         """
-        command = ['ping', '-c', '1', '8.8.8.8']
+        is_win = sys.platform in ('win32', 'cygwin')
+        command = ['ping', '-n' if is_win else '-c', '1', '8.8.8.8']
         return run(command, stdout=PIPE, stderr=PIPE).returncode == 0
 
     def sync(self):
