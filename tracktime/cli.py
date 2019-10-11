@@ -136,8 +136,8 @@ def report(args):
         )
 
     report = Report(start_date, end_date, args.customer, args.project)
-    if args.filename:
-        path = Path(args.filename)
+    if args.outfile:
+        path = Path(args.outfile)
         if path.suffix == '.pdf':
             report.export_to_pdf(path)
         elif path.suffix == '.html':

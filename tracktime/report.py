@@ -145,16 +145,21 @@ class Report:
         lines.append('')
 
         # Include the report table
+        def ellipsize(string, length=40):
+            if len(string) > 40:
+                return string[:37] + '...'
+            return string
 
         def pad_tabulate(rows, headers=None, **kwargs):
             tabulate.PRESERVE_WHITESPACE = True
             real_headers = headers or ['', '', '', '']
             real_headers = [
-                real_headers[0], *(s.rjust(10) for s in real_headers[1:])
+                ellipsize(real_headers[0]),
+                *(s.rjust(10) for s in real_headers[1:]),
             ]
             table = tabulate.tabulate(
                 [[
-                    desc.ljust(40),
+                    ellipsize(desc).ljust(40),
                     self.to_hours(minutes),
                     rate,
                     total,
@@ -174,9 +179,10 @@ class Report:
             return table
 
         def pad_entry(text, minutes, indent_level=0):
-            return ((' ' * (1 + indent_level * 2) + ' * ' + text).ljust(40) +
-                    ' ' * 7 +
-                    '{:.2f}'.format(self.to_hours(minutes)).rjust(10))
+            return (
+                ellipsize(' ' *
+                          (1 + indent_level * 2) + ' * ' + text).ljust(40) +
+                ' ' * 7 + '{:.2f}'.format(self.to_hours(minutes)).rjust(10))
 
         lines += [
             '**Detailed Time Report:**',
@@ -190,6 +196,7 @@ class Report:
                 ]],
                 headers=['', 'Hours', 'Rate ($/h)', 'Total ($)'],
             ),
+            '',
         ]
 
         for (i, ((customer, project),
@@ -214,6 +221,8 @@ class Report:
                     lines.append('')
                     continue
 
+                lines.append('')
+
                 for description, entries in task_descriptions.items():
                     description = (description or '<NO DESCRIPTION>').upper()
                     lines.append(
@@ -222,6 +231,8 @@ class Report:
                             entries.minutes,
                             indent_level=1,
                         ))
+
+                lines.append('')
 
         return '\n'.join(lines)
 

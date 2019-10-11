@@ -183,6 +183,12 @@ def main():
         help='project name to generate a report for',
     )
     report_parser.add_argument(
+        '-o',
+        '--outfile',
+        help='specify the filename to export the report to. '
+        'If none specified, output to stdout',
+    )
+    report_parser.add_argument(
         'range_start',
         nargs='?',
         help='specify the start of the reporting range (defaults to the '
@@ -193,12 +199,6 @@ def main():
         nargs='?',
         help='specify the end of the reporting range (defaults to the end of '
         'last month)',
-    )
-    report_parser.add_argument(
-        'filename',
-        nargs='?',
-        help='specify the filename to export the report to. '
-        'If none specified, output to stdout',
     )
 
     if len(sys.argv) > 1:
