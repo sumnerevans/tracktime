@@ -11,7 +11,7 @@ from tabulate import tabulate
 import tracktime
 from tracktime.config import get_config
 from tracktime.entry_list import EntryList, get_path
-from tracktime.report import Report
+from tracktime.report import Report, report_exporters
 from tracktime.synchronisers import Synchroniser
 from tracktime.time_parser import parse_date, parse_month, parse_time
 
@@ -138,16 +138,12 @@ def report(args):
     report = Report(start_date, end_date, args.customer, args.project)
     if args.outfile:
         path = Path(args.outfile)
-        if path.suffix == '.pdf':
-            report.export_to_pdf(path)
-        elif path.suffix == '.html':
-            report.export_to_html(path)
-        elif path.suffix == '.rst':
-            report.export_to_rst(path)
-        else:
+        exporter = report_exporters.get(path.suffix[1:])
+        if not exporter:
             raise Exception(f'Cannot export to "{path.suffix}" file format.')
+        exporter(report).export(path)
     else:
-        report.export_to_stdout()
+        report_exporters['stdout'](report).export(None)
 
 
 def version():

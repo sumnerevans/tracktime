@@ -1,11 +1,8 @@
-import sys
 import calendar
-import functools
-import operator
 
-from collections import OrderedDict, defaultdict
 from datetime import timedelta
-from typing import Optional, Set, List, DefaultDict, Tuple, Dict
+from pathlib import Path
+from typing import DefaultDict, Tuple, Dict
 
 import pdfkit
 import tabulate
@@ -13,8 +10,6 @@ import tabulate
 from docutils import core
 from docutils.writers import html5_polyglot
 from tracktime import EntryList, config
-from tracktime.time_parser import day_as_ordinal
-from tracktime.time_entry import TimeEntry
 
 
 class EntrySet(set):
@@ -141,7 +136,7 @@ class Report:
 
         # Include the Grand Total
         grand_total = sum(rt[1] for rt in self.rate_totals_map.values())
-        lines.append(f'**GRAND TOTAL:** ${grand_total:.2f}')
+        lines.append(f'**Grand Total:** ${grand_total:.2f}')
         lines.append('')
 
         # Include the report table
@@ -259,3 +254,41 @@ class Report:
     def export_to_rst(self, filename):
         with open(filename, 'w+') as f:
             f.write(self.generate_textual_report('rst'))
+
+
+class ReportExporter:
+    def __init__(self, report: Report):
+        self.report = report
+
+    def export(self, path: Path):
+        raise NotImplementedError(
+            'Inheritors of ReportExporter must implement ``export``.')
+
+
+class PDFExporter(ReportExporter):
+    def export(self, path: Path):
+        pass
+
+
+class HTMLExporter(ReportExporter):
+    def export(self, path: Path):
+        pass
+
+
+class RSTExporter(ReportExporter):
+    def export(self, path: Path):
+        pass
+
+
+class StdoutExporter(ReportExporter):
+    def export(self, path: Path):
+        tablefmt = config.get_config()['tableformat']
+        print(self.report.generate_textual_report(tablefmt))
+
+
+report_exporters = {
+    'pdf': PDFExporter,
+    'html': HTMLExporter,
+    'rst': RSTExporter,
+    'stdout': StdoutExporter,
+}
