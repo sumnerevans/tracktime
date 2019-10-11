@@ -1,87 +1,35 @@
 import sys
 import calendar
+import functools
+import operator
+
 from collections import OrderedDict, defaultdict
 from datetime import timedelta
+from typing import Optional, Set, List, DefaultDict, Tuple, Dict
 
 import pdfkit
+import tabulate
+
 from docutils import core
 from docutils.writers import html5_polyglot
-from tabulate import tabulate
 from tracktime import EntryList, config
 from tracktime.time_parser import day_as_ordinal
+from tracktime.time_entry import TimeEntry
+
+
+class EntrySet(set):
+    @property
+    def minutes(self):
+        return sum(x.duration(False) for x in self)
+
+
+class ReportDict(DefaultDict):
+    @property
+    def minutes(self):
+        return sum(v.minutes for v in self.values())
 
 
 class Report:
-    class Project:
-        def __init__(self, name=None):
-            self.name = name
-            self.customer = None
-            self.rate = 0
-            self.minutes = 0
-
-        def __repr__(self):
-            """Returns a string representation of the Project.
-
-            >>> r = Report.Project(name='foo')
-            >>> r.customer = 'bar'
-            >>> r.rate = 30
-            >>> r.minutes = 84
-            >>> r
-            <Report.Project foo customer=bar rate=30 minutes=84>
-            """
-            return '<Report.Project {} customer={} rate={} minutes={}>'.format(
-                self.name, self.customer, self.rate, self.minutes)
-
-        def add_minutes(self, minutes):
-            """Add a specified number of minutes to the project's time.
-
-            Arguments:
-            minutes: the number of minutes to add
-
-            >>> r = Report.Project()
-            >>> r.add_minutes(10)
-            >>> r.minutes
-            10
-            """
-            self.minutes += minutes
-
-        @property
-        def total(self):
-            """Calculates the total monetary amount for the project.
-
-            >>> r = Report.Project()
-            >>> r.add_minutes(90)
-            >>> r.rate = 20
-            >>> r.total
-            30.0
-            """
-            return self.minutes / 60 * self.rate
-
-        def get_dict(self, show_customer):
-            """Gets the dictionary representation of this Project.
-
-            Arguments:
-            show_customer: whether or not to include the customer in the
-                           dictionary
-
-            >>> r = Report.Project(name='Test')
-            >>> dict(r.get_dict(False))
-            {'Project': 'Test', 'Hours': 0.0, 'Rate ($)': 0.0, 'Total ($)': 0.0}
-            >>> dict(r.get_dict(True))
-            {'Project': 'Test', 'Customer': None, 'Hours': 0.0, 'Rate ($)': 0.0, 'Total ($)': 0.0}
-            """
-            details = OrderedDict()
-            details['Project'] = self.name
-
-            if show_customer:
-                details['Customer'] = self.customer
-
-            details['Hours'] = float(self.minutes / 60)
-            details['Rate ($)'] = float(self.rate)
-            details['Total ($)'] = self.total
-
-            return details
-
     def date_range(self, start, stop):
         current = start
         while current <= stop:
@@ -93,79 +41,69 @@ class Report:
         self.end_date = end_date
         self.customer = customer
         self.project = project
-
-        if self.customer and self.project:
-            raise Exception('You cannot specify both a customer and project '
-                            'to report on.')
-
-        # Pull from config
         self.configuration = config.get_config()
-        self.fullname = self.configuration['fullname']
-        project_rates = self.configuration['project_rates']
-        customer_rates = self.configuration['customer_rates']
+        self.max_customer_project_chars = 0
+        self.max_task_chars = 0
+        self.max_description_chars = 0
 
-        entry_groups = defaultdict(Report.Project)
-        total_minutes = 0
+        # report_map[(customer, project)][task][description] = set(TimeEntry)
+        self.report_map: ReportDict[Tuple[str, str], ReportDict[
+            str, ReportDict[str, set]]] = ReportDict(
+                lambda: ReportDict(lambda: ReportDict(EntrySet)))
 
         # Iterate through all of the days covered by this report.
         for day in self.date_range(start_date, end_date):
             for entry in EntryList(day):
-                # Filter by customer. If customer is null, include everything.
-                if ((customer and entry.customer != customer)
-                        or (project and entry.project != project)):
-                    continue
-
-                # Determine what group this entry belogs in.
-                if entry.project:
-                    group = entry_groups[entry.project]
-
-                    # Verify that the customer matches the previous entries.
-                    if group.customer and group.customer != entry.customer:
-                        print(group.customer, '!=', entry.customer)
-                        raise Exception('Two entries with the same project but'
-                                        ' different customers.')
-                elif entry.customer:
-                    group = entry_groups[entry.customer]
-                else:
-                    group = entry_groups[None]
-
-                # Add the information about this entry to the appropriate
-                # group.
-                group.name = entry.project
-                group.customer = entry.customer
-                try:
-                    group.minutes += entry.duration()
-                except Exception:
-                    print(f'Unended time entry on the {day_as_ordinal(day)}.',
-                          file=sys.stderr)
-                    sys.exit(1)
-                group.rate = project_rates.get(
+                self.report_map[(
+                    entry.customer,
                     entry.project,
-                    customer_rates.get(entry.customer, 0),
+                )][entry.taskid][entry.description].add(entry)
+
+                self.max_customer_project_chars = max(
+                    self.max_customer_project_chars,
+                    len(
+                        self.customer_project_str(
+                            entry.customer,
+                            entry.project,
+                        )))
+                self.max_task_chars = max(
+                    self.max_task_chars,
+                    len(entry.taskid),
+                )
+                self.max_description_chars = max(
+                    self.max_description_chars,
+                    len(entry.description),
                 )
 
-                total_minutes += entry.duration()
+        self.rate_totals_map: Dict[Tuple[str, str], Tuple[float, float]] = {}
+        for customer, project in self.report_map:
+            rate = 0
+            if customer:
+                rate = self.configuration['customer_rates'].get(customer, rate)
 
-        self.report_table = [
-            row.get_dict(self.customer is None)
-            for row in entry_groups.values()
-        ]
+            if project:
+                rate = self.configuration['project_rates'].get(project, rate)
 
-        # Total Line
-        self.grand_total = sum(row['Total ($)'] for row in self.report_table)
-        self.report_table.append({
-            'Project': 'TOTAL',
-            'Hours': total_minutes / 60,
-            'Total ($)': self.grand_total,
-        })
+            total = self.report_map[(customer, project)].minutes / 60 * rate
+            self.rate_totals_map[(customer, project)] = (rate, total)
+
+    def customer_project_str(self, customer, project):
+        if not customer and not project:
+            return '<no project or customer>'
+        if customer and project:
+            return f'{customer}: {project}'
+        return customer or project
+
+    def to_hours(self, minutes):
+        return minutes / 60
 
     def generate_textual_report(self, tablefmt):
+        # Format the header.
         time_report_header = 'Time Report: {} - {}'.format(
             self.start_date, self.end_date)
         if self.start_date.year == self.end_date.year:
             if (self.start_date.month == 1 and self.start_date.day == 1
-                    and self.end_date.month == 12
-                    and self.end_date.day == 31):
+                    and self.end_date.month == 12 and self.end_date.day == 31):
                 # Reporting on the whole year.
                 time_report_header = f'Time Report: {self.start_date.year}'
             elif self.start_date.month == self.end_date.month:
@@ -179,7 +117,7 @@ class Report:
             time_report_header,
             '=' * len(time_report_header),
             '',
-            f'**User:** {self.fullname}',
+            f"**User:** {self.configuration.get('fullname')}",
             '',
         ]
 
@@ -202,18 +140,81 @@ class Report:
             ]
 
         # Include the Grand Total
-        lines.append(f'**Grand Total:** ${self.grand_total:.2f}')
+        grand_total = sum(rt[1] for rt in self.rate_totals_map.values())
+        lines.append(f'**GRAND TOTAL:** ${grand_total:.2f}')
         lines.append('')
 
         # Include the report table
+
+        def pad_tabulate(rows, headers=None, **kwargs):
+            tabulate.PRESERVE_WHITESPACE = True
+            real_headers = headers or ['', '', '', '']
+            real_headers = [
+                real_headers[0], *(s.rjust(10) for s in real_headers[1:])
+            ]
+            table = tabulate.tabulate(
+                [[
+                    desc.ljust(40),
+                    self.to_hours(minutes),
+                    rate,
+                    total,
+                ] for (desc, minutes, rate, total) in rows],
+                tablefmt=tablefmt,
+                floatfmt='.2f',
+                numalign=None,
+                colalign=('left', 'right', 'right', 'right'),
+                headers=real_headers,
+                **kwargs,
+            )
+            # Need to remove the headers if they weren't specified.
+            if headers is None:
+                lines = table.split('\n')
+                table = '\n'.join([lines[0], *lines[3:]])
+
+            return table
+
+        def pad_entry(text, minutes):
+            return (text.ljust(40) + ' ' * 7 +
+                    '{:.2f}'.format(self.to_hours(minutes)).rjust(10))
+
         lines += [
             '**Detailed Time Report:**',
             '',
-            tabulate(self.report_table,
-                     headers='keys',
-                     floatfmt='.2f',
-                     tablefmt=tablefmt),
+            pad_tabulate(
+                [[
+                    'TOTAL',
+                    self.report_map.minutes,
+                    '',
+                    grand_total,
+                ]],
+                headers=['', 'Hours', 'Rate ($/h)', 'Total ($)'],
+            ),
         ]
+
+        for (i, ((customer, project),
+                 tasks)) in enumerate(self.report_map.items()):
+            if i > 0:
+                lines.append('')
+            lines.append(
+                pad_tabulate([[
+                    self.customer_project_str(customer, project),
+                    tasks.minutes,
+                    *self.rate_totals_map[(customer, project)],
+                ]]))
+
+            for task_name, task_descriptions in tasks.items():
+                lines.append('')
+                lines.append(
+                    pad_entry(
+                        f" * {task_name.upper() or '<no task>'}",
+                        task_descriptions.minutes,
+                    ))
+
+                for description, entries in task_descriptions.items():
+                    lines.append(
+                        pad_entry(
+                            f"   * {description.upper() or '<no description>'}",
+                            entries.minutes))
 
         return '\n'.join(lines)
 
