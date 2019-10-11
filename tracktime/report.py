@@ -202,15 +202,16 @@ class Report:
                     tasks.minutes,
                     *self.rate_totals_map[(customer, project)],
                 ]]))
+            lines.append('')
 
             for task_name, task_descriptions in tasks.items():
-                lines.append('')
                 task_name = (task_name or '<NO TASK>').upper()
                 lines.append(pad_entry(task_name, task_descriptions.minutes))
 
                 # Skip the <NO DESCRIPTION> if that's the only one
                 if (len(task_descriptions) == 1
                         and '' in task_descriptions.keys()):
+                    lines.append('')
                     continue
 
                 for description, entries in task_descriptions.items():
