@@ -1,6 +1,12 @@
 Changelog
 #########
 
+0.9.10
+======
+
+- **Added config item:** ``editor_args`` - a comma separated list of arguments
+  that should be passed to the ``editor`` when ``tt edit`` is run.
+
 0.9.9
 =====
 

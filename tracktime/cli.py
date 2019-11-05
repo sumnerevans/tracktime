@@ -58,13 +58,15 @@ def edit(args):
 
     # Determine the editor. Grab it from the config, then look to the EDITOR or
     # VISUAL enviornment variables.
-    editor = get_config().get(
+    config = get_config()
+    editor = config.get(
         'editor',
         os.environ.get(
             'EDITOR',
             os.environ.get('VISUAL'),
         ),
     )
+    editor_args = config.get('editor_args', '').split(',')
 
     # Default the editor to something sensible (well, notepad isn't really
     # sensible as it is total garbage, but at least almost always exists on
@@ -77,7 +79,7 @@ def edit(args):
 
     # Open the editor to edit the entries
     filename = str(get_path(date, makedirs=True))
-    call([editor, filename])
+    call([editor, *editor_args, filename])
 
     # Reload and sync the time entries
     EntryList(date).sync()
