@@ -31,11 +31,21 @@ class Report:
             yield current
             current += timedelta(days=1)
 
-    def __init__(self, start_date, end_date, customer, project):
+    def __init__(
+        self,
+        start_date,
+        end_date,
+        customer,
+        project,
+        task_grain,
+        description_grain,
+    ):
         self.start_date = start_date
         self.end_date = end_date
         self.customer = customer
         self.project = project
+        self.task_grain = task_grain
+        self.description_grain = description_grain
         self.configuration = config.get_config()
         self.max_customer_project_chars = 0
         self.max_task_chars = 0
@@ -204,11 +214,18 @@ class Report:
                     tasks.minutes,
                     *self.rate_totals_map[(customer, project)],
                 ]]))
+
+            if not self.task_grain:
+                continue
+
             lines.append('')
 
             for task_name, task_descriptions in tasks.items():
                 task_name = task_name or '<NO TASK>'
                 lines.append(pad_entry(task_name, task_descriptions.minutes))
+
+                if not self.description_grain:
+                    continue
 
                 # Skip the <NO DESCRIPTION> if that's the only one
                 if (len(task_descriptions) == 1

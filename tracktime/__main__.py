@@ -172,6 +172,39 @@ def main():
         action='store_true',
         help='shorthand for reporting on this year',
     )
+
+    task_grain_parser = report_parser.add_mutually_exclusive_group(
+        required=False)
+    task_grain_parser.add_argument(
+        '--taskgrain',
+        dest='taskgrain',
+        action='store_true',
+        help='report on the task grain',
+    )
+    task_grain_parser.add_argument(
+        '--no-taskgrain',
+        dest='taskgrain',
+        action='store_false',
+        help='do not report on the task grain',
+    )
+    report_parser.set_defaults(taskgrain='not_specified')
+
+    description_grain_parser = report_parser.add_mutually_exclusive_group(
+        required=False)
+    description_grain_parser.add_argument(
+        '--descriptiongrain',
+        dest='descriptiongrain',
+        action='store_true',
+        help='report on the description grain',
+    )
+    description_grain_parser.add_argument(
+        '--no-descriptiongrain',
+        dest='descriptiongrain',
+        action='store_false',
+        help='do not report on the description grain',
+    )
+    report_parser.set_defaults(descriptiongrain='not_specified')
+
     report_parser.add_argument(
         '-c',
         '--customer',

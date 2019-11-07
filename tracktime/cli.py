@@ -140,7 +140,22 @@ def report(args):
             calendar.monthrange(start_date.year, start_date.month)[1],
         )
 
-    report = Report(start_date, end_date, args.customer, args.project)
+    date_diff = end_date - start_date
+    task_grain = (
+        args.taskgrain if args.taskgrain != 'not_specified'
+        else date_diff.days <= 31)
+    description_grain = (
+        args.descriptiongrain if args.descriptiongrain != 'not_specified'
+        else date_diff.days <= 7)
+
+    report = Report(
+        start_date,
+        end_date,
+        args.customer,
+        args.project,
+        task_grain,
+        description_grain,
+    )
     if args.outfile:
         path = Path(args.outfile)
         exporter = report_exporters.get(path.suffix[1:])
