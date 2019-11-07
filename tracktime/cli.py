@@ -42,7 +42,10 @@ def list_entries(args):
     print(f'Entries for {date:%Y-%m-%d}')
     print('=' * 22)
     print()
-    print(tabulate([dict(x) for x in entry_list], headers='keys'))
+    print(tabulate(
+        [{'#': i, **dict(x)} for i, x in enumerate(entry_list)],
+        headers='keys',
+    ))
 
     print()
     hours, minutes = entry_list.total
