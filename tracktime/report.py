@@ -253,25 +253,6 @@ class Report:
         html = core.publish_string(rst, writer=html5_polyglot.Writer())
         return html.decode('utf-8')
 
-    def export_to_stdout(self):
-        tablefmt = self.configuration['tableformat']
-        text = self.generate_textual_report(tablefmt)
-        print(text.replace('| ', '').replace('**', ''))
-
-    def export_to_html(self, filename):
-        with open(filename, 'w+') as f:
-            f.write(self.generate_html_report())
-
-        print(f'HTML report exported to {filename}.')
-
-    def export_to_pdf(self, filename):
-        pdfkit.from_string(self.generate_html_report(), str(filename))
-        print(f'PDF report exported to {filename}.')
-
-    def export_to_rst(self, filename):
-        with open(filename, 'w+') as f:
-            f.write(self.generate_textual_report('rst'))
-
 
 class ReportExporter:
     def __init__(self, report: Report):
@@ -284,23 +265,29 @@ class ReportExporter:
 
 class PDFExporter(ReportExporter):
     def export(self, path: Path):
-        pass
+        pdfkit.from_string(self.report.generate_html_report(), str(path))
+        print(f'PDF report exported to {path}.')
 
 
 class HTMLExporter(ReportExporter):
     def export(self, path: Path):
-        pass
+        with open(path, 'w+') as f:
+            f.write(self.report.generate_html_report())
+
+        print(f'HTML report exported to {path}.')
 
 
 class RSTExporter(ReportExporter):
     def export(self, path: Path):
-        pass
+        with open(path, 'w+') as f:
+            f.write(self.report.generate_textual_report('rst'))
 
 
 class StdoutExporter(ReportExporter):
     def export(self, path: Path):
         tablefmt = config.get_config()['tableformat']
-        print(self.report.generate_textual_report(tablefmt))
+        text = self.report.generate_textual_report(tablefmt)
+        print(text.replace('| ', '').replace('**', ''))
 
 
 report_exporters = {
