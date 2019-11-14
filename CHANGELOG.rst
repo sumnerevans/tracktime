@@ -6,6 +6,24 @@ Changelog
 
 - **Added config item:** ``editor_args`` - a comma separated list of arguments
   that should be passed to the ``editor`` when ``tt edit`` is run.
+- **Reporting Improvements:**
+
+  The main thing that was added is the ability to report time spent on
+  individual tasks and descriptions.
+
+  - **Breaking API change:** To specify a report output file, you now have to
+    use the ``-o``/``--outfile`` argument.
+  - Ability to report on both the project and customer gains at the same time.
+  - By default, if you are reporting on 7 days or less, it will show both the
+    task and description grains. If you are reporting on a month or less, it
+    will show you the task grains. If you are reporting on longer than a month,
+    it will show you neither of those grains.
+
+    You can override the defaults using the ``--(no-)taskgrain`` and
+    ``--(no-)descriptiongrain`` parameters on ``tt report``.
+
+- ``tt list`` now shows the entry numbers beside the entries for easier resume
+  of previous tasks.
 
 0.9.9
 =====
