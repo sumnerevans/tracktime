@@ -315,7 +315,7 @@ class Report:
                 '<b>TOTAL</b>',
                 '{:.2f}'.format(self.to_hours(self.report_map.minutes)),
                 '',
-                self.grand_total,
+                '{:.2f}'.format(self.grand_total),
             ),
         ]
 
