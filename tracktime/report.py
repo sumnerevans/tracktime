@@ -278,6 +278,18 @@ class Report:
         tbody td {
           padding: 3px 10px 0 0;
         }
+
+        tbody.detailed-time-report-body tr td:first-child {
+          width: 526px;
+          max-width: 526px;
+        }
+
+        tbody td li {
+          list-style-position:inside;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
         '''
 
         # If there's a customer, then add it to the report.
@@ -341,7 +353,7 @@ class Report:
                     data.append((
                         'description',
                         f'''<ul style="margin: 0; padding-left: 50px;">
-                            <li>{description}</li>
+                              <li title="{description}">{description}</li>
                             </ul>''',
                         self.round(self.to_hours(entries.minutes)),
                     ))
@@ -365,28 +377,28 @@ class Report:
             <div class="content">
               <h1 style="text-align: center;">{self.header_text}</h1>
               <table>
-                  <tr>
+                <tr>
                   <td><b>User:</b></td>
                   <td>{self.configuration.get('fullname')}</td>
-                  </tr>
-                  {customer_html}
-                  <tr>
+                </tr>
+                {customer_html}
+                <tr>
                   <td><b>Grand Total:</b></td>
                   <td>${self.round(self.grand_total)}</td>
-                  </tr>
+                </tr>
               </table>
 
               <h2>Detailed Time Report</h2>
               <table>
-              <thead>
+                <thead>
                   <th></th>
                   <th style="text-align: right;">Hours</th>
                   <th style="text-align: right;">Rate ($/h)</th>
                   <th style="text-align: right;">Total ($)</th>
-              </thead>
-              <tbody>
-                {table_body}
-              </tbody>
+                </thead>
+                <tbody class="detailed-time-report-body">
+                  {table_body}
+                </tbody>
               </table>
             </div>
           </body>

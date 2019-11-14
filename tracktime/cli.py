@@ -69,7 +69,11 @@ def edit(args):
             os.environ.get('VISUAL'),
         ),
     )
-    editor_args = config.get('editor_args', '').split(',')
+    editor_args = []
+
+    # TODO: change to walrus when upgrading to Python 3.8
+    if config.get('editor_args'):
+        editor_args = config.get('editor_args').split(',')
 
     # Default the editor to something sensible (well, notepad isn't really
     # sensible as it is total garbage, but at least almost always exists on
