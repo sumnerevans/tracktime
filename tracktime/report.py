@@ -7,8 +7,6 @@ from typing import DefaultDict, Tuple, Dict
 import pdfkit
 import tabulate
 
-from docutils import core
-from docutils.writers import html5_polyglot
 from tracktime import EntryList, config
 
 
@@ -362,7 +360,7 @@ class Report:
                         f'''<ul style="margin: 0; padding-left: 50px;">
                             <li>{description}</li>
                             </ul>''',
-                            '{:.2f}'.format(self.to_hours(entries.minutes)),
+                        '{:.2f}'.format(self.to_hours(entries.minutes)),
                     ))
 
         table_body = ''
