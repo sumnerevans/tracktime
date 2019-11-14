@@ -20,11 +20,11 @@ def get_config(filename=None) -> Dict[str, Any]:
         'fullname': '<Not Specified>',
         'customer_addresses': {},
         'customer_aliases': {},
+        'customer_rates': {},
         'directory': os.path.expanduser('~/.tracktime'),
         'gitlab': {
             'api_root': 'https://gitlab.com/api/v4/',
         },
-        'customer_rates': {},
         'project_rates': {},
         'sync_time': False,
         'tableformat': 'simple',

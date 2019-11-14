@@ -11,7 +11,7 @@ from tabulate import tabulate
 import tracktime
 from tracktime.config import get_config
 from tracktime.entry_list import EntryList, get_path
-from tracktime.report import Report
+from tracktime.report import Report, report_exporters
 from tracktime.synchronisers import Synchroniser
 from tracktime.time_parser import parse_date, parse_month, parse_time
 
@@ -42,7 +42,10 @@ def list_entries(args):
     print(f'Entries for {date:%Y-%m-%d}')
     print('=' * 22)
     print()
-    print(tabulate([dict(x) for x in entry_list], headers='keys'))
+    print(tabulate(
+        [{'#': i, **dict(x)} for i, x in enumerate(entry_list)],
+        headers='keys',
+    ))
 
     print()
     hours, minutes = entry_list.total
@@ -58,13 +61,19 @@ def edit(args):
 
     # Determine the editor. Grab it from the config, then look to the EDITOR or
     # VISUAL enviornment variables.
-    editor = get_config().get(
+    config = get_config()
+    editor = config.get(
         'editor',
         os.environ.get(
             'EDITOR',
             os.environ.get('VISUAL'),
         ),
     )
+    editor_args = []
+
+    # TODO: change to walrus when upgrading to Python 3.8
+    if config.get('editor_args'):
+        editor_args = config.get('editor_args').split(',')
 
     # Default the editor to something sensible (well, notepad isn't really
     # sensible as it is total garbage, but at least almost always exists on
@@ -77,7 +86,7 @@ def edit(args):
 
     # Open the editor to edit the entries
     filename = str(get_path(date, makedirs=True))
-    call([editor, filename])
+    call([editor, *editor_args, filename])
 
     # Reload and sync the time entries
     EntryList(date).sync()
@@ -135,19 +144,30 @@ def report(args):
             calendar.monthrange(start_date.year, start_date.month)[1],
         )
 
-    report = Report(start_date, end_date, args.customer, args.project)
-    if args.filename:
-        path = Path(args.filename)
-        if path.suffix == '.pdf':
-            report.export_to_pdf(path)
-        elif path.suffix == '.html':
-            report.export_to_html(path)
-        elif path.suffix == '.rst':
-            report.export_to_rst(path)
-        else:
+    date_diff = end_date - start_date
+    task_grain = (
+        args.taskgrain if args.taskgrain != 'not_specified'
+        else date_diff.days <= 31)
+    description_grain = (
+        args.descriptiongrain if args.descriptiongrain != 'not_specified'
+        else date_diff.days <= 7)
+
+    report = Report(
+        start_date,
+        end_date,
+        args.customer,
+        args.project,
+        task_grain,
+        description_grain,
+    )
+    if args.outfile:
+        path = Path(args.outfile)
+        exporter = report_exporters.get(path.suffix[1:])
+        if not exporter:
             raise Exception(f'Cannot export to "{path.suffix}" file format.')
+        exporter(report).export(path)
     else:
-        report.export_to_stdout()
+        report_exporters['stdout'](report).export(None)
 
 
 def version():

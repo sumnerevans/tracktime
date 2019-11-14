@@ -49,7 +49,7 @@ def parse_time(time_representation, date=datetime.now()):
     raise ValueError('Could not parse time.')
 
 
-def parse_date(date_representation):
+def parse_date(date_representation) -> date:
     """Parse a date string. If a string is not passed, just return what was
     passed.
 
@@ -59,7 +59,7 @@ def parse_date(date_representation):
     :returns: a datetime representing midnight on the proper date
 
     >>> now = datetime.now()
-    >>> yesterday = datetime.now() - timedelta(days=1)
+    >>> yesterday = date.today() - timedelta(days=1)
 
     If it's not a string, just pass it through.
     >>> parse_date(date(2018, 1, 1))
@@ -84,7 +84,7 @@ def parse_date(date_representation):
         ...
     ValueError: Could not parse date.
     """
-    if not isinstance(date_representation, str):
+    if isinstance(date_representation, date):
         return date_representation
 
     date_formats = {
@@ -95,10 +95,10 @@ def parse_date(date_representation):
 
     for pattern, dateformat in date_formats.items():
         if re.match(pattern, date_representation):
-            dt = datetime.strptime(date_representation, dateformat)
+            dt = datetime.strptime(date_representation, dateformat).date()
 
             # Set defaults
-            now = datetime.now()
+            now = date.today()
             if r'%Y' not in dateformat:
                 dt = dt.replace(year=now.year)
             if r'%m' not in dateformat:
@@ -167,7 +167,7 @@ def parse_month(month_representation) -> date:
     """
     abbrs = list(month_abbr)  # Jan, Feb, Mar, ...
     names = list(month_name)  # January, February, March, ...
-    year = datetime.now().year
+    year = date.today().year
 
     year_month_match = re.match(r'(\d+)[-/.](\d+)', str(month_representation))
 

@@ -3,14 +3,16 @@ from datetime import datetime
 
 
 class TimeEntry:
-    def __init__(self,
-                 start,
-                 description,
-                 stop=None,
-                 type=None,
-                 project=None,
-                 taskid=None,
-                 customer=None):
+    def __init__(
+            self,
+            start,
+            description,
+            stop=None,
+            type=None,
+            project=None,
+            taskid=None,
+            customer=None,
+    ):
         self.start = start
         self.description = description
         self.stop = stop
