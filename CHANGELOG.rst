@@ -21,6 +21,10 @@ Changelog
 
     You can override the defaults using the ``--(no-)taskgrain`` and
     ``--(no-)descriptiongrain`` parameters on ``tt report``.
+  - By default, the entries are sorted by time spent, descending. You can also
+    sort alphabetically. You can explicitly specify the sort using the
+    ``--sort`` argument. You can specify ``--asc``/``-a`` or ``--desc``/``-d``
+    to force the sort to be ascending or descending, respectively.
 
 - ``tt list`` now shows the entry numbers beside the entries for easier resume
   of previous tasks.

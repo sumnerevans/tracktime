@@ -119,8 +119,7 @@ def main():
         help=' '.join([
             'the month to synchronize time entries for (defaults to the',
             'current month, accepted formats: 01, 1, Jan, January, 2019-01)',
-        ])
-    )
+        ]))
 
     report_parser = subparsers.add_parser(
         'report',
@@ -215,6 +214,29 @@ def main():
         '--project',
         help='project name to generate a report for',
     )
+    report_parser.add_argument(
+        '-s',
+        '--sort',
+        choices=['alphabetical', 'alpha', 'a', 'time-spent', 'time', 't'],
+        help='the grain to sort the report by (defaults to alphabetical)',
+    )
+
+    sort_direction_parser = report_parser.add_mutually_exclusive_group(
+        required=False)
+    sort_direction_parser.add_argument(
+        '-d',
+        '--desc',
+        action='store_true',
+        help='sort descending',
+    )
+    sort_direction_parser.add_argument(
+        '-a',
+        '--asc',
+        action='store_true',
+        help='sort ascending',
+    )
+    report_parser.set_defaults(desc=False, asc=False)
+
     report_parser.add_argument(
         '-o',
         '--outfile',

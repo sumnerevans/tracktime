@@ -17,12 +17,34 @@ class EntrySet(set):
 
 
 class ReportDict(DefaultDict):
+    def __init__(self, default_factory, sort, reverse):
+        super().__init__(default_factory)
+        self.sort = sort
+        self.reverse = reverse
+
     @property
     def minutes(self):
         return sum(v.minutes for v in self.values())
 
+    def items(self):
+        def sorter(kvp):
+            if self.sort == Report.SortType.ALPHABETICAL:
+                return ''.join(kvp[0]).lower()
+            else:
+                return kvp[1].minutes
+
+        yield from sorted(super().items(), key=sorter, reverse=self.reverse)
+
 
 class Report:
+    class SortType:
+        ALPHABETICAL = 0
+        TIME_SPENT = 1
+
+    class SortDirection:
+        ASCENDING = 0
+        DESCENDING = 1
+
     def date_range(self, start, stop):
         current = start
         while current <= stop:
@@ -33,6 +55,8 @@ class Report:
             self,
             start_date,
             end_date,
+            sort,
+            sort_direction,
             customer,
             project,
             task_grain,
@@ -42,6 +66,8 @@ class Report:
         self.end_date = end_date
         self.customer = customer
         self.project = project
+        self.sort = sort
+        self.reverse = sort_direction == Report.SortDirection.DESCENDING
         self.task_grain = task_grain
         self.description_grain = description_grain
         self.configuration = config.get_config()
@@ -49,7 +75,18 @@ class Report:
         # report_map[(customer, project)][task][description] = set(TimeEntry)
         self.report_map: ReportDict[Tuple[str, str], ReportDict[
             str, ReportDict[str, set]]] = ReportDict(
-                lambda: ReportDict(lambda: ReportDict(EntrySet)))
+                lambda: ReportDict(
+                    lambda: ReportDict(
+                        EntrySet,
+                        self.sort,
+                        self.reverse,
+                    ),
+                    self.sort,
+                    self.reverse,
+                ),
+                self.sort,
+                self.reverse,
+            )
 
         # Iterate through all of the days covered by this report.
         for day in self.date_range(start_date, end_date):

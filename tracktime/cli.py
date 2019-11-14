@@ -42,10 +42,14 @@ def list_entries(args):
     print(f'Entries for {date:%Y-%m-%d}')
     print('=' * 22)
     print()
-    print(tabulate(
-        [{'#': i, **dict(x)} for i, x in enumerate(entry_list)],
-        headers='keys',
-    ))
+    print(
+        tabulate(
+            [{
+                '#': i,
+                **dict(x)
+            } for i, x in enumerate(entry_list)],
+            headers='keys',
+        ))
 
     print()
     hours, minutes = entry_list.total
@@ -145,16 +149,24 @@ def report(args):
         )
 
     date_diff = end_date - start_date
-    task_grain = (
-        args.taskgrain if args.taskgrain != 'not_specified'
-        else date_diff.days <= 31)
-    description_grain = (
-        args.descriptiongrain if args.descriptiongrain != 'not_specified'
-        else date_diff.days <= 7)
+    task_grain = (args.taskgrain if args.taskgrain != 'not_specified' else
+                  date_diff.days <= 31)
+    description_grain = (args.descriptiongrain
+                         if args.descriptiongrain != 'not_specified' else
+                         date_diff.days <= 7)
+
+    sort = (Report.SortType.TIME_SPENT
+            if args.sort is None or args.sort in ('time-spent', 'time', 't')
+            else Report.SortType.ALPHABETICAL)
+    sort_direction = (Report.SortDirection.DESCENDING if args.desc or
+                      (not args.asc and sort == Report.SortType.TIME_SPENT)
+                      else Report.SortDirection.ASCENDING)
 
     report = Report(
         start_date,
         end_date,
+        sort,
+        sort_direction,
         args.customer,
         args.project,
         task_grain,
