@@ -28,7 +28,6 @@ def get_config(filename=None) -> Dict[str, Any]:
         'project_rates': {},
         'sync_time': False,
         'tableformat': 'simple',
-        'max_text_report_width': 100,
     }
 
     if not filename:

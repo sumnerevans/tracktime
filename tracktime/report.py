@@ -92,9 +92,10 @@ class Report:
             total = self.report_map[(customer, project)].minutes / 60 * rate
             self.rate_totals_map[(customer, project)] = (rate, total)
 
-    def customer_project_str(self, customer, project):
+    def customer_project_str(self, customer, project, html=False):
         if not customer and not project:
-            return '<no project or customer>'
+            return ('<no project or customer>'
+                    if not html else '<i>no project or customer</i>')
         if customer and project:
             return f'{customer}: {project}'
         return customer or project
@@ -102,8 +103,8 @@ class Report:
     def to_hours(self, minutes):
         return minutes / 60
 
-    def generate_textual_report(self, tablefmt):
-        # Format the header.
+    @property
+    def header_text(self) -> str:
         time_report_header = 'Time Report: {} - {}'.format(
             self.start_date, self.end_date)
         if self.start_date.year == self.end_date.year:
@@ -118,9 +119,17 @@ class Report:
                     # Reporting on a single month.
                     time_report_header = 'Time Report - {:%B %Y}'.format(
                         self.start_date)
+        return time_report_header
+
+    @property
+    def grand_total(self) -> float:
+        return sum(rt[1] for rt in self.rate_totals_map.values())
+
+    def generate_textual_report(self, tablefmt):
+        # Format the header.
         lines = [
-            time_report_header,
-            '=' * len(time_report_header),
+            self.header_text,
+            '=' * len(self.header_text),
             '',
             f"**User:** {self.configuration.get('fullname')}",
             '',
@@ -145,8 +154,7 @@ class Report:
             ]
 
         # Include the Grand Total
-        grand_total = sum(rt[1] for rt in self.rate_totals_map.values())
-        lines.append(f'**Grand Total:** ${grand_total:.2f}')
+        lines.append(f'**Grand Total:** ${self.grand_total:.2f}')
         lines.append('')
 
         # Include the report table
@@ -197,7 +205,7 @@ class Report:
                     'TOTAL',
                     self.report_map.minutes,
                     '',
-                    grand_total,
+                    self.grand_total,
                 ]],
                 headers=['', 'Hours', 'Rate ($/h)', 'Total ($)'],
             ),
@@ -249,9 +257,124 @@ class Report:
         return '\n'.join(lines)
 
     def generate_html_report(self):
-        rst = self.generate_textual_report('rst')
-        html = core.publish_string(rst, writer=html5_polyglot.Writer())
-        return html.decode('utf-8')
+        styles = '''
+        .content {
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        .customer-address {
+          padding: 10px 40px;
+        }
+        '''
+
+        # If there's a customer, then add it to the report.
+        customer_html = ''
+        if self.customer:
+            aliases = self.configuration['customer_aliases']
+            addresses = self.configuration['customer_addresses']
+            addr_lines = [
+                aliases.get(self.customer, self.customer),
+                *addresses.get(self.customer, '').strip().split('\n'),
+            ]
+
+            customer_html = f'''
+            <tr>
+              <td><b>Customer:</b></td>
+            </tr>
+            <tr>
+              <td colspan="2" class="customer-address">
+                {'<br/>'.join(addr_lines)}
+              </td>
+            </tr>
+            '''
+
+        data = [
+            (
+                '<b>TOTAL</b>',
+                self.to_hours(self.report_map.minutes),
+                '',
+                self.grand_total,
+            ),
+        ]
+
+        for (i, ((customer, project),
+                 tasks)) in enumerate(self.report_map.items()):
+            data.append((
+                self.customer_project_str(customer, project, html=True),
+                self.to_hours(tasks.minutes),
+                *self.rate_totals_map[(customer, project)],
+            ))
+
+            if not self.task_grain:
+                continue
+
+            for task_name, task_descriptions in tasks.items():
+                task_name = task_name or '<i>NO TASK</i>'
+
+                data.append((
+                    f'''<ul style="margin: 0; padding-left: 30px;">
+                          <li>{task_name}</li>
+                        </ul>''',
+                    '{:.2f}'.format(self.to_hours(task_descriptions.minutes)),
+                ))
+
+                if not self.description_grain:
+                    continue
+
+                # Skip the <NO DESCRIPTION> if that's the only one
+                if (len(task_descriptions) == 1
+                        and '' in task_descriptions.keys()):
+                    continue
+
+                for description, entries in task_descriptions.items():
+                    description = description or '<i>NO DESCRIPTION</i>'
+                    data.append((
+                    f'''<ul style="margin: 0; padding-left: 50px;">
+                          <li>{description}</li>
+                        </ul>''',
+                        '{:.2f}'.format(self.to_hours(entries.minutes)),
+                    ))
+
+        table = tabulate.tabulate(
+            data,
+            tablefmt='html',
+            floatfmt='.2f',
+            numalign=None,
+            colalign=('left', 'right', 'right', 'right'),
+            headers=['', 'Hours', 'Rate ($/h)', 'Total ($)'],
+        )
+
+        return f'''
+        <!doctype html>
+        <html>
+          <head>
+            <title>{self.header_text}</title>
+            <style type="text/css">
+              {styles}
+            </style>
+          </head>
+          <body>
+            <div class="content">
+              <h1 style="text-align: center;">{self.header_text}</h1>
+              <table>
+                  <tr>
+                  <td><b>User:</b></td>
+                  <td>{self.configuration.get('fullname')}</td>
+                  </tr>
+                  {customer_html}
+                  <tr>
+                  <td><b>Grand Total:</b></td>
+                  <td>${self.grand_total:.2f}</td>
+                  </tr>
+              </table>
+
+              <h2>Detailed Time Report</h2>
+              {table}
+            </div>
+          </body>
+        </html>
+        '''
 
 
 class ReportExporter:

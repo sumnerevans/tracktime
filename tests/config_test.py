@@ -16,7 +16,6 @@ def test_default_config():
         'project_rates': {},
         'sync_time': False,
         'tableformat': 'simple',
-        'max_text_report_width': 100,
     }
 
     # When the file doesn't exist, defaults should be used.
