@@ -1,5 +1,5 @@
-0.9.10
-======
+v0.9.10
+=======
 
 - **Added config item:** ``editor_args`` - a comma separated list of arguments
   that should be passed to the ``editor`` when ``tt edit`` is run.
@@ -26,8 +26,8 @@
 - ``tt list`` now shows the entry numbers beside the entries for easier resume
   of previous tasks.
 
-0.9.9
-=====
+v0.9.9
+======
 
 - Windows Support!
 - Allow for entry types other than GitLab and GitHub
@@ -38,16 +38,16 @@
   reporting group has both customer and project billing rates, the project rate
   is used.
 
-0.9.8
-=====
+v0.9.8
+======
 
 - Fixed bug preventing reporting on projects.
 - Fixed bug where the GitLab synchroniser would try and sync GitHub entries.
 - Fixed a few help formatting issues.
 - Fixed documentation in README.
 
-0.9.7
-=====
+v0.9.7
+======
 
 - **License change:** Migrated from MIT to GPLv3. Positive in the Freedom
   Dimension, so to speak.
@@ -57,41 +57,41 @@
 - Allowed resume across days.
 - Better error message when trying to make a report with unended time entries.
 
-0.9.6
-=====
+v0.9.6
+======
 
 - Performance fix: configuration cached instead of reloaded every single time
   from disk.
 - Added ``-v``/``--version`` flag to show version of the program.
 
-0.9.5
-=====
+v0.9.5
+======
 
 - Ability to report on projects
 - Allow GitLab API Key config item to be an arbitrary shell command
 - Added better logging for synchronizing time entries
 
-0.9.4
-=====
+v0.9.4
+======
 
 - Ability to resume time entries before the previous
 - Added lots of unit tests
 - Added code coverage statistics
 
-0.9.3
-=====
+v0.9.3
+======
 
 - **Emergency Bugfix:** Added the ``tracktime.synchronisers`` package by
   converting to use ``find_packages`` instead of hard-coding a list of packages.
 
-0.9.2
-=====
+v0.9.2
+======
 
 - **Emergency Bugfix:** Removed the ``flake8`` and ``flake8-pep3101``
   dependencies
 
-0.9.1
-=====
+v0.9.1
+======
 
 - **Bug Fix:** Added missing ``pyyaml`` dependency
 - **Bug Fix:** ``tracktime`` no longer blows up when
