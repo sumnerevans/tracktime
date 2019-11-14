@@ -38,7 +38,7 @@ data="
         \"links\": [
             {
                 \"name\": \"tracktime-${CI_COMMIT_TAG}.tar.gz\",
-                \"url\": \"${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_TAG}/raw/dist/tracktime-${CI_COMMIT_TAG}.tar.gz?job=build\"
+                \"url\": \"${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_TAG}/raw/dist/tracktime-${CI_COMMIT_TAG:1}.tar.gz?job=build\"
             }
         ]
     }
