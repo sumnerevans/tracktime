@@ -266,6 +266,25 @@ class Report:
         .customer-address {
           padding: 10px 40px;
         }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        thead th, tbody tr.customer-project td, tbody tr.total td {
+          font-weight: bold;
+          min-width: 100px;
+          padding: 10px;
+          border: 1px solid black;
+        }
+
+        tbody tr.spacer td {
+            padding: 5px;
+        }
+
+        tbody td {
+          padding: 3px 10px 0 0;
+        }
         '''
 
         # If there's a customer, then add it to the report.
@@ -291,8 +310,9 @@ class Report:
 
         data = [
             (
+                'total',
                 '<b>TOTAL</b>',
-                self.to_hours(self.report_map.minutes),
+                '{:.2f}'.format(self.to_hours(self.report_map.minutes)),
                 '',
                 self.grand_total,
             ),
@@ -300,10 +320,14 @@ class Report:
 
         for (i, ((customer, project),
                  tasks)) in enumerate(self.report_map.items()):
+            rate, total = self.rate_totals_map[(customer, project)]
+            data.append(('spacer', '', ''))
             data.append((
+                'customer-project',
                 self.customer_project_str(customer, project, html=True),
-                self.to_hours(tasks.minutes),
-                *self.rate_totals_map[(customer, project)],
+                '{:.2f}'.format(self.to_hours(tasks.minutes)),
+                rate,
+                '{:.2f}'.format(total),
             ))
 
             if not self.task_grain:
@@ -313,6 +337,7 @@ class Report:
                 task_name = task_name or '<i>NO TASK</i>'
 
                 data.append((
+                    'task',
                     f'''<ul style="margin: 0; padding-left: 30px;">
                           <li>{task_name}</li>
                         </ul>''',
@@ -330,20 +355,21 @@ class Report:
                 for description, entries in task_descriptions.items():
                     description = description or '<i>NO DESCRIPTION</i>'
                     data.append((
-                    f'''<ul style="margin: 0; padding-left: 50px;">
-                          <li>{description}</li>
-                        </ul>''',
-                        '{:.2f}'.format(self.to_hours(entries.minutes)),
+                        'description',
+                        f'''<ul style="margin: 0; padding-left: 50px;">
+                            <li>{description}</li>
+                            </ul>''',
+                            '{:.2f}'.format(self.to_hours(entries.minutes)),
                     ))
 
-        table = tabulate.tabulate(
-            data,
-            tablefmt='html',
-            floatfmt='.2f',
-            numalign=None,
-            colalign=('left', 'right', 'right', 'right'),
-            headers=['', 'Hours', 'Rate ($/h)', 'Total ($)'],
-        )
+        table_body = ''
+
+        for c, *cells in data:
+            table_body += f'<tr class="{c}">'
+            for i, cell in enumerate(cells):
+                align = 'right' if i > 0 else 'left'
+                table_body += f'<td style="text-align: {align};">{cell}</td>'
+            table_body += '</tr>'
 
         return f'''
         <!doctype html>
@@ -370,7 +396,17 @@ class Report:
               </table>
 
               <h2>Detailed Time Report</h2>
-              {table}
+              <table>
+              <thead>
+                  <th></th>
+                  <th style="text-align: right;">Hours</th>
+                  <th style="text-align: right;">Rate ($/h)</th>
+                  <th style="text-align: right;">Total ($)</th>
+              </thead>
+              <tbody>
+                {table_body}
+              </tbody>
+              </table>
             </div>
           </body>
         </html>
