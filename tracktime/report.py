@@ -119,6 +119,9 @@ class Report:
                     # Reporting on a single month.
                     time_report_header = 'Time Report - {:%B %Y}'.format(
                         self.start_date)
+                elif self.start_date.day == self.end_date.day:
+                    time_report_header = 'Time Report - {}'.format(
+                        self.start_date)
         return time_report_header
 
     @property
