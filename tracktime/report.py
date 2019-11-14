@@ -30,13 +30,13 @@ class Report:
             current += timedelta(days=1)
 
     def __init__(
-        self,
-        start_date,
-        end_date,
-        customer,
-        project,
-        task_grain,
-        description_grain,
+            self,
+            start_date,
+            end_date,
+            customer,
+            project,
+            task_grain,
+            description_grain,
     ):
         self.start_date = start_date
         self.end_date = end_date
@@ -45,9 +45,6 @@ class Report:
         self.task_grain = task_grain
         self.description_grain = description_grain
         self.configuration = config.get_config()
-        self.max_customer_project_chars = 0
-        self.max_task_chars = 0
-        self.max_description_chars = 0
 
         # report_map[(customer, project)][task][description] = set(TimeEntry)
         self.report_map: ReportDict[Tuple[str, str], ReportDict[
@@ -57,26 +54,15 @@ class Report:
         # Iterate through all of the days covered by this report.
         for day in self.date_range(start_date, end_date):
             for entry in EntryList(day):
+                if self.customer and entry.customer != self.customer:
+                    continue
+                if self.project and entry.project != self.project:
+                    continue
+
                 self.report_map[(
                     entry.customer,
                     entry.project,
                 )][entry.taskid][entry.description.upper()].add(entry)
-
-                self.max_customer_project_chars = max(
-                    self.max_customer_project_chars,
-                    len(
-                        self.customer_project_str(
-                            entry.customer,
-                            entry.project,
-                        )))
-                self.max_task_chars = max(
-                    self.max_task_chars,
-                    len(entry.taskid),
-                )
-                self.max_description_chars = max(
-                    self.max_description_chars,
-                    len(entry.description),
-                )
 
         self.rate_totals_map: Dict[Tuple[str, str], Tuple[float, float]] = {}
         for customer, project in self.report_map:
@@ -100,6 +86,9 @@ class Report:
 
     def to_hours(self, minutes):
         return minutes / 60
+
+    def round(self, val) -> str:
+        return '{:.2f}'.format(round(val, 2))
 
     @property
     def header_text(self) -> str:
@@ -126,6 +115,15 @@ class Report:
     def grand_total(self) -> float:
         return sum(rt[1] for rt in self.rate_totals_map.values())
 
+    @property
+    def address_lines(self):
+        aliases = self.configuration['customer_aliases']
+        addresses = self.configuration['customer_addresses']
+        return [
+            aliases.get(self.customer, self.customer),
+            *addresses.get(self.customer, '').strip().split('\n'),
+        ]
+
     def generate_textual_report(self, tablefmt):
         # Format the header.
         lines = [
@@ -138,14 +136,8 @@ class Report:
 
         # If there's a customer, then add it to the report.
         if self.customer:
-            aliases = self.configuration['customer_aliases']
-            addresses = self.configuration['customer_addresses']
-            addr_lines = [
-                aliases.get(self.customer, self.customer),
-                *addresses.get(self.customer, '').strip().split('\n'),
-            ]
             customer = ''
-            for line in addr_lines:
+            for line in self.address_lines:
                 customer += '    | {}\n'.format(line)
 
             lines += [
@@ -155,7 +147,7 @@ class Report:
             ]
 
         # Include the Grand Total
-        lines.append(f'**Grand Total:** ${self.grand_total:.2f}')
+        lines.append(f'**Grand Total:** ${self.round(self.grand_total)}')
         lines.append('')
 
         # Include the report table
@@ -196,7 +188,7 @@ class Report:
             return (
                 ellipsize(' ' *
                           (1 + indent_level * 2) + ' * ' + text).ljust(40) +
-                ' ' * 7 + '{:.2f}'.format(self.to_hours(minutes)).rjust(10))
+                ' ' * 7 + self.round(self.to_hours(minutes)).rjust(10))
 
         lines += [
             '**Detailed Time Report:**',
@@ -291,20 +283,11 @@ class Report:
         # If there's a customer, then add it to the report.
         customer_html = ''
         if self.customer:
-            aliases = self.configuration['customer_aliases']
-            addresses = self.configuration['customer_addresses']
-            addr_lines = [
-                aliases.get(self.customer, self.customer),
-                *addresses.get(self.customer, '').strip().split('\n'),
-            ]
-
             customer_html = f'''
-            <tr>
-              <td><b>Customer:</b></td>
-            </tr>
+            <tr><td><b>Customer:</b></td></tr>
             <tr>
               <td colspan="2" class="customer-address">
-                {'<br/>'.join(addr_lines)}
+                {'<br/>'.join(self.address_lines)}
               </td>
             </tr>
             '''
@@ -313,9 +296,9 @@ class Report:
             (
                 'total',
                 '<b>TOTAL</b>',
-                '{:.2f}'.format(self.to_hours(self.report_map.minutes)),
+                self.round(self.to_hours(self.report_map.minutes)),
                 '',
-                '{:.2f}'.format(self.grand_total),
+                self.round(self.grand_total),
             ),
         ]
 
@@ -326,9 +309,9 @@ class Report:
             data.append((
                 'customer-project',
                 self.customer_project_str(customer, project, html=True),
-                '{:.2f}'.format(self.to_hours(tasks.minutes)),
+                self.round(self.to_hours(tasks.minutes)),
                 rate,
-                '{:.2f}'.format(total),
+                self.round(total),
             ))
 
             if not self.task_grain:
@@ -342,7 +325,7 @@ class Report:
                     f'''<ul style="margin: 0; padding-left: 30px;">
                           <li>{task_name}</li>
                         </ul>''',
-                    '{:.2f}'.format(self.to_hours(task_descriptions.minutes)),
+                    self.round(self.to_hours(task_descriptions.minutes)),
                 ))
 
                 if not self.description_grain:
@@ -360,7 +343,7 @@ class Report:
                         f'''<ul style="margin: 0; padding-left: 50px;">
                             <li>{description}</li>
                             </ul>''',
-                        '{:.2f}'.format(self.to_hours(entries.minutes)),
+                        self.round(self.to_hours(entries.minutes)),
                     ))
 
         table_body = ''
@@ -372,14 +355,11 @@ class Report:
                 table_body += f'<td style="text-align: {align};">{cell}</td>'
             table_body += '</tr>'
 
-        return f'''
-        <!doctype html>
+        return f'''<!doctype html>
         <html>
           <head>
             <title>{self.header_text}</title>
-            <style type="text/css">
-              {styles}
-            </style>
+            <style type="text/css">{styles}</style>
           </head>
           <body>
             <div class="content">
@@ -392,7 +372,7 @@ class Report:
                   {customer_html}
                   <tr>
                   <td><b>Grand Total:</b></td>
-                  <td>${self.grand_total:.2f}</td>
+                  <td>${self.round(self.grand_total)}</td>
                   </tr>
               </table>
 
