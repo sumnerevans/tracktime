@@ -11,8 +11,8 @@ Features
 - CLI
 - Start/stop/resume time entries
 - List/edit time entries for a given day
-- Generate rST, PDF, HTML reports for a month (optionally restricted to a
-  particular customer)
+- Generate rST, PDF, HTML reports for arbitrary date ranges (optionally
+  restricted to a particular customer or project)
 - Synchronise time spent to GitLab using the Time Tracking API
 
 Installation
