@@ -68,7 +68,7 @@ class Report:
         self.project = project
         self.sort = sort
         self.reverse = sort_direction == Report.SortDirection.DESCENDING
-        self.task_grain = task_grain
+        self.task_grain = task_grain or description_grain
         self.description_grain = description_grain
         self.configuration = config.get_config()
 
