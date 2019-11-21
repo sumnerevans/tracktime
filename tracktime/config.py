@@ -28,6 +28,7 @@ def get_config(filename=None) -> Dict[str, Any]:
         'project_rates': {},
         'sync_time': False,
         'tableformat': 'simple',
+        'external_synchroniser_files': {},
     }
 
     if not filename:

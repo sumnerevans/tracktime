@@ -103,7 +103,7 @@ class EntryList:
 
     def sync(self):
         from tracktime.synchronisers import Synchroniser
-        Synchroniser(date(self.date.year, self.date.month, 1)).sync()
+        Synchroniser().sync(date(self.date.year, self.date.month, 1))
 
     def start(self, start, description, type, project, taskid, customer):
         time_entry = TimeEntry(

@@ -8,6 +8,7 @@ import pdfkit
 import tabulate
 
 from tracktime import EntryList, config
+from tracktime.synchronisers.base import Synchroniser
 
 
 class EntrySet(set):
@@ -71,6 +72,7 @@ class Report:
         self.task_grain = task_grain or description_grain
         self.description_grain = description_grain
         self.configuration = config.get_config()
+        self.synchroniser = Synchroniser()
 
         # report_map[(customer, project)][task][description] = set(TimeEntry)
         self.report_map: ReportDict[Tuple[str, str], ReportDict[
@@ -259,7 +261,14 @@ class Report:
             lines.append('')
 
             for task_name, task_descriptions in tasks.items():
-                task_name = task_name or '<NO TASK>'
+                first_entry = list(list(task_descriptions.values())[0])[0]
+                task_name = (
+                    self.synchroniser.get_formatted_task_id(first_entry)
+                    or '<NO TASK>'
+                )
+                desc = self.synchroniser.get_task_description(first_entry)
+                if desc:
+                    task_name += f': {desc}'
                 lines.append(pad_entry(task_name, task_descriptions.minutes))
 
                 if not self.description_grain:
@@ -367,7 +376,17 @@ class Report:
                 continue
 
             for task_name, task_descriptions in tasks.items():
-                task_name = task_name or '<i>NO TASK</i>'
+                first_entry = list(list(task_descriptions.values())[0])[0]
+                task_name = (
+                    self.synchroniser.get_formatted_task_id(first_entry)
+                    or '<i>NO TASK</i>'
+                )
+                desc = self.synchroniser.get_task_description(first_entry)
+                if desc:
+                    task_name += f': {desc}'
+                link = self.synchroniser.get_task_link(first_entry)
+                if link:
+                    task_name = f'<a href={link} target="_blank">{task_name}</a>'
 
                 data.append((
                     'task',

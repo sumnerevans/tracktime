@@ -97,7 +97,7 @@ def edit(args):
 
 
 def sync(args):
-    Synchroniser(parse_month(args.month)).sync()
+    Synchroniser().sync(parse_month(args.month))
 
 
 def report(args):
