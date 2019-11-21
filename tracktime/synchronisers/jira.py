@@ -10,6 +10,8 @@ class JiraSynchroniser(ExternalSynchroniser):
     def __init__(self):
         self.config = get_config()
         self.root = self.config.get('jira', {}).get('root')
+        if self.root[-1] == '/':
+            self.root = self.root[:-1]
         self.api_user = self.config.get('jira', {}).get('api_user')
         self.api_key = self.config.get('jira', {}).get('api_key')
 
@@ -45,6 +47,5 @@ class JiraSynchroniser(ExternalSynchroniser):
                 auth=auth,
             )
             return response.json().get('title')
-        except Exception as e:
-            print(response.text)
+        except:
             return
