@@ -16,6 +16,7 @@ def test_default_config():
         'project_rates': {},
         'sync_time': False,
         'tableformat': 'simple',
+        'external_synchroniser_files': {},
     }
 
     # When the file doesn't exist, defaults should be used.

@@ -1,20 +1,24 @@
 import csv
 import os
+
 from pathlib import Path
+from typing import Union
 
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 from tracktime.time_parser import parse_time
 
 
-def get_path(date, makedirs=False):
+def get_path(date: Union[date, datetime], makedirs: bool = False) -> Path:
     """
     Returns the path for a given date.
 
     Arguments:
     date: the date[time] object representing the date to get a path for.
     makedirs: (optional) whether or not to create the corresponding directory
+
+    Returns: ``Path`` for the date
 
     >>> from datetime import date
     >>> dir = get_config()['directory']
@@ -32,6 +36,9 @@ def get_path(date, makedirs=False):
 
 
 class EntryList:
+    """
+    A list of ``TimeEntry``s.
+    """
     def __init__(self, date):
         self.date = date
         self.entries = []
@@ -103,7 +110,7 @@ class EntryList:
 
     def sync(self):
         from tracktime.synchronisers import Synchroniser
-        Synchroniser(date(self.date.year, self.date.month, 1)).sync()
+        Synchroniser().sync(date(self.date.year, self.date.month, 1))
 
     def start(self, start, description, type, project, taskid, customer):
         time_entry = TimeEntry(

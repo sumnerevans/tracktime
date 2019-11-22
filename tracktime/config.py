@@ -28,12 +28,14 @@ def get_config(filename=None) -> Dict[str, Any]:
         'project_rates': {},
         'sync_time': False,
         'tableformat': 'simple',
+        'external_synchroniser_files': {},
     }
 
     if not filename:
         filename = (os.environ.get('XDG_CONFIG_HOME')
-                    or os.environ.get('APPDATA')
-                    or os.path.join(os.environ.get('HOME'), '.config'))
+                    or os.environ.get('APPDATA') or os.path.join(
+                        os.environ.get('HOME', os.path.expanduser('~')),
+                        '.config'))
         filename = os.path.join(filename, 'tracktime/tracktimerc')
 
     if not os.path.exists(filename):
