@@ -60,6 +60,8 @@ class ExternalSynchroniser:
         Returns:
         a string of the formatted task ID or ``None``
         """
+        return None
+
     def get_task_link(self, entry) -> Optional[str]:
         """
         Gets a link to the task on the external service.
@@ -73,6 +75,8 @@ class ExternalSynchroniser:
         Returns:
         a string of the URL of the task in the external service or ``None``
         """
+        return None
+
     def get_task_description(self, entry) -> Optional[str]:
         """
         Get the description of a task from the external service.
@@ -86,6 +90,7 @@ class ExternalSynchroniser:
         Returns:
         a string of the task description in the external service or ``None``
         """
+        return None
 
 
 class Synchroniser:

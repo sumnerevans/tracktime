@@ -63,6 +63,8 @@ options and what they do.
   If this value is not present, the ``EDITOR`` and ``VISUAL`` environment
   variables are used as fallback. If none are present, then ``vim`` (on
   non-Windows OSes) or ``notepad`` (on Windows) is used.
+- ``editor_args`` (``string``) - a comma separated list of arguments that should
+  be passed to the ``editor`` when ``tt edit`` is run.
 - ``gitlab`` (``dictionary``) - configuration of GitLab parameters
 
   - ``api_root`` (``string``, defaults to ``'https://gitlab.com/api/v4/'``) -
@@ -89,6 +91,8 @@ options and what they do.
   a really long name.
 - ``customer_addresses`` (``dictionary``) - a dictionary of name-address
   pairs. Used in the report export.
+- ``external_synchroniser_files`` - a dictionary of ``synchroniser name ->
+  synchroniser Python file``. Allows users to import third party synchronisers.
 
 .. _example configuration: https://gitlab.com/sumner/tracktime/snippets/1731133
 .. _tabulate documentation: https://bitbucket.org/astanin/python-tabulate#rst-header-table-format

@@ -1,3 +1,37 @@
+v0.9.11
+=======
+
+* **Added config item:** ``external_synchroniser_files`` - a dictionary of
+  ``synchroniser name -> synchroniser Python file``. Allows users to import
+  third-party synchronisers.
+* Added reference third-party synchroniser to JIRA (|jira_example|_)
+* **Synchroniser API changes:**
+
+  * New *required* function: ``get_name`` returns the human-understandable name
+    for the synchroniser.
+  * New *optional* functions: ``get_formatted_task_id``, ``get_task_link``, and
+    ``get_task_description`` for getting a human-understandable task ID, task
+    link, and task description, respectively, from the external service for
+    reporting (see below).
+
+* **Reporting Changes:**
+
+  * If a Synchroniser implemented ``get_formatted_task_id`` for the task type,
+    the formatted version will be used in reporting. For example, the reference
+    JIRA synchroniser formats tasks as <project>-<task_id>.
+  * If a Synchroniser implemented ``get_task_description`` for the task type,
+    the description of the task will be shown in the report.
+  * If a Synchroniser implemented ``get_task_link`` for the task type, when
+    exporting to HTML or PDF, the task description will be a hyperlink to the
+    task in the external service.
+
+* **Infrastructure:** integrated ``mypy`` into linting pipeline and added CoC
+  settings for people using coc.nvim_.
+
+.. _coc.nvim: https://github.com/neoclide/coc.nvim
+.. |jira_example| replace:: ``examples/jira.py``
+.. _jira_example: https://gitlab.com/sumner/tracktime/blob/master/examples/jira.py
+
 v0.9.10
 =======
 
