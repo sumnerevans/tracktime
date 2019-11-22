@@ -111,7 +111,6 @@ class Synchroniser:
         parent = Path(__file__).parent
         synchronisers = {
             'gitlab': parent.joinpath('gitlab.py'),
-            'jira': parent.joinpath('jira.py'),
         }
         synchronisers.update(self.config['external_synchroniser_files'])
 

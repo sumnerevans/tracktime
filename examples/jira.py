@@ -6,7 +6,7 @@ from tracktime.synchronisers.base import ExternalSynchroniser
 
 
 class JiraSynchroniser(ExternalSynchroniser):
-    types = ('jira', 'JIRA')
+    types = ( 'jira', 'JIRA')
 
     def __init__(self):
         self.config = get_config()
