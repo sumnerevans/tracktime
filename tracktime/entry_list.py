@@ -1,17 +1,16 @@
 import csv
 import os
 
-from datetime.datetime import Date, DateTime
 from pathlib import Path
 from typing import Union
 
 from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 from tracktime.time_parser import parse_time
 
 
-def get_path(date: Union[Date, DateTime], makedirs: bool = False) -> Path:
+def get_path(date: Union[date, datetime], makedirs: bool = False) -> Path:
     """
     Returns the path for a given date.
 
