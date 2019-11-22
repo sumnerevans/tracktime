@@ -17,7 +17,6 @@ class ExternalSynchroniser:
     """
     Implementors of this class must handle parallelism and caching themselves.
     """
-
     def get_name(self):
         """
         Returns the human name for the external synchroniser.
@@ -59,7 +58,6 @@ class ExternalSynchroniser:
         Returns:
         a string of the formatted task ID or ``None``
         """
-
     def get_task_link(self, entry) -> Optional[str]:
         """
         Gets a link to the task on the external service.
@@ -73,7 +71,6 @@ class ExternalSynchroniser:
         Returns:
         a string of the URL of the task in the external service or ``None``
         """
-
     def get_task_description(self, entry) -> Optional[str]:
         """
         Get the description of a task from the external service.
@@ -125,8 +122,8 @@ class Synchroniser:
                 spec.loader.exec_module(module)
 
                 # Find the Synchroniser
-                for item in filter(
-                        lambda x: not x.startswith('__'), dir(module)):
+                for item in filter(lambda x: not x.startswith('__'),
+                                   dir(module)):
                     item = getattr(module, item)
                     if not type(item) == type or item == ExternalSynchroniser:
                         continue
@@ -190,8 +187,7 @@ class Synchroniser:
 
         for synchroniser in self.get_synchronisers():
             print(f'Syncronizing with {synchroniser.get_name()}.')
-            synced_time.update(
-                synchroniser.sync(aggregated_time, synced_time))
+            synced_time.update(synchroniser.sync(aggregated_time, synced_time))
 
         # Update the .synced file with the updated amounts.
         with open(synced_file_path, 'w+', newline='') as f:
