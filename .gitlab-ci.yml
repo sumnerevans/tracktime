@@ -9,11 +9,13 @@ lint:
   image: python:3.6-alpine
   stage: test
   before_script:
+    - apk add gcc musl-dev
     - pip install -e .
-    - pip install flake8 flake8-pep3101
+    - pip install flake8 flake8-pep3101 mypy
   script:
     - python setup.py check -mrs
     - flake8
+    - mypy tracktime
 
 test:
   image: python:3.6-alpine

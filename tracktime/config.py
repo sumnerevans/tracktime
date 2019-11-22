@@ -33,8 +33,9 @@ def get_config(filename=None) -> Dict[str, Any]:
 
     if not filename:
         filename = (os.environ.get('XDG_CONFIG_HOME')
-                    or os.environ.get('APPDATA')
-                    or os.path.join(os.environ.get('HOME'), '.config'))
+                    or os.environ.get('APPDATA') or os.path.join(
+                        os.environ.get('HOME', os.path.expanduser('~')),
+                        '.config'))
         filename = os.path.join(filename, 'tracktime/tracktimerc')
 
     if not os.path.exists(filename):

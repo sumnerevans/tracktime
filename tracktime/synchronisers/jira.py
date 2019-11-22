@@ -24,20 +24,20 @@ class JiraSynchroniser(ExternalSynchroniser):
 
     def get_formatted_task_id(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
-            return
+            return None
 
         return f'{entry.project}-{entry.taskid}'
 
     def get_task_link(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
-            return
+            return None
         return f'{self.root}/browse/{self.get_formatted_task_id(entry)}'
 
     def get_task_description(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
-            return
+            return None
         if not self.api_user or not self.api_key:
-            return
+            return None
 
         auth = requests.auth.HTTPBasicAuth(self.api_user, self.api_key)
         url = f"{self.root}/rest/agile/1.0/issue/{self.get_formatted_task_id(entry)}"
@@ -49,4 +49,4 @@ class JiraSynchroniser(ExternalSynchroniser):
             )
             return response.json().get('title')
         except Exception:
-            return
+            return None

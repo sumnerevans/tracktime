@@ -4,7 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import DefaultDict, Tuple, Dict
 
-import pdfkit
+import pdfkit  # type: ignore
 import tabulate
 
 from tracktime import EntryList, config
@@ -267,8 +267,7 @@ class Report:
                 first_entry = list(list(task_descriptions.values())[0])[0]
                 task_name = (
                     self.synchroniser.get_formatted_task_id(first_entry)
-                    or '<NO TASK>'
-                )
+                    or '<NO TASK>')
                 desc = self.synchroniser.get_task_description(first_entry)
                 if desc:
                     task_name += f': {desc}'
@@ -382,8 +381,7 @@ class Report:
                 first_entry = list(list(task_descriptions.values())[0])[0]
                 task_name = (
                     self.synchroniser.get_formatted_task_id(first_entry)
-                    or '<i>NO TASK</i>'
-                )
+                    or '<i>NO TASK</i>')
                 desc = self.synchroniser.get_task_description(first_entry)
                 if desc:
                     task_name += f': {desc}'

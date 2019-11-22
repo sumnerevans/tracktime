@@ -77,11 +77,11 @@ class GitLabSynchroniser(ExternalSynchroniser):
 
     def get_task_link(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
-            return
+            return None
         root = get_config().get('gitlab', {}).get('api_root')
         root_match = re.match('(.*)/api/v4/?', root)
         if not root_match:
-            return
+            return None
         root = root_match.group(1)
 
         task_type = self.task_types[entry.taskid[0]]
@@ -89,7 +89,7 @@ class GitLabSynchroniser(ExternalSynchroniser):
 
     def get_task_description(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
-            return
+            return None
         escaped_project = parse.quote(entry.project).replace('/', '%2F')
         task_type = self.task_types[entry.taskid[0]]
         task_number = entry.taskid[1:]
@@ -97,4 +97,4 @@ class GitLabSynchroniser(ExternalSynchroniser):
         try:
             return self._make_request(uri, requester=get).json().get('title')
         except Exception:
-            return
+            return None

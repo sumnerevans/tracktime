@@ -7,10 +7,12 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from subprocess import PIPE, run
-from typing import Optional
+from typing import Optional, DefaultDict, Tuple
 
 from tracktime import EntryList
 from tracktime.config import get_config
+
+AggregatedTime = DefaultDict[Tuple[str, str, str], int]
 
 
 class ExternalSynchroniser:
@@ -157,7 +159,7 @@ class Synchroniser:
             return
 
         # Create a dictionary of the total time tracked for each GitLab taskid.
-        aggregated_time = defaultdict(int)
+        aggregated_time: AggregatedTime = defaultdict(int)
         for day in range(1, 32):
             path = Path(month_dir, '{:02}'.format(day))
 
@@ -177,7 +179,7 @@ class Synchroniser:
                 aggregated_time[task_tuple] += entry.duration()
 
         # Create a dictionary of all of the synchronised taskids.
-        synced_time = defaultdict(int)
+        synced_time: AggregatedTime = defaultdict(int)
         synced_file_path = Path(month_dir, '.synced')
         if synced_file_path.exists():
             with open(synced_file_path, 'r') as f:
@@ -215,9 +217,11 @@ class Synchroniser:
             task_link = synchroniser.get_task_link(entry)
             if task_link:
                 return task_link
+        return None
 
     def get_task_description(self, entry) -> Optional[str]:
         for synchroniser in self.get_synchronisers():
             task_description = synchroniser.get_task_description(entry)
             if task_description:
                 return task_description
+        return None
