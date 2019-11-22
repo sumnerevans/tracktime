@@ -7,6 +7,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from subprocess import PIPE, run
+from typing import Optional, DefaultDict, Tuple
 
 from tracktime import EntryList
 from tracktime.config import get_config
@@ -18,7 +19,6 @@ class ExternalSynchroniser:
     """
     Implementors of this class must handle parallelism and caching themselves.
     """
-
     def get_name(self):
         """
         Returns the human name for the external synchroniser.
