@@ -7,10 +7,11 @@ from tracktime.synchronisers.base import ExternalSynchroniser
 
 class JiraSynchroniser(ExternalSynchroniser):
     types = ('jira', 'JIRA')
+
     def __init__(self):
         self.config = get_config()
         self.root = self.config.get('jira', {}).get('root')
-        if self.root[-1] == '/':
+        if self.root and self.root[-1] == '/':
             self.root = self.root[:-1]
         self.api_user = self.config.get('jira', {}).get('api_user')
         self.api_key = self.config.get('jira', {}).get('api_key')
@@ -47,5 +48,5 @@ class JiraSynchroniser(ExternalSynchroniser):
                 auth=auth,
             )
             return response.json().get('title')
-        except:
+        except Exception:
             return

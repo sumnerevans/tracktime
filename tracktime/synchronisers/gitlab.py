@@ -96,5 +96,5 @@ class GitLabSynchroniser(ExternalSynchroniser):
         uri = f'/projects/{escaped_project}/{task_type}s/{task_number}'
         try:
             return self._make_request(uri, requester=get).json().get('title')
-        except:
+        except Exception:
             return

@@ -76,7 +76,7 @@ class Report:
 
         # report_map[(customer, project)][task][description] = set(TimeEntry)
         self.report_map: ReportDict[Tuple[str, str], ReportDict[
-            str, ReportDict[str, set]]] = ReportDict(
+            str, ReportDict[str, EntrySet]]] = ReportDict(
                 lambda: ReportDict(
                     lambda: ReportDict(
                         EntrySet,
@@ -93,6 +93,9 @@ class Report:
         # Iterate through all of the days covered by this report.
         for day in self.date_range(start_date, end_date):
             for entry in EntryList(day):
+                if not entry.stop:
+                    raise Exception(f'ERROR: Unended time entry on {day}')
+
                 if self.customer and entry.customer != self.customer:
                     continue
                 if self.project and entry.project != self.project:
