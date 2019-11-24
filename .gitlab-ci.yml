@@ -6,7 +6,7 @@ stages:
   - release
 
 lint:
-  image: python:3.6-alpine
+  image: python:3.8-alpine
   stage: test
   before_script:
     - apk add gcc musl-dev
@@ -18,7 +18,7 @@ lint:
     - mypy tracktime
 
 test:
-  image: python:3.6-alpine
+  image: python:3.8-alpine
   stage: test
   before_script:
     - pip install -e .
@@ -30,7 +30,7 @@ test:
       - htmlcov
 
 build:
-  image: python:3.6-alpine
+  image: python:3.8-alpine
   stage: build
   before_script:
     - pip install docutils
@@ -41,7 +41,7 @@ build:
       - dist/*
 
 deploy_pypi:
-  image: python:3.6-alpine
+  image: python:3.8-alpine
   stage: deploy
   only:
     variables:
@@ -58,7 +58,7 @@ deploy_pypi:
     - echo "" > ~/.pypirc && rm -f ~/.pypirc
 
 verify_deploy:
-  image: python:3.6-alpine
+  image: python:3.8-alpine
   stage: verify
   only:
     variables:
