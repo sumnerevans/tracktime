@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+import os
 import argparse
 import sys
 from datetime import datetime
@@ -14,6 +15,22 @@ def main():
         '--version',
         help='show version and exit',
         action='store_true',
+    )
+
+    default_config_filename = (
+        os.environ.get('XDG_CONFIG_HOME')
+        or os.environ.get('APPDATA') or os.path.join(
+            os.environ.get('HOME', os.path.expanduser('~')), '.config'))
+    default_config_filename = os.path.join(
+        default_config_filename,
+        'tracktime/tracktimerc',
+    )
+
+    parser.add_argument(
+        '--config',
+        help='the configuration file to use. Defaults to '
+        '~/.config/tracktime/tracktimerc.',
+        default=default_config_filename,
     )
 
     subparsers = parser.add_subparsers(
@@ -256,10 +273,9 @@ def main():
         'last month)',
     )
 
-    if len(sys.argv) > 1:
-        args = parser.parse_args()
-    else:
-        args = parser.parse_args(['list'])
+    args = parser.parse_args()
+    if not args.action:
+        args = parser.parse_args([*sys.argv[1:], 'list'])
 
     # Show version if requested.
     if args.version:

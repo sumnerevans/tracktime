@@ -94,9 +94,9 @@ class ExternalSynchroniser:
 
 
 class Synchroniser:
-    def __init__(self):
+    def __init__(self, config):
         """Initialize the Synchroniser."""
-        self.config = get_config()
+        self.config = config
         self.synchronisers = None
 
     def _test_internet(self):
@@ -171,7 +171,10 @@ class Synchroniser:
             if not path.exists():
                 continue
 
-            for entry in EntryList(date(year, month, day)).entries:
+            for entry in EntryList(
+                    self.config,
+                    date(year, month, day),
+            ).entries:
                 # Skip any entries that don't have a type, project, or taskid.
                 if not entry.type or not entry.project or not entry.taskid:
                     continue

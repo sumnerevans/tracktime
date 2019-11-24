@@ -9,8 +9,9 @@ cached_config: Dict[str, Any] = {}
 
 def get_config(filename=None) -> Dict[str, Any]:
     """
-    Gets the configuration from ~/.config/tracktime/tracktimerc. If none
-    exists, defaults are used.
+    Gets the configuration from the provided filename (or
+    ~/.config/tracktime/tracktimerc if none is provided). If the file does not
+    exist, defaults are used.
     """
     global cached_config
     if cached_config:

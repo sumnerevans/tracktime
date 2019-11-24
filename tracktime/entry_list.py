@@ -2,15 +2,18 @@ import csv
 import os
 
 from pathlib import Path
-from typing import Union
+from typing import Any, Dict, Union
 
-from tracktime.config import get_config
 from tracktime.time_entry import TimeEntry
 from datetime import timedelta, date, datetime
 from tracktime.time_parser import parse_time
 
 
-def get_path(date: Union[date, datetime], makedirs: bool = False) -> Path:
+def get_path(
+        config: Dict[str, Any],
+        date: Union[date, datetime],
+        makedirs: bool = False,
+) -> Path:
     """
     Returns the path for a given date.
 
@@ -21,11 +24,11 @@ def get_path(date: Union[date, datetime], makedirs: bool = False) -> Path:
     Returns: ``Path`` for the date
 
     >>> from datetime import date
-    >>> dir = get_config()['directory']
-    >>> str(get_path(date(2018, 1, 1))) == f'{dir}/2018/01/01'
+    >>> from tracktime.config import get_config
+    >>> str(get_path(get_config(), date(2018, 1, 1))).endswith('/2018/01/01')
     True
     """
-    directory = Path(get_config()['directory'])
+    directory = Path(config['directory'])
     directory = directory.joinpath(str(date.year))
     directory = directory.joinpath('{:02}'.format(date.month))
 
@@ -39,12 +42,13 @@ class EntryList:
     """
     A list of ``TimeEntry``s.
     """
-    def __init__(self, date):
+    def __init__(self, config, date):
         self.date = date
+        self.config = config
         self.entries = []
 
         # Load entries from the file
-        self.filepath = get_path(date, makedirs=True)
+        self.filepath = get_path(self.config, date, makedirs=True)
         if os.path.exists(self.filepath):
             with open(self.filepath, 'r') as f:
                 for row in csv.DictReader(f):
@@ -110,7 +114,8 @@ class EntryList:
 
     def sync(self):
         from tracktime.synchronisers import Synchroniser
-        Synchroniser().sync(date(self.date.year, self.date.month, 1))
+        Synchroniser(self.config).sync(
+            date(self.date.year, self.date.month, 1), )
 
     def start(self, start, description, type, project, taskid, customer):
         time_entry = TimeEntry(
@@ -134,7 +139,7 @@ class EntryList:
     def resume(self, start, entry):
         if len(self) == 0:
             yesterday = self.date - timedelta(days=1)
-            old_entry = EntryList(yesterday).entries[-1]
+            old_entry = EntryList(self.config, yesterday).entries[-1]
         else:
             old_entry = self.entries[entry]
 

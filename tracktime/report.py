@@ -54,6 +54,7 @@ class Report:
 
     def __init__(
             self,
+            config,
             start_date,
             end_date,
             sort,
@@ -71,8 +72,8 @@ class Report:
         self.reverse = sort_direction == Report.SortDirection.DESCENDING
         self.task_grain = task_grain or description_grain
         self.description_grain = description_grain
-        self.configuration = config.get_config()
-        self.synchroniser = Synchroniser()
+        self.config = config
+        self.synchroniser = Synchroniser(self.config)
 
         # report_map[(customer, project)][task][description] = set(TimeEntry)
         self.report_map: ReportDict[Tuple[str, str], ReportDict[
@@ -92,7 +93,7 @@ class Report:
 
         # Iterate through all of the days covered by this report.
         for day in self.date_range(start_date, end_date):
-            for entry in EntryList(day):
+            for entry in EntryList(self.config, day):
                 if not entry.stop:
                     raise Exception(f'ERROR: Unended time entry on {day}')
 
@@ -110,10 +111,10 @@ class Report:
         for customer, project in self.report_map:
             rate = 0
             if customer:
-                rate = self.configuration['customer_rates'].get(customer, rate)
+                rate = self.config['customer_rates'].get(customer, rate)
 
             if project:
-                rate = self.configuration['project_rates'].get(project, rate)
+                rate = self.config['project_rates'].get(project, rate)
 
             total = self.report_map[(customer, project)].minutes / 60 * rate
             self.rate_totals_map[(customer, project)] = (rate, total)
@@ -146,10 +147,10 @@ class Report:
                         and self.end_date.day == calendar.monthrange(
                             self.start_date.year, self.start_date.month)[1]):
                     # Reporting on a single month.
-                    time_report_header = 'Time Report - {:%B %Y}'.format(
+                    time_report_header = 'Time Report: {:%B %Y}'.format(
                         self.start_date)
                 elif self.start_date.day == self.end_date.day:
-                    time_report_header = 'Time Report - {}'.format(
+                    time_report_header = 'Time Report: {}'.format(
                         self.start_date)
         return time_report_header
 
@@ -159,8 +160,8 @@ class Report:
 
     @property
     def address_lines(self):
-        aliases = self.configuration['customer_aliases']
-        addresses = self.configuration['customer_addresses']
+        aliases = self.config['customer_aliases']
+        addresses = self.config['customer_addresses']
         return [
             aliases.get(self.customer, self.customer),
             *addresses.get(self.customer, '').strip().split('\n'),
@@ -172,7 +173,7 @@ class Report:
             self.header_text,
             '=' * len(self.header_text),
             '',
-            f"**User:** {self.configuration.get('fullname')}",
+            f"**User:** {self.config.get('fullname')}",
             '',
         ]
 
@@ -436,7 +437,7 @@ class Report:
               <table>
                 <tr>
                   <td><b>User:</b></td>
-                  <td>{self.configuration.get('fullname')}</td>
+                  <td>{self.config.get('fullname')}</td>
                 </tr>
                 {customer_html}
                 <tr>
