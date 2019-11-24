@@ -34,6 +34,7 @@ build:
   image: python:3.8-alpine
   stage: build
   before_script:
+    - apk add gcc musl-dev
     - pip install pipenv
     - pipenv install --dev
   script:
