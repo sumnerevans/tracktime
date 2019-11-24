@@ -7,7 +7,7 @@ from typing import DefaultDict, Tuple, Dict
 import pdfkit  # type: ignore
 import tabulate
 
-from tracktime import EntryList, config
+from tracktime import EntryList
 from tracktime.synchronisers.base import Synchroniser
 
 
@@ -465,7 +465,8 @@ class Report:
 
 
 class ReportExporter:
-    def __init__(self, report: Report):
+    def __init__(self, config, report: Report):
+        self.config = config
         self.report = report
 
     def export(self, path: Path):
@@ -495,7 +496,7 @@ class RSTExporter(ReportExporter):
 
 class StdoutExporter(ReportExporter):
     def export(self, path: Path):
-        tablefmt = config.get_config()['tableformat']
+        tablefmt = self.config['tableformat']
         text = self.report.generate_textual_report(tablefmt)
         print(text.replace('| ', '').replace('**', ''))
 

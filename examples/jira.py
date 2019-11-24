@@ -1,15 +1,14 @@
 import requests
 from typing import Optional
 
-from tracktime.config import get_config
 from tracktime.synchronisers.base import ExternalSynchroniser
 
 
 class JiraSynchroniser(ExternalSynchroniser):
     types = ('jira', 'JIRA')
 
-    def __init__(self):
-        self.config = get_config()
+    def __init__(self, config):
+        self.config = config
         self.root = self.config.get('jira', {}).get('root')
         if self.root and self.root[-1] == '/':
             self.root = self.root[:-1]

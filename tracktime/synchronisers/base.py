@@ -10,7 +10,6 @@ from subprocess import PIPE, run
 from typing import Optional, DefaultDict, Tuple
 
 from tracktime import EntryList
-from tracktime.config import get_config
 
 AggregatedTime = DefaultDict[Tuple[str, str, str], int]
 
@@ -133,8 +132,8 @@ class Synchroniser:
                     item = getattr(module, item)
                     if not type(item) == type or item == ExternalSynchroniser:
                         continue
-                    if isinstance(item(), ExternalSynchroniser):
-                        synchroniser = item()
+                    if isinstance(item(self.config), ExternalSynchroniser):
+                        synchroniser = item(self.config)
                         break
                 else:
                     raise Exception(

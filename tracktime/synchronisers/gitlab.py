@@ -7,7 +7,6 @@ from urllib import parse
 from typing import Optional
 
 from requests import post, get
-from tracktime.config import get_config
 from tracktime.synchronisers.base import ExternalSynchroniser
 
 
@@ -15,8 +14,7 @@ class GitLabSynchroniser(ExternalSynchroniser):
     types = ('gl', 'gitlab')
     task_types = {'#': 'issue', '!': 'merge_request'}
 
-    def __init__(self):
-        config = get_config()
+    def __init__(self, config):
         self.api_key = config.get('gitlab').get('api_key')
         self.api_root = config.get('gitlab').get('api_root')
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=50)

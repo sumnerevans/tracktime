@@ -198,7 +198,10 @@ def report(args):
             raise Exception(f'Cannot export to "{path.suffix}" file format.')
         exporter(report).export(path)
     else:
-        report_exporters['stdout'](report).export(None)
+        report_exporters['stdout'](
+            get_config(args.config),
+            report,
+        ).export(None)
 
 
 def version():
