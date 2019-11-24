@@ -21,6 +21,7 @@ test:
   image: python:3.8-alpine
   stage: test
   before_script:
+    - apk add gcc musl-dev
     - pip install pipenv
     - pipenv install --dev
   script:
