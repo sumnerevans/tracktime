@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+flake8 = "*"
+mypy = "*"
+flake8-pep3101 = "*"
+pytest = "*"
+pytest-cov = "*"
+docutils = "*"
+twine = "*"
+jedi = "*"
+rope = "*"
+yapf = "*"
+
+[packages]
+tracktime = {editable = true,path = "."}
+
+[requires]
+python_version = "3.8"
