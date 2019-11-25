@@ -68,9 +68,15 @@ def parse_date(date_representation) -> date:
     If it is a string, parse it.
     >>> d = parse_date('03')
     >>> assert (now.year, now.month, 3) == (d.year, d.month, d.day)
+    >>> d = parse_date('3')
+    >>> assert (now.year, now.month, 3) == (d.year, d.month, d.day)
     >>> d = parse_date('03-03')
     >>> assert (now.year, 3, 3) == (d.year, d.month, d.day)
+    >>> d = parse_date('3-3')
+    >>> assert (now.year, 3, 3) == (d.year, d.month, d.day)
     >>> d = parse_date('2018-03-03')
+    >>> assert (2018, 3, 3) == (d.year, d.month, d.day)
+    >>> d = parse_date('2018/03/03')
     >>> assert (2018, 3, 3) == (d.year, d.month, d.day)
     >>> d = parse_date('today')
     >>> assert (now.year, now.month, now.day) == (d.year, d.month, d.day)
@@ -88,9 +94,12 @@ def parse_date(date_representation) -> date:
         return date_representation
 
     date_formats = {
-        r'\d{4}-\d{2}-\d{2}': '%Y-%m-%d',
-        r'\d\d-\d\d': '%m-%d',
-        r'\d\d': '%d',
+        r'\d{4}-\d{1,2}-\d{1,2}': '%Y-%m-%d',
+        r'\d{4}/\d{1,2}/\d{1,2}': '%Y/%m/%d',
+        r'\d{2}-\d{1,2}-\d{1,2}': '%y-%m-%d',
+        r'\d{2}/\d{1,2}/\d{1,2}': '%y/%m/%d',
+        r'\d{1,2}-\d{1,2}': '%m-%d',
+        r'\d{1,2}': '%d',
     }
 
     for pattern, dateformat in date_formats.items():
