@@ -21,6 +21,13 @@ def dummy_config(dummy_tracktime_dir):
         'fullname: Test User',
         'sync_time: true',
         f'directory: {dummy_tracktime_dir.name}',
+        'customer_aliases:',
+        '  SC: Some Company',
+        'customer_addresses:',
+        '  SC: |',
+        '    1234 Some Street',
+        '    Some City, CA 12345',
+        '    USA',
     ])
     config_file.close()
     return config_file
@@ -98,8 +105,44 @@ def test_report(dummy_config):
         '',
     ]
 
+    for i, (expected, actual) in enumerate(zip(lines, output_lines)):
+        print(i)
+        assert expected == actual
+
     assert len(lines) == len(output_lines)
+
+
+def test_report_with_customer(dummy_config):
+    output_lines = subprocess.check_output([
+        'tt', '--config', dummy_config.name, 'report', '-c', 'SC', '-y', '2019', '-m', '01'
+    ]).decode().split(os.linesep)
+
+    lines = [
+        'Time Report: January 2019',
+        '=========================',
+        '',
+        'User: Test User',
+        '',
+        'Customer:',
+        '',
+        '    Some Company',
+        '    1234 Some Street',
+        '    Some City, CA 12345',
+        '    USA',
+        '',
+        'Grand Total: $0.00',
+        '',
+        'Detailed Time Report:',
+        '',
+        '                                                 Hours    Rate ($/h)     Total ($)',
+        '----------------------------------------  ------------  ------------  ------------',
+        'TOTAL                                             0.00                           0',
+        '',
+        '',
+    ]
 
     for i, (expected, actual) in enumerate(zip(lines, output_lines)):
         print(i)
         assert expected == actual
+
+    assert len(lines) == len(output_lines)

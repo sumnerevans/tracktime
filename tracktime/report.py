@@ -165,7 +165,7 @@ class Report:
         addresses = self.config['customer_addresses']
         return [
             aliases.get(self.customer, self.customer),
-            *addresses.get(self.customer, '').strip().split(os.linesep),
+            *addresses.get(self.customer, '').strip().split('\n'),
         ]
 
     def generate_textual_report(self, tablefmt):
