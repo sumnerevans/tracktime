@@ -131,7 +131,7 @@ class EntryList:
         self.save_and_sync()
 
     def stop(self, stop):
-        if len(self) == 0:
+        if len(self) == 0 or self.entries[-1].stop:
             raise Exception('No time entry to end.')
 
         self.entries[-1].stop = stop
