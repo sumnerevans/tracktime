@@ -25,7 +25,8 @@ def get_path(
 
     >>> from datetime import date
     >>> from tracktime.config import get_config
-    >>> str(get_path(get_config(), date(2018, 1, 1))).endswith('/2018/01/01')
+    >>> get_path(get_config(), date(2018, 1, 1)).parts[-3:] == (
+    ... '2018', '01', '01')
     True
     """
     directory = Path(config['directory'])

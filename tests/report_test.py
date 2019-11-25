@@ -1,3 +1,4 @@
+import os
 import tempfile
 from datetime import date, timedelta
 import subprocess
@@ -51,7 +52,7 @@ def test_report_date_display(dummy_config):
     for date_args, expected in test_cases:
         output_lines = subprocess.check_output(
             ['tt', '--config', dummy_config.name, 'report',
-             *date_args]).decode().split('\n')
+             *date_args]).decode().split(os.linesep)
 
         assert output_lines[0] == expected
 
@@ -71,13 +72,14 @@ def test_invalid_date_specifications(dummy_config):
             capture_output=True,
         )
         assert result.returncode != 0
-        assert result.stderr.decode().endswith(f'Exception: {expected}\n')
+        assert result.stderr.decode().endswith(
+            f'Exception: {expected}{os.linesep}')
 
 
 def test_report(dummy_config):
     output_lines = subprocess.check_output([
         'tt', '--config', dummy_config.name, 'report', '-y', '2019', '-m', '01'
-    ]).decode().split('\n')
+    ]).decode().split(os.linesep)
 
     lines = [
         'Time Report: January 2019',

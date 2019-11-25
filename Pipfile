@@ -16,6 +16,7 @@ yapf = "*"
 
 [packages]
 tracktime = {editable = true,path = "."}
+atomicwrites = "*"
 
 [requires]
 python_version = "3.8"

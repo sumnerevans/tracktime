@@ -1,3 +1,4 @@
+import os
 import calendar
 
 from datetime import timedelta
@@ -164,7 +165,7 @@ class Report:
         addresses = self.config['customer_addresses']
         return [
             aliases.get(self.customer, self.customer),
-            *addresses.get(self.customer, '').strip().split('\n'),
+            *addresses.get(self.customer, '').strip().split(os.linesep),
         ]
 
     def generate_textual_report(self, tablefmt):
