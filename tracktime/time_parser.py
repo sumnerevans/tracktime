@@ -119,16 +119,16 @@ def parse_date(date_representation) -> date:
         return date.today()
     elif date_representation == 'yesterday':
         return date.today() - timedelta(1)
-    elif date_representation in list(day_abbr):
+    elif date_representation.lower() in map(str.lower, day_abbr):
         # Go back a week and iterate until you find a match.
         start = date.today() - timedelta(6)
-        while start.strftime('%a') != date_representation:
+        while start.strftime('%a').lower() != date_representation.lower():
             start += timedelta(1)
         return start
-    elif date_representation in list(day_name):
+    elif date_representation.lower() in map(str.lower, day_name):
         # Go back a week and iterate until you find a match.
         start = date.today() - timedelta(6)
-        while start.strftime('%A') != date_representation:
+        while start.strftime('%A').lower() != date_representation.lower():
             start += timedelta(1)
         return start
 
@@ -174,8 +174,11 @@ def parse_month(month_representation) -> date:
         ...
     ValueError: You must specify the month as either ... a month number (01).
     """
-    abbrs = list(month_abbr)  # Jan, Feb, Mar, ...
-    names = list(month_name)  # January, February, March, ...
+    if type(month_representation) == str:
+        month_representation = month_representation.lower()
+
+    abbrs = [m.lower() for m in month_abbr]  # Jan, Feb, Mar, ...
+    names = [m.lower() for m in month_name]  # January, February, March, ...
     year = date.today().year
 
     year_month_match = re.match(r'(\d+)[-/.](\d+)', str(month_representation))
