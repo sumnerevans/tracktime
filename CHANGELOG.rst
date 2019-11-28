@@ -4,6 +4,8 @@ v0.9.11
 * **Added config item:** ``external_synchroniser_files`` - a dictionary of
   ``synchroniser name -> synchroniser Python file``. Allows users to import
   third-party synchronisers.
+* **Added CLI parameter:** ``--config`` - the configuration file to use.
+  Defaults to ``~/.config/tracktime/tracktimerc``.
 * Added reference third-party synchroniser to JIRA (|jira_example|_)
 * **Synchroniser API changes:**
 
@@ -25,8 +27,12 @@ v0.9.11
     exporting to HTML or PDF, the task description will be a hyperlink to the
     task in the external service.
 
-* **Infrastructure:** integrated ``mypy`` into linting pipeline and added CoC
-  settings for people using coc.nvim_.
+* **Infrastructure:**
+
+  * integrated ``mypy`` into linting pipeline and added CoC settings for people
+    using coc.nvim_.
+  * Converted to use Pipenv for everything.
+  * Started adding more integration tests, especially for reporting.
 
 .. _coc.nvim: https://github.com/neoclide/coc.nvim
 .. |jira_example| replace:: ``examples/jira.py``

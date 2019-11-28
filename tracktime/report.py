@@ -1,4 +1,3 @@
-import os
 import calendar
 
 from datetime import timedelta

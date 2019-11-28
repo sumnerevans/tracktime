@@ -13,6 +13,7 @@ docutils = "*"
 jedi = "*"
 rope = "*"
 yapf = "*"
+rst2html5 = "*"
 
 [packages]
 tracktime = {editable = true,path = "."}
