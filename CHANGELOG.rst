@@ -1,4 +1,4 @@
-v0.9.11
+v0.9.12
 =======
 
 * **Added config item:** ``external_synchroniser_files`` - a dictionary of
@@ -33,6 +33,8 @@ v0.9.11
     using coc.nvim_.
   * Converted to use Pipenv for everything.
   * Started adding more integration tests, especially for reporting.
+
+* Note: ``v0.9.11`` was skipped due to a deploy failure.
 
 .. _coc.nvim: https://github.com/neoclide/coc.nvim
 .. |jira_example| replace:: ``examples/jira.py``
