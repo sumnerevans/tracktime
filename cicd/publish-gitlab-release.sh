@@ -28,8 +28,9 @@ if [[ "${description}" == "" ]]; then
     description="No description provided for this release."
 fi
 
-description=$(echo "$description" | rst2html5 --no-indent --template "{body}")
+description=$(echo "$description" | rst2html5 --no-indent --template "{body}" | sed -e 's/\"/\\\"/g')
 
+url="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
 data="
 {
     \"name\": \"${CI_COMMIT_TAG}\",
@@ -46,6 +47,8 @@ data="
 }
 "
 
+echo "URL:"
+echo "$url"
 echo "DATA:"
 echo "$data"
 
