@@ -196,7 +196,7 @@ def report(args):
         exporter = report_exporters.get(path.suffix[1:])
         if not exporter:
             raise Exception(f'Cannot export to "{path.suffix}" file format.')
-        exporter(report).export(path)
+        exporter(get_config(args.config), report).export(path)
     else:
         report_exporters['stdout'](
             get_config(args.config),
