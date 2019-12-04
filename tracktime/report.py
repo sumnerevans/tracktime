@@ -271,7 +271,7 @@ class Report:
                     or '<NO TASK>')
                 desc = self.synchroniser.get_task_description(first_entry)
                 if desc:
-                    task_name += f': {desc}'
+                    task_name += f': {desc.upper()}'
                 lines.append(pad_entry(task_name, task_descriptions.minutes))
 
                 if not self.description_grain:
@@ -385,7 +385,7 @@ class Report:
                     or '<i>NO TASK</i>')
                 desc = self.synchroniser.get_task_description(first_entry)
                 if desc:
-                    task_name += f': {desc}'
+                    task_name += f': {desc.upper()}'
                 link = self.synchroniser.get_task_link(first_entry)
                 if link:
                     task_name = f'<a href={link} target="_blank">{task_name}</a>'
