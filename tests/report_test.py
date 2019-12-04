@@ -53,7 +53,7 @@ def test_report_date_display(dummy_config):
         ),
         (
             ('--today', ),
-            f'Time Report: {today.year}-{today.month}-{today.day}',
+            f'Time Report: {today.year}-{today.month:02}-{today.day:02}',
         ),
     ]
     for date_args, expected in test_cases:

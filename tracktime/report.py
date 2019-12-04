@@ -150,8 +150,7 @@ class Report:
                     time_report_header = 'Time Report: {:%B %Y}'.format(
                         self.start_date)
                 elif self.start_date.day == self.end_date.day:
-                    time_report_header = 'Time Report: {}'.format(
-                        self.start_date)
+                    time_report_header = f'Time Report: {self.start_date}'
         return time_report_header
 
     @property

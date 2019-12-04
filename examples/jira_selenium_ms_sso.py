@@ -8,7 +8,7 @@ import os
 import re
 
 from selenium import webdriver
-from typing import Optional
+from typing import Dict, Optional
 
 from tracktime.synchronisers.base import ExternalSynchroniser
 
@@ -67,31 +67,36 @@ class JiraSynchroniser(ExternalSynchroniser):
 
         # It's kinda inefficient to do this for every single task description,
         # but it's not as slow as Selenium, anyway.
-        description_cache = {}
+        description_cache: Dict[str, str] = {}
         if os.path.exists(cache_path):
             with open(cache_path) as f:
                 description_cache = json.load(f)
 
         formatted_task_id = self.get_formatted_task_id(entry)
+        if not formatted_task_id:
+            return None
 
         if not description_cache.get(formatted_task_id):
             if not self.driver:
                 self.init_driver()
 
-            self.driver.get(
-                f'{self.root}/browse/{self.get_formatted_task_id(entry)}')
-            description = (self.driver
-                            .find_element_by_id('summary-val')
-                            .get_attribute('innerHTML'))
+            self.driver.get(f'{self.root}/browse/{formatted_task_id}')
+            description = self.driver.find_element_by_id(
+                'summary-val').get_attribute('innerHTML')
+
+            if not description:
+                return None
 
             # The description resides in the first part of the #summary-val
             # component's HTML. The <span> is the edit button as far as I can tell.
-            description = re.match(
+            description_match = re.match(
                 '(.*)<span class=".*"></span>',
                 description,
-            ).group(1)
+            )
+            if not description_match:
+                return None
 
-            description_cache[self.get_formatted_task_id(entry)] = description
+            description_cache[formatted_task_id] = description_match.group(1)
 
             with open(cache_path, 'w+') as f:
                 json.dump(description_cache, f)
