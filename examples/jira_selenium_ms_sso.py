@@ -85,8 +85,11 @@ class JiraSynchroniser(ExternalSynchroniser):
                 self.init_driver()
 
             self.driver.get(f'{self.root}/browse/{formatted_task_id}')
-            description = self.driver.find_element_by_id(
-                'summary-val').get_attribute('innerHTML')
+            try:
+                description = self.driver.find_element_by_id(
+                    'summary-val').get_attribute('innerHTML')
+            except:
+                return None
 
             if not description:
                 return None

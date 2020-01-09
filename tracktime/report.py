@@ -1,6 +1,7 @@
 import calendar
 
-from datetime import timedelta
+from collections import defaultdict
+from datetime import date, timedelta
 from pathlib import Path
 from typing import DefaultDict, Tuple, Dict
 
@@ -35,6 +36,35 @@ class ReportDict(DefaultDict):
                 return kvp[1].minutes
 
         yield from sorted(super().items(), key=sorter, reverse=self.reverse)
+
+
+class ReportTimeStatistics:
+    days_worked: int
+    average_time_per_day_worked: float
+
+    def __init__(self, report):
+        def mean(numbers):
+            return sum(numbers) / len(numbers)
+
+        day_worked_threshold = report.config.get('day_worked_min_threshold')
+
+        days_worked = {
+            d: m
+            for d, m in report.day_stats.items()
+            if m >= day_worked_threshold
+        }
+        total_minutes_worked = sum(report.day_stats.values())
+
+        self.days_worked = len(days_worked)
+        self.weekdays_worked = len(
+            [1 for d, m in days_worked.items() if d.weekday() < 5]
+        )
+        self.average_time_per_day_worked = (
+            total_minutes_worked / self.days_worked
+        )
+        self.average_time_per_weekday_worked = (
+            total_minutes_worked / self.weekdays_worked
+        )
 
 
 class Report:
@@ -91,6 +121,8 @@ class Report:
                 self.reverse,
             )
 
+        self.day_stats: DefaultDict[date, int] = defaultdict(int)
+
         # Iterate through all of the days covered by this report.
         for day in self.date_range(start_date, end_date):
             for entry in EntryList(self.config, day):
@@ -101,6 +133,8 @@ class Report:
                     continue
                 if self.project and entry.project != self.project:
                     continue
+
+                self.day_stats[day] += entry.duration()
 
                 self.report_map[(
                     entry.customer,
@@ -118,6 +152,8 @@ class Report:
 
             total = self.report_map[(customer, project)].minutes / 60 * rate
             self.rate_totals_map[(customer, project)] = (rate, total)
+
+        self.stats = ReportTimeStatistics(self)
 
     def customer_project_str(self, customer, project, html=False):
         if not customer and not project:
@@ -191,6 +227,18 @@ class Report:
         # Include the Grand Total
         lines.append(f'**Grand Total:** ${self.round(self.grand_total)}')
         lines.append('')
+
+        avg_per_day = self.round(
+            self.to_hours(self.stats.average_time_per_day_worked))
+
+        lines += [
+            '**Statistics:**',
+            '',
+            f'    Days worked:                     {self.stats.days_worked}',
+            f'    Average time per day worked:     {avg_per_day}',
+            f'    Average time per weekday worked: {avg_per_day}',
+            '',
+        ]
 
         # Include the report table
         def ellipsize(string, length=40):

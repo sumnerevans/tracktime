@@ -8,6 +8,7 @@ def test_default_config():
         'fullname': '<Not Specified>',
         'customer_addresses': {},
         'customer_aliases': {},
+        'day_worked_min_threshold': 120,
         'directory': os.path.expanduser('~/.tracktime'),
         'gitlab': {
             'api_root': 'https://gitlab.com/api/v4/',

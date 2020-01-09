@@ -22,6 +22,7 @@ def get_config(filename=None) -> Dict[str, Any]:
         'customer_addresses': {},
         'customer_aliases': {},
         'customer_rates': {},
+        'day_worked_min_threshold': 120,
         'directory': os.path.expanduser('~/.tracktime'),
         'gitlab': {
             'api_root': 'https://gitlab.com/api/v4/',
