@@ -406,6 +406,30 @@ class Report:
             </tr>
             '''
 
+        statistics_html = ''
+        avg_per_day = self.round(
+            self.to_hours(self.stats.average_time_per_day_worked))
+        avg_per_weekday = self.round(
+            self.to_hours(self.stats.average_time_per_weekday_worked))
+
+        statistics_html = f'''
+        <h2>Statistics</h2>
+        <table>
+            <tr>
+            <td><b>Days worked:</b></td>
+            <td>{self.stats.days_worked}</td>
+            </tr>
+            <tr>
+            <td><b>Average time per day worked:</b></td>
+            <td>{avg_per_day}</td>
+            </tr>
+            <tr>
+            <td><b>Average time per weekday worked:</b></td>
+            <td>{avg_per_weekday}</td>
+            </tr>
+        </table>
+        '''
+
         data = [
             (
                 'total',
@@ -498,7 +522,7 @@ class Report:
                   <td>${self.round(self.grand_total)}</td>
                 </tr>
               </table>
-
+              {statistics_html}
               <h2>Detailed Time Report</h2>
               <table>
                 <thead>
