@@ -41,11 +41,15 @@ class ReportDict(DefaultDict):
 class ReportTimeStatistics:
     days_worked: int
     average_time_per_day_worked: float
+    average_time_per_weekday_worked: float
 
     def __init__(self, report):
         def mean(numbers):
             return sum(numbers) / len(numbers)
 
+        # Only considers days where more than the day_worked_min_threshold for
+        # minutes worked was surpassed. This avoids counting days where you work
+        # for a few minutes.
         day_worked_threshold = report.config.get('day_worked_min_threshold')
 
         days_worked = {
@@ -230,13 +234,15 @@ class Report:
 
         avg_per_day = self.round(
             self.to_hours(self.stats.average_time_per_day_worked))
+        avg_per_weekday = self.round(
+            self.to_hours(self.stats.average_time_per_weekday_worked))
 
         lines += [
             '**Statistics:**',
             '',
             f'    Days worked:                     {self.stats.days_worked}',
             f'    Average time per day worked:     {avg_per_day}',
-            f'    Average time per weekday worked: {avg_per_day}',
+            f'    Average time per weekday worked: {avg_per_weekday}',
             '',
         ]
 
