@@ -42,6 +42,7 @@ class ReportTimeStatistics:
     days_worked: int
     average_time_per_day_worked: float
     average_time_per_weekday_worked: float
+    average_time_per_week_worked: float
 
     def __init__(self, report):
         def mean(numbers):
@@ -49,9 +50,11 @@ class ReportTimeStatistics:
 
         # Only considers days where more than the day_worked_min_threshold for
         # minutes worked was surpassed. This avoids counting days where you work
-        # for a few minutes.
+        # for a few minutes. The same thing for weeks, except multiplied by 7.
         day_worked_threshold = report.config.get('day_worked_min_threshold')
+        week_worked_threshold = day_worked_threshold * 7
 
+        # Per day stats
         days_worked = {
             d: m
             for d, m in report.day_stats.items()
@@ -68,6 +71,18 @@ class ReportTimeStatistics:
         )
         self.average_time_per_weekday_worked = (
             total_minutes_worked / self.weekdays_worked
+        )
+
+        # Per week stats
+        week_stats = defaultdict(int)
+        for d, m in report.day_stats.items():
+            week_stats[d.isocalendar()[1]] += m
+
+        self.weeks_worked = sum(
+            1 for w, m in week_stats.items() if m >= week_worked_threshold
+        )
+        self.average_time_per_week_worked = (
+            total_minutes_worked / self.weeks_worked
         )
 
 
@@ -236,6 +251,8 @@ class Report:
             self.to_hours(self.stats.average_time_per_day_worked))
         avg_per_weekday = self.round(
             self.to_hours(self.stats.average_time_per_weekday_worked))
+        avg_per_week = self.round(
+            self.to_hours(self.stats.average_time_per_week_worked))
 
         lines += [
             '**Statistics:**',
@@ -243,6 +260,8 @@ class Report:
             f'    Days worked:                     {self.stats.days_worked}',
             f'    Average time per day worked:     {avg_per_day}',
             f'    Average time per weekday worked: {avg_per_weekday}',
+            f'    Weeks worked:                    {self.stats.weeks_worked}',
+            f'    Average time per week worked:    {avg_per_week}',
             '',
         ]
 
@@ -411,6 +430,8 @@ class Report:
             self.to_hours(self.stats.average_time_per_day_worked))
         avg_per_weekday = self.round(
             self.to_hours(self.stats.average_time_per_weekday_worked))
+        avg_per_week = self.round(
+            self.to_hours(self.stats.average_time_per_week_worked))
 
         statistics_html = f'''
         <h2>Statistics</h2>
@@ -426,6 +447,14 @@ class Report:
             <tr>
             <td><b>Average time per weekday worked:</b></td>
             <td>{avg_per_weekday}</td>
+            </tr>
+            <tr>
+            <td><b>Weeks worked:</b></td>
+            <td>{self.stats.weeks_worked}</td>
+            </tr>
+            <tr>
+            <td><b>Average time per week worked:</b></td>
+            <td>{avg_per_week}</td>
             </tr>
         </table>
         '''
