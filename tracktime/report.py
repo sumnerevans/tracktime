@@ -81,7 +81,7 @@ class ReportTimeStatistics:
         self.weeks_worked = sum(
             1 for w, m in week_stats.items() if m >= week_worked_threshold
         )
-        self.average_time_per_week_worked = (
+        self.average_time_per_week_worked = 0 if self.weeks_worked == 0 else (
             total_minutes_worked / self.weeks_worked
         )
 

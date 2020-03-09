@@ -1,6 +1,8 @@
 """
-Requires you to install the Edge WebDriver by running:
+Requires you to install the Edge WebDriver by following the instructions here:
+https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 
+If you have the non-Chrome-based version of Edge, this may work:
 DISM.exe /Online /Add-Capability /CapabilityName:Microsoft.WebDriver~~~~0.0.1.0
 """
 import os
