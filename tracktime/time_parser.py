@@ -135,13 +135,14 @@ def parse_date(date_representation) -> date:
     raise ValueError('Could not parse date.')
 
 
-def parse_month(month_representation) -> date:
+def parse_month(month_representation, default_year=None) -> date:
     """
     Parse a month string.
 
     Arguments:
 
     :param month_representation: the representation of the month to parse
+    :param default_year: the year to default to if it isn't specified
     :returns: a ``date`` representing the first day of the month
 
     If it's numeric, parse as is.
@@ -179,7 +180,7 @@ def parse_month(month_representation) -> date:
 
     abbrs = [m.lower() for m in month_abbr]  # Jan, Feb, Mar, ...
     names = [m.lower() for m in month_name]  # January, February, March, ...
-    year = date.today().year
+    year = None
 
     year_month_match = re.match(r'(\d+)[-/.](\d+)', str(month_representation))
 
@@ -201,6 +202,9 @@ def parse_month(month_representation) -> date:
                              'fully qualified month (December), an '
                              'abbreviated month (Dec), a year with month '
                              '(2019-01), or a month number (01).') from e
+
+    if not year:
+        year = default_year or date.today().year
 
     return date(year, month, 1)
 

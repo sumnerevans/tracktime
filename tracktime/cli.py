@@ -128,7 +128,7 @@ def report(args):
         end_date = date(start_date.year, 12, 31)
 
         if args.month:
-            start_date = parse_month(args.month)
+            start_date = parse_month(args.month, default_year=int(args.year))
             if start_date.year != year:
                 raise Exception(
                     'When specifying a year with --year/-y, the month must be '
