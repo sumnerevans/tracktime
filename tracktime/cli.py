@@ -44,7 +44,11 @@ def resume(args):
 
 def list_entries(args):
     date = parse_date(args.date)
-    entry_list = EntryList(get_config(args.config), date)
+    entry_list = EntryList(
+        get_config(args.config),
+        date,
+        customer=args.customer,
+    )
     print(f'Entries for {date:%Y-%m-%d}')
     print('=' * 22)
     print()

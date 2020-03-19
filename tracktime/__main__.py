@@ -113,6 +113,11 @@ def main():
         default=datetime.today().date(),
         help='the date to list time entries for (defaults to today)',
     )
+    list_parser.add_argument(
+        '-c',
+        '--customer',
+        help='list only time entries for the given customer',
+    )
 
     edit_parser = subparsers.add_parser(
         'edit',

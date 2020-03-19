@@ -1,3 +1,9 @@
+v0.9.13
+=======
+
+* When listing entries for a day, you can now only show entries for a specific
+  customer  using the ``-c``/``--customer`` parameter.
+
 v0.9.12
 =======
 

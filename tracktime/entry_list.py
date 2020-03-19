@@ -42,10 +42,15 @@ def get_path(
 class EntryList:
     """
     A list of ``TimeEntry``s.
+
+    Note: If customer is specified, the EntryList should only be used for
+    display and saving is disabled due to the fact that it would override
+    entries from other customers.
     """
-    def __init__(self, config, date):
+    def __init__(self, config, date, customer=None):
         self.date = date
         self.config = config
+        self.customer = customer
         self.entries = []
 
         # Load entries from the file
@@ -58,7 +63,8 @@ class EntryList:
                         if row[k]:
                             row[k] = parse_time(row[k])
 
-                    self.entries.append(TimeEntry(**row))
+                    if not self.customer or row['customer'] == self.customer:
+                        self.entries.append(TimeEntry(**row))
 
     def __len__(self):
         return len(self.entries)
@@ -73,6 +79,9 @@ class EntryList:
         return (total_minutes // 60, total_minutes % 60)
 
     def add_entry(self, entry):
+        if self.customer:
+            return
+
         # Determine where the entry does in the list.
         index = len(self.entries) + 1  # default to the end
         for i, e in enumerate(self.entries):
@@ -98,6 +107,9 @@ class EntryList:
         self.entries.insert(index, entry)
 
     def save(self):
+        if self.customer:
+            return
+
         with open(self.filepath, 'w', newline='') as f:
             fieldnames = [
                 'start', 'stop', 'type', 'project', 'taskid', 'customer',
@@ -110,15 +122,24 @@ class EntryList:
                 writer.writerow(dict(entry))
 
     def save_and_sync(self):
+        if self.customer:
+            return
+
         self.save()
         self.sync()
 
     def sync(self):
+        if self.customer:
+            return
+
         from tracktime.synchronisers import Synchroniser
         Synchroniser(self.config).sync(
             date(self.date.year, self.date.month, 1), )
 
     def start(self, start, description, type, project, taskid, customer):
+        if self.customer:
+            return
+
         time_entry = TimeEntry(
             start,
             description,
@@ -131,6 +152,9 @@ class EntryList:
         self.save_and_sync()
 
     def stop(self, stop):
+        if self.customer:
+            return
+
         if len(self) == 0 or self.entries[-1].stop:
             raise Exception('No time entry to end.')
 
@@ -138,6 +162,9 @@ class EntryList:
         self.save_and_sync()
 
     def resume(self, start, entry):
+        if self.customer:
+            return
+
         if len(self) == 0:
             yesterday = self.date - timedelta(days=1)
             old_entry = EntryList(self.config, yesterday).entries[-1]
