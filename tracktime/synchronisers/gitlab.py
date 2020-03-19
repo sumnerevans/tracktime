@@ -1,12 +1,14 @@
 """Synchroniser module"""
-import re
 import concurrent.futures
+import pickle
+import re
 import threading
-
+from pathlib import Path
+from typing import Dict, Optional, Tuple
 from urllib import parse
-from typing import Optional
 
-from requests import post, get
+from requests import get, post
+
 from tracktime.synchronisers.base import ExternalSynchroniser
 
 
@@ -59,14 +61,14 @@ class GitLabSynchroniser(ExternalSynchroniser):
                 with synced_time_lock:
                     synced_time[task_tuple] += time_diff
             else:
-                print(
-                    f'[FAILED] Adding {time_diff}m to {project}{taskid}.\n' +
-                    result.text
-                )
+                print(f'[FAILED] Adding {time_diff}m to {project}{taskid}.\n' +
+                      result.text)
 
         concurrent.futures.wait(
-            [self.executor.submit(do_sync(k, v))
-             for k, v in aggregated_time.items()],
+            [
+                self.executor.submit(do_sync(k, v))
+                for k, v in aggregated_time.items()
+            ],
             timeout=None,
             return_when=concurrent.futures.ALL_COMPLETED,
         )
@@ -91,11 +93,34 @@ class GitLabSynchroniser(ExternalSynchroniser):
             return None
         if not self.api_key or not self.api_root:
             return None
-        escaped_project = parse.quote(entry.project).replace('/', '%2F')
-        task_type = self.task_types[entry.taskid[0]]
-        task_number = entry.taskid[1:]
-        uri = f'/projects/{escaped_project}/{task_type}s/{task_number}'
-        try:
-            return self._make_request(uri, requester=get).json().get('title')
-        except Exception:
-            return None
+
+        cache_path = Path('~/.cache/tracktime').expanduser()
+        cache_path.mkdir(parents=True, exist_ok=True)
+        cache_file = cache_path.joinpath('gitlab.pickle')
+
+        description_cache: Dict[Tuple[str, str], str] = {}
+        if cache_file.exists():
+            with open(cache_file, 'rb') as f:
+                try:
+                    description_cache = pickle.load(f)
+                except Exception:
+                    pass
+
+        if not description_cache.get((entry.project, entry.taskid)):
+            escaped_project = parse.quote(entry.project).replace('/', '%2F')
+            task_type = self.task_types[entry.taskid[0]]
+            task_number = entry.taskid[1:]
+            uri = f'/projects/{escaped_project}/{task_type}s/{task_number}'
+            try:
+                description = self._make_request(
+                    uri,
+                    requester=get,
+                ).json().get('title')
+            except Exception:
+                return None
+
+            description_cache[(entry.project, entry.taskid)] = description
+            with open(cache_file, 'wb+') as f:
+                pickle.dump(description_cache, f)
+
+        return description_cache[(entry.project, entry.taskid)]
