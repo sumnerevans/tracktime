@@ -90,7 +90,7 @@ class JiraSynchroniser(ExternalSynchroniser):
             try:
                 description = self.driver.find_element_by_id(
                     'summary-val').get_attribute('innerHTML')
-            except:
+            except Exception:
                 return None
 
             if not description:
@@ -107,7 +107,7 @@ class JiraSynchroniser(ExternalSynchroniser):
 
             description_cache[formatted_task_id] = description_match.group(1)
 
-            with open(cache_path, 'wb+') as f:
+            with open(cache_file, 'wb+') as f:
                 pickle.dump(description_cache, f)
 
         return description_cache.get(formatted_task_id)

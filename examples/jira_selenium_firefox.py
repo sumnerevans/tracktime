@@ -1,17 +1,16 @@
 """
 Uses the Firefox Webdriver to get task descriptions from JIRA.
 """
-import json
 import os
+import pickle
 import re
 import time
-
+from pathlib import Path
 from typing import Dict, Optional
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
 
 from tracktime.synchronisers.base import ExternalSynchroniser
 
@@ -92,34 +91,39 @@ class JiraSynchroniser(ExternalSynchroniser):
         if os.environ.get('JIRA_DISABLE_TASK_DESCRIPTION_SCRAPE') == '1':
             return None
 
-        cache_path = os.path.expanduser('~/.cache/tracktime/')
-        os.makedirs(cache_path, exist_ok=True)
-        cache_path += '/jira_selenium_firefox.json'
+        formatted_task_id = self.get_formatted_task_id(entry)
+        if not formatted_task_id:
+            return None
+
+        cache_path = Path('~/.cache/tracktime').expanduser()
+        cache_path.mkdir(parents=True, exist_ok=True)
+        cache_file = cache_path.joinpath('jira_selenium_firefox.pickle')
 
         # It's kinda inefficient to do this for every single task description,
         # but it's not as slow as Selenium, anyway.
         description_cache: Dict[str, str] = {}
-        if os.path.exists(cache_path):
-            with open(cache_path) as f:
-                description_cache = json.load(f)
-
-        formatted_task_id = self.get_formatted_task_id(entry)
-        if not formatted_task_id:
-            return None
+        if cache_file.exists():
+            with open(cache_file, 'rb') as f:
+                try:
+                    description_cache = pickle.load(f)
+                except Exception:
+                    pass
 
         if not description_cache.get(formatted_task_id):
             if not self.driver:
                 self.init_driver()
 
             self.driver.get(f'{self.root}/browse/{formatted_task_id}')
+
             def find_summary_val():
                 return self.driver.find_element_by_id('summary-val')
+
             try:
                 wait = WebDriverWait(self.driver, 10)
                 wait.until(lambda d: find_summary_val().is_displayed())
                 time.sleep(0.5)
                 description = find_summary_val().get_attribute('innerHTML')
-            except:
+            except Exception:
                 return None
 
             if not description:
@@ -136,7 +140,7 @@ class JiraSynchroniser(ExternalSynchroniser):
 
             description_cache[formatted_task_id] = description_match.group(1)
 
-            with open(cache_path, 'w+') as f:
-                json.dump(description_cache, f)
+            with open(cache_file, 'wb+') as f:
+                pickle.dump(description_cache, f)
 
         return description_cache.get(formatted_task_id)
