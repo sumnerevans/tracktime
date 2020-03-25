@@ -57,33 +57,28 @@ class ReportTimeStatistics:
         # Per day stats
         days_worked = {
             d: m
-            for d, m in report.day_stats.items()
-            if m >= day_worked_threshold
+            for d, m in report.day_stats.items() if m >= day_worked_threshold
         }
         total_minutes_worked = sum(report.day_stats.values())
 
         self.days_worked = len(days_worked)
         self.weekdays_worked = len(
-            [1 for d, m in days_worked.items() if d.weekday() < 5]
-        )
-        self.average_time_per_day_worked = (
-            total_minutes_worked / self.days_worked
-        )
-        self.average_time_per_weekday_worked = (
-            total_minutes_worked / self.weekdays_worked
-        )
+            [1 for d, m in days_worked.items() if d.weekday() < 5])
+        self.average_time_per_day_worked = 0 if self.days_worked == 0 else (
+            total_minutes_worked / self.days_worked)
+        self.average_time_per_weekday_worked = (0 if self.weekdays_worked == 0
+                                                else (total_minutes_worked /
+                                                      self.weekdays_worked))
 
         # Per week stats
         week_stats = defaultdict(int)
         for d, m in report.day_stats.items():
             week_stats[d.isocalendar()[1]] += m
 
-        self.weeks_worked = sum(
-            1 for w, m in week_stats.items() if m >= week_worked_threshold
-        )
+        self.weeks_worked = sum(1 for w, m in week_stats.items()
+                                if m >= week_worked_threshold)
         self.average_time_per_week_worked = 0 if self.weeks_worked == 0 else (
-            total_minutes_worked / self.weeks_worked
-        )
+            total_minutes_worked / self.weeks_worked)
 
 
 class Report:
