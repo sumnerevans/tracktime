@@ -80,6 +80,34 @@ class ReportTimeStatistics:
         self.average_time_per_week_worked = 0 if self.weeks_worked == 0 else (
             total_minutes_worked / self.weeks_worked)
 
+    def round(self, val) -> str:
+        return '{:.2f}'.format(round(val, 2))
+
+    def to_hours(self, minutes):
+        return minutes / 60
+
+    @property
+    def avg_per_day(self):
+        return self.round(self.to_hours(self.average_time_per_day_worked))
+
+    @property
+    def avg_per_weekday(self):
+        return self.round(self.to_hours(self.average_time_per_weekday_worked))
+
+    @property
+    def avg_per_week(self):
+        return self.round(self.to_hours(self.average_time_per_week_worked))
+
+    @property
+    def statistics_dictionary(self):
+        return {
+            'Days worked': self.days_worked,
+            'Average time per day worked': self.avg_per_day,
+            'Average time per weekday worked': self.avg_per_weekday,
+            'Weeks worked': self.weeks_worked,
+            'Average time per week worked': self.avg_per_week,
+        }
+
 
 class Report:
     class SortType:
@@ -242,23 +270,16 @@ class Report:
         lines.append(f'**Grand Total:** ${self.round(self.grand_total)}')
         lines.append('')
 
-        avg_per_day = self.round(
-            self.to_hours(self.stats.average_time_per_day_worked))
-        avg_per_weekday = self.round(
-            self.to_hours(self.stats.average_time_per_weekday_worked))
-        avg_per_week = self.round(
-            self.to_hours(self.stats.average_time_per_week_worked))
-
         lines += [
             '**Statistics:**',
             '',
-            f'    Days worked:                     {self.stats.days_worked}',
-            f'    Average time per day worked:     {avg_per_day}',
-            f'    Average time per weekday worked: {avg_per_weekday}',
-            f'    Weeks worked:                    {self.stats.weeks_worked}',
-            f'    Average time per week worked:    {avg_per_week}',
-            '',
         ]
+        statistics = self.stats.statistics_dictionary
+        max_desc_length = max(map(len, statistics.keys()))
+        for desc, val in statistics.items():
+            desc = desc + ':'
+            lines.append(f'    | {desc.ljust(max_desc_length+2)}{val}')
+        lines.append('')
 
         # Include the report table
         def ellipsize(string, length=40):
@@ -367,6 +388,10 @@ class Report:
 
     def generate_html_report(self):
         styles = '''
+        body {
+          background-color: white;
+        }
+
         .content {
           max-width: 900px;
           margin: 0 auto;
@@ -378,6 +403,10 @@ class Report:
 
         table {
           border-collapse: collapse;
+        }
+
+        table.statistics-table {
+          margin-left: 40px;
         }
 
         thead th, tbody tr.customer-project td, tbody tr.total td {
@@ -393,6 +422,10 @@ class Report:
 
         tbody td {
           padding: 3px 10px 0 0;
+        }
+
+        tbody tr td h3 {
+          margin: 0;
         }
 
         tbody.detailed-time-report-body tr td:first-child {
@@ -420,39 +453,18 @@ class Report:
             </tr>
             '''
 
-        statistics_html = ''
-        avg_per_day = self.round(
-            self.to_hours(self.stats.average_time_per_day_worked))
-        avg_per_weekday = self.round(
-            self.to_hours(self.stats.average_time_per_weekday_worked))
-        avg_per_week = self.round(
-            self.to_hours(self.stats.average_time_per_week_worked))
-
         statistics_html = f'''
-        <h2>Statistics</h2>
-        <table>
-            <tr>
-            <td><b>Days worked:</b></td>
-            <td>{self.stats.days_worked}</td>
-            </tr>
-            <tr>
-            <td><b>Average time per day worked:</b></td>
-            <td>{avg_per_day}</td>
-            </tr>
-            <tr>
-            <td><b>Average time per weekday worked:</b></td>
-            <td>{avg_per_weekday}</td>
-            </tr>
-            <tr>
-            <td><b>Weeks worked:</b></td>
-            <td>{self.stats.weeks_worked}</td>
-            </tr>
-            <tr>
-            <td><b>Average time per week worked:</b></td>
-            <td>{avg_per_week}</td>
-            </tr>
-        </table>
+        <h3>Statistics</h3>
+        <table class="statistics-table">
         '''
+        for desc, val in self.stats.statistics_dictionary.items():
+            statistics_html += f'''
+            <tr>
+                <td><b>{desc}:</b></td>
+                <td>{val}</td>
+            </tr>
+            '''
+        statistics_html += '</table>'
 
         data = [
             (
@@ -542,12 +554,12 @@ class Report:
                 </tr>
                 {customer_html}
                 <tr>
-                  <td><b>Grand Total:</b></td>
-                  <td>${self.round(self.grand_total)}</td>
+                  <td><h3>Grand Total:</h3></td>
+                  <td><h3>${self.round(self.grand_total)}</h3></td>
                 </tr>
               </table>
               {statistics_html}
-              <h2>Detailed Time Report</h2>
+              <h3>Detailed Time Report</h3>
               <table>
                 <thead>
                   <th></th>
