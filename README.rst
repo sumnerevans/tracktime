@@ -91,8 +91,9 @@ options and what they do.
   a really long name.
 - ``customer_addresses`` (``dictionary``) - a dictionary of name-address
   pairs. Used in the report export.
-- ``external_synchroniser_files`` - a dictionary of ``synchroniser name ->
-  synchroniser Python file``. Allows users to import third party synchronisers.
+- ``external_synchroniser_files`` - a dictionary of
+  ``synchroniser name -> synchroniser Python file``. Allows users to import
+  third party synchronisers.
 - ``day_worked_min_threshold`` - the number of minutes which must be worked in a
   day to consider it a work day. This is to avoid days where you work for a few
   minutes from skewing statistical results.

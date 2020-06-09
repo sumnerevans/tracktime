@@ -80,23 +80,24 @@ class ReportTimeStatistics:
         self.average_time_per_week_worked = 0 if self.weeks_worked == 0 else (
             total_minutes_worked / self.weeks_worked)
 
-    def round(self, val) -> str:
-        return '{:.2f}'.format(round(val, 2))
-
-    def to_hours(self, minutes):
-        return minutes / 60
+    def _format_hours(self, minutes: float) -> str:
+        minutes = round(minutes)
+        hours = minutes // 60
+        minutes = minutes % 60
+        minutes_str = f'0{minutes}' if minutes < 10 else str(minutes)
+        return f'{hours}:{minutes_str}'
 
     @property
     def avg_per_day(self):
-        return self.round(self.to_hours(self.average_time_per_day_worked))
+        return self._format_hours(self.average_time_per_day_worked)
 
     @property
     def avg_per_weekday(self):
-        return self.round(self.to_hours(self.average_time_per_weekday_worked))
+        return self._format_hours(self.average_time_per_weekday_worked)
 
     @property
     def avg_per_week(self):
-        return self.round(self.to_hours(self.average_time_per_week_worked))
+        return self._format_hours(self.average_time_per_week_worked)
 
     @property
     def statistics_dictionary(self):
