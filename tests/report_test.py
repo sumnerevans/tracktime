@@ -49,7 +49,7 @@ def test_report_date_display(dummy_config):
         (('-m', '11'), f'Time Report: November {today.year}'),
         (
             ('2019-01-02', '2019-02-09'),
-            f'Time Report: 2019-01-02 - 2019-02-09',
+            'Time Report: 2019-01-02 - 2019-02-09',
         ),
         (
             ('--today', ),
@@ -87,6 +87,7 @@ def test_report(dummy_config):
     output_lines = subprocess.check_output([
         'tt', '--config', dummy_config.name, 'report', '-y', '2019', '-m', '01'
     ]).decode().split(os.linesep)
+    print(output_lines)
 
     lines = [
         'Time Report: January 2019',
@@ -95,6 +96,17 @@ def test_report(dummy_config):
         'User: Test User',
         '',
         'Grand Total: $0.00',
+        '',
+        'Statistics:',
+        '',
+        '    Days worked:                     0',
+        '    Average time per day worked:     0:00',
+        '    Average time per weekday worked: 0:00',
+        '    Weeks* worked:                   0.0',
+        '    Average time per week* worked:   0:00',
+        '',
+        '*\\* a week is any set of five days (not necessarily',
+        '            within the same calendar week*',
         '',
         'Detailed Time Report:',
         '',
@@ -114,8 +126,10 @@ def test_report(dummy_config):
 
 def test_report_with_customer(dummy_config):
     output_lines = subprocess.check_output([
-        'tt', '--config', dummy_config.name, 'report', '-c', 'SC', '-y', '2019', '-m', '01'
+        'tt', '--config', dummy_config.name, 'report', '-c', 'SC', '-y',
+        '2019', '-m', '01'
     ]).decode().split(os.linesep)
+    print(output_lines)
 
     lines = [
         'Time Report: January 2019',
@@ -131,6 +145,17 @@ def test_report_with_customer(dummy_config):
         '    USA',
         '',
         'Grand Total: $0.00',
+        '',
+        'Statistics:',
+        '',
+        '    Days worked:                     0',
+        '    Average time per day worked:     0:00',
+        '    Average time per weekday worked: 0:00',
+        '    Weeks* worked:                   0.0',
+        '    Average time per week* worked:   0:00',
+        '',
+        '*\\* a week is any set of five days (not necessarily',
+        '            within the same calendar week*',
         '',
         'Detailed Time Report:',
         '',

@@ -260,7 +260,7 @@ class Report:
                 customer += '    | {}\n'.format(line)
 
             lines += [
-                f'**Customer:**',
+                '**Customer:**',
                 '',
                 customer,
             ]
@@ -455,7 +455,7 @@ class Report:
             </tr>
             '''
 
-        statistics_html = f'''
+        statistics_html = '''
         <h3>Statistics</h3>
         <table class="statistics-table">
         '''
