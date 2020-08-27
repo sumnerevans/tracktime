@@ -85,7 +85,7 @@ def edit(args):
     )
     editor_args = []
 
-    # TODO: change to walrus when upgrading to Python 3.8
+    # TODO (#46): change to walrus when upgrading to Python 3.8
     if config.get('editor_args'):
         editor_args = config.get('editor_args').split(',')
 

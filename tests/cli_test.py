@@ -5,7 +5,7 @@ import pytest
 
 
 def test_cli():
-    # TODO validate that the output makes sense
+    # TODO (#21): validate that the output makes sense
     check_output('tt'.split()).decode()
 
     # '\n'.join([
