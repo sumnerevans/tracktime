@@ -52,7 +52,6 @@ class ReportTimeStatistics:
         # minutes worked was surpassed. This avoids counting days where you work
         # for a few minutes. The same thing for weeks, except multiplied by 7.
         day_worked_threshold = report.config.get('day_worked_min_threshold')
-        week_worked_threshold = day_worked_threshold * 7
 
         # Per day stats
         days_worked = {
@@ -75,8 +74,7 @@ class ReportTimeStatistics:
         for d, m in report.day_stats.items():
             week_stats[d.isocalendar()[1]] += m
 
-        self.weeks_worked = sum(1 for w, m in week_stats.items()
-                                if m >= week_worked_threshold)
+        self.weeks_worked = len(days_worked) / 5
         self.average_time_per_week_worked = 0 if self.weeks_worked == 0 else (
             total_minutes_worked / self.weeks_worked)
 
@@ -105,8 +103,8 @@ class ReportTimeStatistics:
             'Days worked': self.days_worked,
             'Average time per day worked': self.avg_per_day,
             'Average time per weekday worked': self.avg_per_weekday,
-            'Weeks worked': self.weeks_worked,
-            'Average time per week worked': self.avg_per_week,
+            'Weeks* worked': self.weeks_worked,
+            'Average time per week* worked': self.avg_per_week,
         }
 
 
@@ -280,6 +278,9 @@ class Report:
         for desc, val in statistics.items():
             desc = desc + ':'
             lines.append(f'    | {desc.ljust(max_desc_length+2)}{val}')
+        lines.append('')
+        lines.append('''*\* a week is any set of five days (not necessarily
+            within the same calendar week*''')
         lines.append('')
 
         # Include the report table
@@ -466,6 +467,10 @@ class Report:
             </tr>
             '''
         statistics_html += '</table>'
+        statistics_html += '''<i>
+            * a week is any set of five days (not necessarily within the same
+            calendar week)
+        </i>'''
 
         data = [
             (
