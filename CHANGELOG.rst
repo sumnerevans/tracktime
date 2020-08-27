@@ -3,6 +3,8 @@ v0.9.13
 
 * When listing entries for a day, you can now only show entries for a specific
   customer  using the ``-c``/``--customer`` parameter.
+* Added statistics to the report output.
+* The GitLab adapter now caches names of the task in a pickle store.
 
 v0.9.12
 =======
