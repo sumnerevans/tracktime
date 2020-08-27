@@ -279,7 +279,7 @@ class Report:
             desc = desc + ':'
             lines.append(f'    | {desc.ljust(max_desc_length+2)}{val}')
         lines.append('')
-        lines.append('''*\* a week is any set of five days (not necessarily
+        lines.append(r'''*\* a week is any set of five days (not necessarily
             within the same calendar week*''')
         lines.append('')
 
