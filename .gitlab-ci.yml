@@ -84,4 +84,4 @@ publish_release:
     - pip install pipenv
     - pipenv install --dev
   script:
-    - ./cicd/publish-gitlab-release.sh
+    - pipenv run ./cicd/publish-gitlab-release.sh

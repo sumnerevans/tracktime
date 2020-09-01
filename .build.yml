@@ -1,0 +1,57 @@
+image: archlinux
+packages:
+  - git
+  - python-poetry
+sources:
+  - https://git.sr.ht/~sumner/tracktime
+secrets:
+  # README Personal Access Token
+  - 2fb5fd72-fa96-46c6-ab90-6b7cabebba16
+  # PyPi Credentials
+  - a935a60f-b0ae-4232-b17e-e6b921ab0b91
+environment:
+  PROJECT_NAME: tracktime
+triggers:
+  - action: email
+    condition: failure
+    to: ~sumner/tracktime-devel@lists.sr.ht
+tasks:
+  - setup: |
+      cd ${PROJECT_NAME}
+      poetry install
+      echo "cd ${PROJECT_NAME}" >> ~/.buildenv
+
+  # If we are on the master branch, compile the README.rst to HTML and set it
+  # as the README for the repo.
+  - readme: |
+      set +x
+      git branch --contains | grep master &&
+        poetry run rst2html5 README.rst |                           \
+          curl -H "Content-Type: text/html"                         \
+            -H "Authorization: Bearer $(cat ~/.readme-token)"       \
+            -XPUT                                                   \
+            --data-binary @-                                        \
+            "https://git.sr.ht/api/repos/${PROJECT_NAME}/readme" &&
+        echo "README set" || echo "Skipping README set because not on master"
+
+  - lint: |
+      poetry run python setup.py check -mrs
+      poetry run flake8
+      poetry run mypy ${PROJECT_NAME}
+      poetry run ./cicd/custom_style_check.py
+
+  # TODO figure out how to publish htmlcov files
+  - test: |
+      poetry run pytest
+
+  - build: |
+      poetry run python setup.py sdist
+
+  - deploy: |
+      ./cicd/run_if_tagged_with_version                             \
+        "poetry run twine upload -r testpypi dist/*"                \
+        "poetry run twine upload dist/*"
+
+  - verify: |
+      ./cicd/run_if_tagged_with_version                             \
+        "pip install ${PROJECT_NAME}"
