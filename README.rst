@@ -1,6 +1,19 @@
 tracktime
 =========
 
+.. image:: https://builds.sr.ht/~sumner/tracktime.svg
+   :alt: Build Status
+   :target: https://builds.sr.ht/~sumner?search=%7Esumner%2Ftracktime
+.. image:: https://img.shields.io/pypi/v/tracktime?color=4DC71F&logo=python&logoColor=fff
+   :alt: PyPi Version
+   :target: https://pypi.org/project/tracktime/
+.. image:: https://img.shields.io/aur/version/tracktime?logo=linux&logoColor=fff
+   :alt: AUR Version
+   :target: https://aur.archlinux.org/packages/tracktime/
+.. image:: https://img.shields.io/liberapay/receives/sumner.svg?logo=liberapay
+   :alt: LiberaPay Donation Status
+   :target: https://liberapay.com/sumner/donate
+
 tracktime is a filesystem-backed time tracking solution. It uses a sane
 directory structure to organize CSV files that store time tracking data for each
 day.
