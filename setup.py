@@ -9,7 +9,8 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 # Find the version
-with codecs.open(os.path.join(here, 'tracktime/__init__.py'), encoding='utf-8') as f:
+with codecs.open(os.path.join(here, 'tracktime/__init__.py'),
+                 encoding='utf-8') as f:
     for line in f:
         if line.startswith('__version__'):
             version = eval(line.split()[-1])
@@ -18,7 +19,7 @@ with codecs.open(os.path.join(here, 'tracktime/__init__.py'), encoding='utf-8') 
 setup(
     name='tracktime',
     version=version,
-    url='https://gitlab.com/sumner/tracktime',
+    url='https://git.sr.ht/~sumner/tracktime',
     description='Time tracking library with command line interface.',
     long_description=long_description,
     author='Sumner Evans',
