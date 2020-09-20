@@ -1,0 +1,42 @@
+image: archlinux
+packages:
+  - python-poetry
+sources:
+  - https://git.sr.ht/~sumner/tracktime
+secrets:
+  # PyPi Credentials
+  - a935a60f-b0ae-4232-b17e-e6b921ab0b91
+environment:
+  PROJECT_NAME: tracktime
+triggers:
+  - action: email
+    condition: failure
+    to: ~sumner/tracktime-devel@lists.sr.ht
+tasks:
+  - setup: |
+      cd ${PROJECT_NAME}
+      poetry install
+      echo "cd ${PROJECT_NAME}" >> ~/.buildenv
+      echo "source $(poetry env info -p)/bin/activate" >> ~/.buildenv
+
+  - lint: |
+      python setup.py check -mrs
+      flake8
+      mypy ${PROJECT_NAME}
+      ./.builds/bin/custom_style_check.py
+
+  # TODO figure out how to publish htmlcov files
+  - test: |
+      pytest
+
+  - build: |
+      python setup.py sdist
+
+  - deploy: |
+      ./.builds/bin/run_if_tagged_with_version                      \
+        "twine upload -r testpypi dist/*"                           \
+        "twine upload dist/*"
+
+  - verify: |
+      ./.builds/bin/run_if_tagged_with_version                      \
+        "pip install ${PROJECT_NAME}"
