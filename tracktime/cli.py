@@ -49,21 +49,19 @@ def list_entries(args):
         date,
         customer=args.customer,
     )
-    print(f'Entries for {date:%Y-%m-%d}')
-    print('=' * 22)
+    print(f"Entries for {date:%Y-%m-%d}")
+    print("=" * 22)
     print()
     print(
         tabulate(
-            [{
-                '#': i,
-                **dict(x)
-            } for i, x in enumerate(entry_list)],
-            headers='keys',
-        ))
+            [{"#": i, **dict(x)} for i, x in enumerate(entry_list)],
+            headers="keys",
+        )
+    )
 
     print()
     hours, minutes = entry_list.total
-    print(f'Total: {hours}:{minutes:02}')
+    print(f"Total: {hours}:{minutes:02}")
 
 
 def edit(args):
@@ -77,26 +75,23 @@ def edit(args):
     # Determine the editor. Grab it from the config, then look to the EDITOR or
     # VISUAL enviornment variables.
     editor = config.get(
-        'editor',
-        os.environ.get(
-            'EDITOR',
-            os.environ.get('VISUAL'),
-        ),
+        "editor",
+        os.environ.get("EDITOR", os.environ.get("VISUAL")),
     )
     editor_args = []
 
     # TODO (#46): change to walrus when upgrading to Python 3.8
-    if config.get('editor_args'):
-        editor_args = config.get('editor_args').split(',')
+    if config.get("editor_args"):
+        editor_args = config.get("editor_args").split(",")
 
     # Default the editor to something sensible (well, notepad isn't really
     # sensible as it is total garbage, but at least almost always exists on
     # Windows).
     if not editor:
-        if sys.platform in ('win32', 'cygwin'):
-            editor = 'notepad'
+        if sys.platform in ("win32", "cygwin"):
+            editor = "notepad"
         else:
-            editor = 'vim'
+            editor = "vim"
 
     # Open the editor to edit the entries
     filename = str(get_path(config, date, makedirs=True))
@@ -115,7 +110,7 @@ def report(args):
 
     if args.range_start or args.range_stop:
         if args.range_start is None or args.range_stop is None:
-            raise Exception('Must specify range start and stop.')
+            raise Exception("Must specify range start and stop.")
         start_date = parse_date(args.range_start)
         end_date = parse_date(args.range_stop)
     elif args.year or args.lastyear or args.thisyear:  # yearly
@@ -131,8 +126,9 @@ def report(args):
             start_date = parse_month(args.month, default_year=int(args.year))
             if start_date.year != year:
                 raise Exception(
-                    'When specifying a year with --year/-y, the month must be '
-                    'in the same year.')
+                    "When specifying a year with --year/-y, the month must be "
+                    "in the same year."
+                )
             end_date = date(
                 start_date.year,
                 start_date.month,
@@ -145,15 +141,15 @@ def report(args):
     elif args.lastweek or args.thisweek:  # weekly
         # TODO (#42) make it configurable if the week starts on Sunday or
         # Monday.
-        start_date = today - timedelta(days=(today.weekday() +
-                                             (7 if args.lastweek else 0)))
+        start_date = today - timedelta(
+            days=(today.weekday() + (7 if args.lastweek else 0))
+        )
         end_date = start_date + timedelta(days=6)
     else:  # monthly
 
         # Default to last month. Need to do this calculation to correctly get
         # the previous month across years.
-        last_day_of_last_month = (date(today.year, today.month, 1) -
-                                  timedelta(days=1))
+        last_day_of_last_month = date(today.year, today.month, 1) - timedelta(days=1)
         start_date = date(
             last_day_of_last_month.year,
             last_day_of_last_month.month,
@@ -171,18 +167,25 @@ def report(args):
         )
 
     date_diff = end_date - start_date
-    task_grain = (args.taskgrain if args.taskgrain != 'not_specified' else
-                  date_diff.days <= 31)
-    description_grain = (args.descriptiongrain
-                         if args.descriptiongrain != 'not_specified' else
-                         date_diff.days <= 7)
+    task_grain = (
+        args.taskgrain if args.taskgrain != "not_specified" else date_diff.days <= 31
+    )
+    description_grain = (
+        args.descriptiongrain
+        if args.descriptiongrain != "not_specified"
+        else date_diff.days <= 7
+    )
 
-    sort = (Report.SortType.TIME_SPENT
-            if args.sort is None or args.sort in ('time-spent', 'time', 't')
-            else Report.SortType.ALPHABETICAL)
-    sort_direction = (Report.SortDirection.DESCENDING if args.desc or
-                      (not args.asc and sort == Report.SortType.TIME_SPENT)
-                      else Report.SortDirection.ASCENDING)
+    sort = (
+        Report.SortType.TIME_SPENT
+        if args.sort is None or args.sort in ("time-spent", "time", "t")
+        else Report.SortType.ALPHABETICAL
+    )
+    sort_direction = (
+        Report.SortDirection.DESCENDING
+        if args.desc or (not args.asc and sort == Report.SortType.TIME_SPENT)
+        else Report.SortDirection.ASCENDING
+    )
 
     report = Report(
         get_config(args.config),
@@ -202,11 +205,11 @@ def report(args):
             raise Exception(f'Cannot export to "{path.suffix}" file format.')
         exporter(get_config(args.config), report).export(path)
     else:
-        report_exporters['stdout'](
+        report_exporters["stdout"](
             get_config(args.config),
             report,
         ).export(None)
 
 
 def version():
-    print(f'tracktime version {tracktime.__version__}')
+    print(f"tracktime version {tracktime.__version__}")

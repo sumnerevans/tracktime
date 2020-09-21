@@ -18,6 +18,7 @@ class ExternalSynchroniser:
     """
     Implementors of this class must handle parallelism and caching themselves.
     """
+
     def get_name(self):
         """
         Returns the human name for the external synchroniser.
@@ -26,7 +27,8 @@ class ExternalSynchroniser:
         a string of the name of the external synchroniser.
         """
         raise NotImplementedError(
-            'ExternalSynchroniser requires "get_name" to be implemented.')
+            'ExternalSynchroniser requires "get_name" to be implemented.'
+        )
 
     def sync(self, aggregated_time, synced_time):
         """
@@ -43,7 +45,8 @@ class ExternalSynchroniser:
         a dictionary of (type, project, taskid) to duration
         """
         raise NotImplementedError(
-            'ExternalSynchroniser requires "sync" to be implemented.')
+            'ExternalSynchroniser requires "sync" to be implemented.'
+        )
 
     def get_formatted_task_id(self, entry) -> Optional[str]:
         """
@@ -107,28 +110,26 @@ class Synchroniser:
         flag to specify to only do one ping. On POSIX OSes, it uses the ``-c``
         flag to specify the same.
         """
-        is_win = sys.platform in ('win32', 'cygwin')
-        command = ['ping', '-n' if is_win else '-c', '1', '8.8.8.8']
+        is_win = sys.platform in ("win32", "cygwin")
+        command = ["ping", "-n" if is_win else "-c", "1", "8.8.8.8"]
         return run(command, stdout=PIPE, stderr=PIPE).returncode == 0
 
     def get_synchronisers(self):
         parent = Path(__file__).parent
         synchronisers = {
-            'gitlab': parent.joinpath('gitlab.py'),
+            "gitlab": parent.joinpath("gitlab.py"),
         }
-        synchronisers.update(self.config['external_synchroniser_files'])
+        synchronisers.update(self.config["external_synchroniser_files"])
 
         if self.synchronisers is None:
             self.synchronisers = []
             for module_name, file_path in synchronisers.items():
-                spec = importlib.util.spec_from_file_location(
-                    module_name, file_path)
+                spec = importlib.util.spec_from_file_location(module_name, file_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
 
                 # Find the Synchroniser
-                for item in filter(lambda x: not x.startswith('__'),
-                                   dir(module)):
+                for item in filter(lambda x: not x.startswith("__"), dir(module)):
                     item = getattr(module, item)
                     if not type(item) == type or item == ExternalSynchroniser:
                         continue
@@ -137,7 +138,8 @@ class Synchroniser:
                         break
                 else:
                     raise Exception(
-                        f'Could not find valid synchroniser in {file_path}.')
+                        f"Could not find valid synchroniser in {file_path}."
+                    )
 
                 self.synchronisers.append(synchroniser)
 
@@ -148,31 +150,31 @@ class Synchroniser:
         year = first_of_month.year
         month = first_of_month.month
         month_dir = Path(
-            self.config['directory'],
+            self.config["directory"],
             str(year),
-            '{:02}'.format(month),
+            "{:02}".format(month),
         )
 
-        if not self.config['sync_time']:
-            print('Time sync disabled in configuration file.')
+        if not self.config["sync_time"]:
+            print("Time sync disabled in configuration file.")
             return
 
         if not self._test_internet():
-            print('No internet connection. Skipping sync.')
+            print("No internet connection. Skipping sync.")
             return
 
         # Create a dictionary of the total time tracked for each GitLab taskid.
         aggregated_time: AggregatedTime = defaultdict(int)
         for day in range(1, 32):
-            path = Path(month_dir, '{:02}'.format(day))
+            path = Path(month_dir, "{:02}".format(day))
 
             # Skip paths that don't exist
             if not path.exists():
                 continue
 
             for entry in EntryList(
-                    self.config,
-                    date(year, month, day),
+                self.config,
+                date(year, month, day),
             ).entries:
                 # Skip any entries that don't have a type, project, or taskid.
                 if not entry.type or not entry.project or not entry.taskid:
@@ -186,30 +188,32 @@ class Synchroniser:
 
         # Create a dictionary of all of the synchronised taskids.
         synced_time: AggregatedTime = defaultdict(int)
-        synced_file_path = Path(month_dir, '.synced')
+        synced_file_path = Path(month_dir, ".synced")
         if synced_file_path.exists():
-            with open(synced_file_path, 'r') as f:
+            with open(synced_file_path, "r") as f:
                 for row in csv.DictReader(f):
-                    task_tuple = (row['type'], row['project'], row['taskid'])
-                    synced_time[task_tuple] = int(row['synced'])
+                    task_tuple = (row["type"], row["project"], row["taskid"])
+                    synced_time[task_tuple] = int(row["synced"])
 
         for synchroniser in self.get_synchronisers():
-            print(f'Syncronizing with {synchroniser.get_name()}.')
+            print(f"Syncronizing with {synchroniser.get_name()}.")
             synced_time.update(synchroniser.sync(aggregated_time, synced_time))
 
         # Update the .synced file with the updated amounts.
-        with open(synced_file_path, 'w+', newline='') as f:
-            fieldnames = ['type', 'project', 'taskid', 'synced']
+        with open(synced_file_path, "w+", newline="") as f:
+            fieldnames = ["type", "project", "taskid", "synced"]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
 
             writer.writeheader()
             for task_tuple, synced in synced_time.items():
-                writer.writerow({
-                    'type': task_tuple[0],
-                    'project': task_tuple[1],
-                    'taskid': task_tuple[2],
-                    'synced': synced,
-                })
+                writer.writerow(
+                    {
+                        "type": task_tuple[0],
+                        "project": task_tuple[1],
+                        "taskid": task_tuple[2],
+                        "synced": synced,
+                    }
+                )
 
     def get_formatted_task_id(self, entry) -> Optional[str]:
         for synchroniser in self.get_synchronisers():

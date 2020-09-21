@@ -428,6 +428,17 @@ genshi = ">=0.7"
 pygments = ">=2.0.2"
 
 [[package]]
+name = "selenium"
+version = "3.141.0"
+description = "Python bindings for Selenium"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+urllib3 = "*"
+
+[[package]]
 name = "six"
 version = "1.15.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -515,7 +526,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 [metadata]
 lock-version = "1.0"
 python-versions = "^3.7"
-content-hash = "390526617d685b7d8bc3d5577930886b2fac47496bf30dd6e42976581de2822a"
+content-hash = "feefb684c445fa57a9dc0de20684bb546d4f44a27584d2a8534151413d106bcd"
 
 [metadata.files]
 appdirs = [
@@ -740,6 +751,10 @@ rope = [
 ]
 rst2html5 = [
     {file = "rst2html5-1.10.6-py2.py3-none-any.whl", hash = "sha256:8e64e80c52d0383aa04f2701a7627c2f2a09d59c61a3dc3555d845333bc31648"},
+]
+selenium = [
+    {file = "selenium-3.141.0-py2.py3-none-any.whl", hash = "sha256:2d7131d7bc5a5b99a2d9b04aaf2612c411b03b8ca1b1ee8d3de5845a9be2cb3c"},
+    {file = "selenium-3.141.0.tar.gz", hash = "sha256:deaf32b60ad91a4611b98d8002757f29e6f2c2d5fcaf202e1c9ad06d6772300d"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},

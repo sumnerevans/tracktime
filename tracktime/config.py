@@ -18,27 +18,28 @@ def get_config(filename=None) -> Dict[str, Any]:
         return cached_config
 
     cached_config = {
-        'fullname': '<Not Specified>',
-        'customer_addresses': {},
-        'customer_aliases': {},
-        'customer_rates': {},
-        'day_worked_min_threshold': 120,
-        'directory': os.path.expanduser('~/.tracktime'),
-        'gitlab': {
-            'api_root': 'https://gitlab.com/api/v4/',
+        "fullname": "<Not Specified>",
+        "customer_addresses": {},
+        "customer_aliases": {},
+        "customer_rates": {},
+        "day_worked_min_threshold": 120,
+        "directory": os.path.expanduser("~/.tracktime"),
+        "gitlab": {
+            "api_root": "https://gitlab.com/api/v4/",
         },
-        'project_rates': {},
-        'sync_time': False,
-        'tableformat': 'simple',
-        'external_synchroniser_files': {},
+        "project_rates": {},
+        "sync_time": False,
+        "tableformat": "simple",
+        "external_synchroniser_files": {},
     }
 
     if not filename:
-        filename = (os.environ.get('XDG_CONFIG_HOME')
-                    or os.environ.get('APPDATA') or os.path.join(
-                        os.environ.get('HOME', os.path.expanduser('~')),
-                        '.config'))
-        filename = os.path.join(filename, 'tracktime/tracktimerc')
+        filename = (
+            os.environ.get("XDG_CONFIG_HOME")
+            or os.environ.get("APPDATA")
+            or os.path.join(os.environ.get("HOME", os.path.expanduser("~")), ".config")
+        )
+        filename = os.path.join(filename, "tracktime/tracktimerc")
 
     if not os.path.exists(filename):
         return cached_config
@@ -47,17 +48,22 @@ def get_config(filename=None) -> Dict[str, Any]:
         cached_config.update(yaml.load(f, Loader=yaml.FullLoader) or {})
 
     # If the API Key is a shell command, execute it.
-    gitlab = cached_config.get('gitlab')
+    gitlab = cached_config.get("gitlab")
     if gitlab:
-        api_key = gitlab.get('api_key')
-        if api_key and api_key.endswith('|'):
-            cached_config['gitlab']['api_key'] = check_output(
-                api_key[:-1].split()).decode().strip()
+        api_key = gitlab.get("api_key")
+        if api_key and api_key.endswith("|"):
+            cached_config["gitlab"]["api_key"] = (
+                check_output(api_key[:-1].split()).decode().strip()
+            )
 
-    if 'gitlab_api_key' in cached_config:
-        print('\n'.join([
-            'DEPRECATION WARNING: GitLab configuration has been moved to a',
-            '    dictionary. See new example configuration here:',
-            '    https://gitlab.com/sumner/tracktime/snippets/1731133',
-        ]))
+    if "gitlab_api_key" in cached_config:
+        print(
+            "\n".join(
+                [
+                    "DEPRECATION WARNING: GitLab configuration has been moved to a",
+                    "    dictionary. See new example configuration here:",
+                    "    https://gitlab.com/sumner/tracktime/snippets/1731133",
+                ]
+            )
+        )
     return cached_config

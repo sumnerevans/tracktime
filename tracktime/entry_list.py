@@ -10,9 +10,9 @@ from tracktime.time_parser import parse_time
 
 
 def get_path(
-        config: Dict[str, Any],
-        date: Union[date, datetime],
-        makedirs: bool = False,
+    config: Dict[str, Any],
+    date: Union[date, datetime],
+    makedirs: bool = False,
 ) -> Path:
     """
     Returns the path for a given date.
@@ -29,14 +29,14 @@ def get_path(
     ... '2018', '01', '01')
     True
     """
-    directory = Path(config['directory'])
+    directory = Path(config["directory"])
     directory = directory.joinpath(str(date.year))
-    directory = directory.joinpath('{:02}'.format(date.month))
+    directory = directory.joinpath("{:02}".format(date.month))
 
     if makedirs:
         os.makedirs(directory, exist_ok=True)
 
-    return directory.joinpath('{:02}'.format(date.day))
+    return directory.joinpath("{:02}".format(date.day))
 
 
 class EntryList:
@@ -47,6 +47,7 @@ class EntryList:
     display and saving is disabled due to the fact that it would override
     entries from other customers.
     """
+
     def __init__(self, config, date, customer=None):
         self.date = date
         self.config = config
@@ -56,14 +57,14 @@ class EntryList:
         # Load entries from the file
         self.filepath = get_path(self.config, date, makedirs=True)
         if os.path.exists(self.filepath):
-            with open(self.filepath, 'r') as f:
+            with open(self.filepath, "r") as f:
                 for row in csv.DictReader(f):
                     # Convert times to datetimes
-                    for k in ('start', 'stop'):
+                    for k in ("start", "stop"):
                         if row[k]:
                             row[k] = parse_time(row[k])
 
-                    if not self.customer or row['customer'] == self.customer:
+                    if not self.customer or row["customer"] == self.customer:
                         self.entries.append(TimeEntry(**row))
 
     def __len__(self):
@@ -74,8 +75,7 @@ class EntryList:
 
     @property
     def total(self):
-        total_minutes = sum(
-            e.duration(allow_unended=True) for e in self.entries)
+        total_minutes = sum(e.duration(allow_unended=True) for e in self.entries)
         return (total_minutes // 60, total_minutes % 60)
 
     def add_entry(self, entry):
@@ -110,10 +110,15 @@ class EntryList:
         if self.customer:
             return
 
-        with open(self.filepath, 'w', newline='') as f:
+        with open(self.filepath, "w", newline="") as f:
             fieldnames = [
-                'start', 'stop', 'type', 'project', 'taskid', 'customer',
-                'description'
+                "start",
+                "stop",
+                "type",
+                "project",
+                "taskid",
+                "customer",
+                "description",
             ]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
 
@@ -133,8 +138,8 @@ class EntryList:
             return
 
         from tracktime.synchronisers import Synchroniser
-        Synchroniser(self.config).sync(
-            date(self.date.year, self.date.month, 1), )
+
+        Synchroniser(self.config).sync(date(self.date.year, self.date.month, 1))
 
     def start(self, start, description, type, project, taskid, customer):
         if self.customer:
@@ -156,7 +161,7 @@ class EntryList:
             return
 
         if len(self) == 0 or self.entries[-1].stop:
-            raise Exception('No time entry to end.')
+            raise Exception("No time entry to end.")
 
         self.entries[-1].stop = stop
         self.save_and_sync()

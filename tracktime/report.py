@@ -31,7 +31,7 @@ class ReportDict(DefaultDict):
     def items(self):
         def sorter(kvp):
             if self.sort == Report.SortType.ALPHABETICAL:
-                return ''.join(kvp[0]).lower()
+                return "".join(kvp[0]).lower()
             else:
                 return kvp[1].minutes
 
@@ -51,23 +51,26 @@ class ReportTimeStatistics:
         # Only considers days where more than the day_worked_min_threshold for
         # minutes worked was surpassed. This avoids counting days where you work
         # for a few minutes. The same thing for weeks, except multiplied by 7.
-        day_worked_threshold = report.config.get('day_worked_min_threshold')
+        day_worked_threshold = report.config.get("day_worked_min_threshold")
 
         # Per day stats
         days_worked = {
-            d: m
-            for d, m in report.day_stats.items() if m >= day_worked_threshold
+            d: m for d, m in report.day_stats.items() if m >= day_worked_threshold
         }
         total_minutes_worked = sum(report.day_stats.values())
 
         self.days_worked = len(days_worked)
         self.weekdays_worked = len(
-            [1 for d, m in days_worked.items() if d.weekday() < 5])
-        self.average_time_per_day_worked = 0 if self.days_worked == 0 else (
-            total_minutes_worked / self.days_worked)
-        self.average_time_per_weekday_worked = (0 if self.weekdays_worked == 0
-                                                else (total_minutes_worked /
-                                                      self.weekdays_worked))
+            [1 for d, m in days_worked.items() if d.weekday() < 5]
+        )
+        self.average_time_per_day_worked = (
+            0 if self.days_worked == 0 else (total_minutes_worked / self.days_worked)
+        )
+        self.average_time_per_weekday_worked = (
+            0
+            if self.weekdays_worked == 0
+            else (total_minutes_worked / self.weekdays_worked)
+        )
 
         # Per week stats
         week_stats = defaultdict(int)
@@ -75,15 +78,16 @@ class ReportTimeStatistics:
             week_stats[d.isocalendar()[1]] += m
 
         self.weeks_worked = len(days_worked) / 5
-        self.average_time_per_week_worked = 0 if self.weeks_worked == 0 else (
-            total_minutes_worked / self.weeks_worked)
+        self.average_time_per_week_worked = (
+            0 if self.weeks_worked == 0 else (total_minutes_worked / self.weeks_worked)
+        )
 
     def _format_hours(self, minutes: float) -> str:
         minutes = round(minutes)
         hours = minutes // 60
         minutes = minutes % 60
-        minutes_str = f'0{minutes}' if minutes < 10 else str(minutes)
-        return f'{hours}:{minutes_str}'
+        minutes_str = f"0{minutes}" if minutes < 10 else str(minutes)
+        return f"{hours}:{minutes_str}"
 
     @property
     def avg_per_day(self):
@@ -100,11 +104,11 @@ class ReportTimeStatistics:
     @property
     def statistics_dictionary(self):
         return {
-            'Days worked': self.days_worked,
-            'Average time per day worked': self.avg_per_day,
-            'Average time per weekday worked': self.avg_per_weekday,
-            'Weeks* worked': self.weeks_worked,
-            'Average time per week* worked': self.avg_per_week,
+            "Days worked": self.days_worked,
+            "Average time per day worked": self.avg_per_day,
+            "Average time per weekday worked": self.avg_per_weekday,
+            "Weeks* worked": self.weeks_worked,
+            "Average time per week* worked": self.avg_per_week,
         }
 
 
@@ -124,16 +128,16 @@ class Report:
             current += timedelta(days=1)
 
     def __init__(
-            self,
-            config,
-            start_date,
-            end_date,
-            sort,
-            sort_direction,
-            customer,
-            project,
-            task_grain,
-            description_grain,
+        self,
+        config,
+        start_date,
+        end_date,
+        sort,
+        sort_direction,
+        customer,
+        project,
+        task_grain,
+        description_grain,
     ):
         self.start_date = start_date
         self.end_date = end_date
@@ -147,20 +151,21 @@ class Report:
         self.synchroniser = Synchroniser(self.config)
 
         # report_map[(customer, project)][task][description] = set(TimeEntry)
-        self.report_map: ReportDict[Tuple[str, str], ReportDict[
-            str, ReportDict[str, EntrySet]]] = ReportDict(
+        self.report_map: ReportDict[
+            Tuple[str, str], ReportDict[str, ReportDict[str, EntrySet]]
+        ] = ReportDict(
+            lambda: ReportDict(
                 lambda: ReportDict(
-                    lambda: ReportDict(
-                        EntrySet,
-                        self.sort,
-                        self.reverse,
-                    ),
+                    EntrySet,
                     self.sort,
                     self.reverse,
                 ),
                 self.sort,
                 self.reverse,
-            )
+            ),
+            self.sort,
+            self.reverse,
+        )
 
         self.day_stats: DefaultDict[date, int] = defaultdict(int)
 
@@ -168,7 +173,7 @@ class Report:
         for day in self.date_range(start_date, end_date):
             for entry in EntryList(self.config, day):
                 if not entry.stop:
-                    raise Exception(f'ERROR: Unended time entry on {day}')
+                    raise Exception(f"ERROR: Unended time entry on {day}")
 
                 if self.customer and entry.customer != self.customer:
                     continue
@@ -177,19 +182,18 @@ class Report:
 
                 self.day_stats[day] += entry.duration()
 
-                self.report_map[(
-                    entry.customer,
-                    entry.project,
-                )][entry.taskid][entry.description.upper()].add(entry)
+                self.report_map[(entry.customer, entry.project,)][entry.taskid][
+                    entry.description.upper()
+                ].add(entry)
 
         self.rate_totals_map: Dict[Tuple[str, str], Tuple[float, float]] = {}
         for customer, project in self.report_map:
             rate = 0
             if customer:
-                rate = self.config['customer_rates'].get(customer, rate)
+                rate = self.config["customer_rates"].get(customer, rate)
 
             if project:
-                rate = self.config['project_rates'].get(project, rate)
+                rate = self.config["project_rates"].get(project, rate)
 
             total = self.report_map[(customer, project)].minutes / 60 * rate
             self.rate_totals_map[(customer, project)] = (rate, total)
@@ -198,36 +202,47 @@ class Report:
 
     def customer_project_str(self, customer, project, html=False):
         if not customer and not project:
-            return ('<no project or customer>'
-                    if not html else '<i>no project or customer</i>')
+            return (
+                "<no project or customer>"
+                if not html
+                else "<i>no project or customer</i>"
+            )
         if customer and project:
-            return f'{customer}: {project}'
+            return f"{customer}: {project}"
         return customer or project
 
     def to_hours(self, minutes):
         return minutes / 60
 
     def round(self, val) -> str:
-        return '{:.2f}'.format(round(val, 2))
+        return "{:.2f}".format(round(val, 2))
 
     @property
     def header_text(self) -> str:
-        time_report_header = 'Time Report: {} - {}'.format(
-            self.start_date, self.end_date)
+        time_report_header = "Time Report: {} - {}".format(
+            self.start_date, self.end_date
+        )
         if self.start_date.year == self.end_date.year:
-            if (self.start_date.month == 1 and self.start_date.day == 1
-                    and self.end_date.month == 12 and self.end_date.day == 31):
+            if (
+                self.start_date.month == 1
+                and self.start_date.day == 1
+                and self.end_date.month == 12
+                and self.end_date.day == 31
+            ):
                 # Reporting on the whole year.
-                time_report_header = f'Time Report: {self.start_date.year}'
+                time_report_header = f"Time Report: {self.start_date.year}"
             elif self.start_date.month == self.end_date.month:
-                if (self.start_date.day == 1
-                        and self.end_date.day == calendar.monthrange(
-                            self.start_date.year, self.start_date.month)[1]):
+                if (
+                    self.start_date.day == 1
+                    and self.end_date.day
+                    == calendar.monthrange(self.start_date.year, self.start_date.month)[
+                        1
+                    ]
+                ):
                     # Reporting on a single month.
-                    time_report_header = 'Time Report: {:%B %Y}'.format(
-                        self.start_date)
+                    time_report_header = "Time Report: {:%B %Y}".format(self.start_date)
                 elif self.start_date.day == self.end_date.day:
-                    time_report_header = f'Time Report: {self.start_date}'
+                    time_report_header = f"Time Report: {self.start_date}"
         return time_report_header
 
     @property
@@ -236,161 +251,156 @@ class Report:
 
     @property
     def address_lines(self):
-        aliases = self.config['customer_aliases']
-        addresses = self.config['customer_addresses']
+        aliases = self.config["customer_aliases"]
+        addresses = self.config["customer_addresses"]
         return [
             aliases.get(self.customer, self.customer),
-            *addresses.get(self.customer, '').strip().split('\n'),
+            *addresses.get(self.customer, "").strip().split("\n"),
         ]
 
     def generate_textual_report(self, tablefmt):
         # Format the header.
         lines = [
             self.header_text,
-            '=' * len(self.header_text),
-            '',
+            "=" * len(self.header_text),
+            "",
             f"**User:** {self.config.get('fullname')}",
-            '',
+            "",
         ]
 
         # If there's a customer, then add it to the report.
         if self.customer:
-            customer = ''
+            customer = ""
             for line in self.address_lines:
-                customer += '    | {}\n'.format(line)
+                customer += "    | {}\n".format(line)
 
             lines += [
-                '**Customer:**',
-                '',
+                "**Customer:**",
+                "",
                 customer,
             ]
 
         # Include the Grand Total
-        lines.append(f'**Grand Total:** ${self.round(self.grand_total)}')
-        lines.append('')
+        lines.append(f"**Grand Total:** ${self.round(self.grand_total)}")
+        lines.append("")
 
         lines += [
-            '**Statistics:**',
-            '',
+            "**Statistics:**",
+            "",
         ]
         statistics = self.stats.statistics_dictionary
         max_desc_length = max(map(len, statistics.keys()))
         for desc, val in statistics.items():
-            desc = desc + ':'
-            lines.append(f'    | {desc.ljust(max_desc_length+2)}{val}')
-        lines.append('')
+            desc = desc + ":"
+            lines.append(f"    | {desc.ljust(max_desc_length+2)}{val}")
+        lines.append("")
         lines.append(
-            '* a week is any set of five days (not necessarily within the same calendar week)'
+            "* a week is any set of five days (not necessarily within the same "
+            "calendar week)"
         )
-        lines.append('')
+        lines.append("")
 
         # Include the report table
         def ellipsize(string, length=40):
             if len(string) > 40:
-                return string[:37] + '...'
+                return string[:37] + "..."
             return string
 
         def pad_tabulate(rows, headers=None, **kwargs):
             tabulate.PRESERVE_WHITESPACE = True
-            real_headers = headers or ['', '', '', '']
+            real_headers = headers or ["", "", "", ""]
             real_headers = [
                 ellipsize(real_headers[0]),
                 *(s.rjust(10) for s in real_headers[1:]),
             ]
             table = tabulate.tabulate(
-                [[
-                    ellipsize(desc).ljust(40),
-                    self.to_hours(minutes),
-                    rate,
-                    total,
-                ] for (desc, minutes, rate, total) in rows],
+                [
+                    [ellipsize(desc).ljust(40), self.to_hours(minutes), rate, total]
+                    for (desc, minutes, rate, total) in rows
+                ],
                 tablefmt=tablefmt,
-                floatfmt='.2f',
+                floatfmt=".2f",
                 numalign=None,
-                colalign=('left', 'right', 'right', 'right'),
+                colalign=("left", "right", "right", "right"),
                 headers=real_headers,
                 **kwargs,
             )
             # Need to remove the headers if they weren't specified.
             if headers is None:
-                lines = table.split('\n')
-                table = '\n'.join([lines[0], *lines[3:]])
+                lines = table.split("\n")
+                table = "\n".join([lines[0], *lines[3:]])
 
             return table
 
         def pad_entry(text, minutes, indent_level=0):
             return (
-                ellipsize(' ' *
-                          (1 + indent_level * 2) + ' * ' + text).ljust(40) +
-                ' ' * 7 + self.round(self.to_hours(minutes)).rjust(10))
+                ellipsize(" " * (1 + indent_level * 2) + " * " + text).ljust(40)
+                + " " * 7
+                + self.round(self.to_hours(minutes)).rjust(10)
+            )
 
         lines += [
-            '**Detailed Time Report:**',
-            '',
+            "**Detailed Time Report:**",
+            "",
             pad_tabulate(
-                [[
-                    'TOTAL',
-                    self.report_map.minutes,
-                    '',
-                    self.grand_total,
-                ]],
-                headers=['', 'Hours', 'Rate ($/h)', 'Total ($)'],
+                [["TOTAL", self.report_map.minutes, "", self.grand_total]],
+                headers=["", "Hours", "Rate ($/h)", "Total ($)"],
             ),
-            '',
+            "",
         ]
 
-        for (i, ((customer, project),
-                 tasks)) in enumerate(self.report_map.items()):
+        for (i, ((customer, project), tasks)) in enumerate(self.report_map.items()):
             if i > 0:
-                lines.append('')
+                lines.append("")
             lines.append(
-                pad_tabulate([[
-                    self.customer_project_str(customer, project),
-                    tasks.minutes,
-                    *self.rate_totals_map[(customer, project)],
-                ]]))
+                pad_tabulate(
+                    [
+                        [
+                            self.customer_project_str(customer, project),
+                            tasks.minutes,
+                            *self.rate_totals_map[(customer, project)],
+                        ]
+                    ]
+                )
+            )
 
             if not self.task_grain:
                 continue
 
-            lines.append('')
+            lines.append("")
 
             for task_name, task_descriptions in tasks.items():
                 first_entry = list(list(task_descriptions.values())[0])[0]
                 task_name = (
-                    self.synchroniser.get_formatted_task_id(first_entry)
-                    or '<NO TASK>')
+                    self.synchroniser.get_formatted_task_id(first_entry) or "<NO TASK>"
+                )
                 desc = self.synchroniser.get_task_description(first_entry)
                 if desc:
-                    task_name += f': {desc.upper()}'
+                    task_name += f": {desc.upper()}"
                 lines.append(pad_entry(task_name, task_descriptions.minutes))
 
                 if not self.description_grain:
                     continue
 
                 # Skip the <NO DESCRIPTION> if that's the only one
-                if (len(task_descriptions) == 1
-                        and '' in task_descriptions.keys()):
-                    lines.append('')
+                if len(task_descriptions) == 1 and "" in task_descriptions.keys():
+                    lines.append("")
                     continue
 
-                lines.append('')
+                lines.append("")
 
                 for description, entries in task_descriptions.items():
-                    description = description or '<NO DESCRIPTION>'
+                    description = description or "<NO DESCRIPTION>"
                     lines.append(
-                        pad_entry(
-                            description,
-                            entries.minutes,
-                            indent_level=1,
-                        ))
+                        pad_entry(description, entries.minutes, indent_level=1)
+                    )
 
-                lines.append('')
+                lines.append("")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def generate_html_report(self):
-        styles = '''
+        styles = """
         body {
           background-color: white;
         }
@@ -442,58 +452,59 @@ class Report:
           white-space: nowrap;
           text-overflow: ellipsis;
         }
-        '''
+        """
 
         # If there's a customer, then add it to the report.
-        customer_html = ''
+        customer_html = ""
         if self.customer:
-            customer_html = f'''
+            customer_html = f"""
             <tr><td><b>Customer:</b></td></tr>
             <tr>
               <td colspan="2" class="customer-address">
                 {'<br/>'.join(self.address_lines)}
               </td>
             </tr>
-            '''
+            """
 
-        statistics_html = '''
+        statistics_html = """
         <h3>Statistics</h3>
         <table class="statistics-table">
-        '''
+        """
         for desc, val in self.stats.statistics_dictionary.items():
-            statistics_html += f'''
+            statistics_html += f"""
             <tr>
                 <td><b>{desc}:</b></td>
                 <td>{val}</td>
             </tr>
-            '''
-        statistics_html += '</table>'
-        statistics_html += '''<i>
+            """
+        statistics_html += "</table>"
+        statistics_html += """<i>
             * a week is any set of five days (not necessarily within the same
             calendar week)
-        </i>'''
+        </i>"""
 
         data = [
             (
-                'total',
-                '<b>TOTAL</b>',
+                "total",
+                "<b>TOTAL</b>",
                 self.round(self.to_hours(self.report_map.minutes)),
-                '',
+                "",
                 self.round(self.grand_total),
             ),
         ]
 
-        for (i, ((customer, project),
-                 tasks)) in enumerate(self.report_map.items()):
+        for (i, ((customer, project), tasks)) in enumerate(self.report_map.items()):
             rate, total = self.rate_totals_map[(customer, project)]
-            data.append(('spacer', '', ''))
-            data.append((
-                'customer-project',
-                self.customer_project_str(customer, project, html=True),
-                self.round(self.to_hours(tasks.minutes)),
-                rate,
-                self.round(total),
-            ))
+            data.append(("spacer", "", ""))
+            data.append(
+                (
+                    "customer-project",
+                    self.customer_project_str(customer, project, html=True),
+                    self.round(self.to_hours(tasks.minutes)),
+                    rate,
+                    self.round(total),
+                )
+            )
 
             if not self.task_grain:
                 continue
@@ -502,50 +513,54 @@ class Report:
                 first_entry = list(list(task_descriptions.values())[0])[0]
                 task_name = (
                     self.synchroniser.get_formatted_task_id(first_entry)
-                    or '<i>NO TASK</i>')
+                    or "<i>NO TASK</i>"
+                )
                 desc = self.synchroniser.get_task_description(first_entry)
                 if desc:
-                    task_name += f': {desc.upper()}'
+                    task_name += f": {desc.upper()}"
                 link = self.synchroniser.get_task_link(first_entry)
                 if link:
                     task_name = f'<a href={link} target="_blank">{task_name}</a>'
 
-                data.append((
-                    'task',
-                    f'''<ul style="margin: 0; padding-left: 30px;">
+                data.append(
+                    (
+                        "task",
+                        f"""<ul style="margin: 0; padding-left: 30px;">
                           <li>{task_name}</li>
-                        </ul>''',
-                    self.round(self.to_hours(task_descriptions.minutes)),
-                ))
+                        </ul>""",
+                        self.round(self.to_hours(task_descriptions.minutes)),
+                    )
+                )
 
                 if not self.description_grain:
                     continue
 
                 # Skip the <NO DESCRIPTION> if that's the only one
-                if (len(task_descriptions) == 1
-                        and '' in task_descriptions.keys()):
+                if len(task_descriptions) == 1 and "" in task_descriptions.keys():
                     continue
 
                 for description, entries in task_descriptions.items():
-                    description = description or '<i>NO DESCRIPTION</i>'
-                    data.append((
-                        'description',
-                        f'''<ul style="margin: 0; padding-left: 50px;">
+                    description = description or "<i>NO DESCRIPTION</i>"
+                    data.append(
+                        (
+                            "description",
+                            f"""<ul style="margin: 0; padding-left: 50px;">
                               <li title="{description}">{description}</li>
-                            </ul>''',
-                        self.round(self.to_hours(entries.minutes)),
-                    ))
+                            </ul>""",
+                            self.round(self.to_hours(entries.minutes)),
+                        )
+                    )
 
-        table_body = ''
+        table_body = ""
 
         for c, *cells in data:
             table_body += f'<tr class="{c}">'
             for i, cell in enumerate(cells):
-                align = 'right' if i > 0 else 'left'
+                align = "right" if i > 0 else "left"
                 table_body += f'<td style="text-align: {align};">{cell}</td>'
-            table_body += '</tr>'
+            table_body += "</tr>"
 
-        return f'''<!doctype html>
+        return f"""<!doctype html>
         <html>
           <head>
             <title>{self.header_text}</title>
@@ -581,7 +596,7 @@ class Report:
             </div>
           </body>
         </html>
-        '''
+        """
 
 
 class ReportExporter:
@@ -591,39 +606,40 @@ class ReportExporter:
 
     def export(self, path: Path):
         raise NotImplementedError(
-            'Inheritors of ReportExporter must implement ``export``.')
+            "Inheritors of ReportExporter must implement ``export``."
+        )
 
 
 class PDFExporter(ReportExporter):
     def export(self, path: Path):
         pdfkit.from_string(self.report.generate_html_report(), str(path))
-        print(f'PDF report exported to {path}.')
+        print(f"PDF report exported to {path}.")
 
 
 class HTMLExporter(ReportExporter):
     def export(self, path: Path):
-        with open(path, 'w+') as f:
+        with open(path, "w+") as f:
             f.write(self.report.generate_html_report())
 
-        print(f'HTML report exported to {path}.')
+        print(f"HTML report exported to {path}.")
 
 
 class RSTExporter(ReportExporter):
     def export(self, path: Path):
-        with open(path, 'w+') as f:
-            f.write(self.report.generate_textual_report('rst'))
+        with open(path, "w+") as f:
+            f.write(self.report.generate_textual_report("rst"))
 
 
 class StdoutExporter(ReportExporter):
     def export(self, path: Path):
-        tablefmt = self.config['tableformat']
+        tablefmt = self.config["tableformat"]
         text = self.report.generate_textual_report(tablefmt)
-        print(text.replace('| ', '').replace('**', ''))
+        print(text.replace("| ", "").replace("**", ""))
 
 
 report_exporters = {
-    'pdf': PDFExporter,
-    'html': HTMLExporter,
-    'rst': RSTExporter,
-    'stdout': StdoutExporter,
+    "pdf": PDFExporter,
+    "html": HTMLExporter,
+    "rst": RSTExporter,
+    "stdout": StdoutExporter,
 }

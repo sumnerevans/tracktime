@@ -35,18 +35,19 @@ def parse_time(time_representation, date=datetime.now()):
         return time_representation
 
     time_formats = {
-        r'\d{4}': '%H%M',
-        r'\d\d:\d\d': '%H:%M',
+        r"\d{4}": "%H%M",
+        r"\d\d:\d\d": "%H:%M",
     }
 
     # Try to parse the time using the time formats.
     for pattern, dateformat in time_formats.items():
         if re.match(pattern, time_representation):
             timestamp = time.strptime(time_representation, dateformat)
-            return datetime(date.year, date.month, date.day, timestamp.tm_hour,
-                            timestamp.tm_min)
+            return datetime(
+                date.year, date.month, date.day, timestamp.tm_hour, timestamp.tm_min
+            )
 
-    raise ValueError('Could not parse time.')
+    raise ValueError("Could not parse time.")
 
 
 def parse_date(date_representation) -> date:
@@ -94,12 +95,12 @@ def parse_date(date_representation) -> date:
         return date_representation
 
     date_formats = {
-        r'\d{4}-\d{1,2}-\d{1,2}': '%Y-%m-%d',
-        r'\d{4}/\d{1,2}/\d{1,2}': '%Y/%m/%d',
-        r'\d{2}-\d{1,2}-\d{1,2}': '%y-%m-%d',
-        r'\d{2}/\d{1,2}/\d{1,2}': '%y/%m/%d',
-        r'\d{1,2}-\d{1,2}': '%m-%d',
-        r'\d{1,2}': '%d',
+        r"\d{4}-\d{1,2}-\d{1,2}": "%Y-%m-%d",
+        r"\d{4}/\d{1,2}/\d{1,2}": "%Y/%m/%d",
+        r"\d{2}-\d{1,2}-\d{1,2}": "%y-%m-%d",
+        r"\d{2}/\d{1,2}/\d{1,2}": "%y/%m/%d",
+        r"\d{1,2}-\d{1,2}": "%m-%d",
+        r"\d{1,2}": "%d",
     }
 
     for pattern, dateformat in date_formats.items():
@@ -108,31 +109,31 @@ def parse_date(date_representation) -> date:
 
             # Set defaults
             now = date.today()
-            if r'%Y' not in dateformat:
+            if r"%Y" not in dateformat:
                 dt = dt.replace(year=now.year)
-            if r'%m' not in dateformat:
+            if r"%m" not in dateformat:
                 dt = dt.replace(month=now.month)
 
             return dt
 
-    if date_representation == 'today':
+    if date_representation == "today":
         return date.today()
-    elif date_representation == 'yesterday':
+    elif date_representation == "yesterday":
         return date.today() - timedelta(1)
     elif date_representation.lower() in map(str.lower, day_abbr):
         # Go back a week and iterate until you find a match.
         start = date.today() - timedelta(6)
-        while start.strftime('%a').lower() != date_representation.lower():
+        while start.strftime("%a").lower() != date_representation.lower():
             start += timedelta(1)
         return start
     elif date_representation.lower() in map(str.lower, day_name):
         # Go back a week and iterate until you find a match.
         start = date.today() - timedelta(6)
-        while start.strftime('%A').lower() != date_representation.lower():
+        while start.strftime("%A").lower() != date_representation.lower():
             start += timedelta(1)
         return start
 
-    raise ValueError('Could not parse date.')
+    raise ValueError("Could not parse date.")
 
 
 def parse_month(month_representation, default_year=None) -> date:
@@ -182,7 +183,7 @@ def parse_month(month_representation, default_year=None) -> date:
     names = [m.lower() for m in month_name]  # January, February, March, ...
     year = None
 
-    year_month_match = re.match(r'(\d+)[-/.](\d+)', str(month_representation))
+    year_month_match = re.match(r"(\d+)[-/.](\d+)", str(month_representation))
 
     if year_month_match:
         year = int(year_month_match.group(1))
@@ -196,12 +197,14 @@ def parse_month(month_representation, default_year=None) -> date:
         try:
             month = int(month_representation)
             if month > 12:
-                raise ValueError('Cannot have month greater than 12.')
+                raise ValueError("Cannot have month greater than 12.")
         except ValueError as e:
-            raise ValueError('You must specify the month as either the '
-                             'fully qualified month (December), an '
-                             'abbreviated month (Dec), a year with month '
-                             '(2019-01), or a month number (01).') from e
+            raise ValueError(
+                "You must specify the month as either the "
+                "fully qualified month (December), an "
+                "abbreviated month (Dec), a year with month "
+                "(2019-01), or a month number (01)."
+            ) from e
 
     if not year:
         year = default_year or date.today().year
@@ -227,13 +230,13 @@ def day_as_ordinal(day):
     if type(day) == date:
         day = day.day
 
-    suffix = ''
+    suffix = ""
     if 4 <= day <= 20:
-        suffix = 'th'
+        suffix = "th"
     elif day % 10 == 1:
-        suffix = 'st'
+        suffix = "st"
     elif day % 10 == 2:
-        suffix = 'nd'
+        suffix = "nd"
     elif day % 10 == 3:
-        suffix = 'rd'
-    return f'{day}{suffix}'
+        suffix = "rd"
+    return f"{day}{suffix}"

@@ -22,12 +22,13 @@ class JiraSynchroniser(ExternalSynchroniser):
     logic is required, since there is some sort of vudu magic with MS Active
     Directory happens such that it auto-logs me on in Edge.
     """
-    types = ('jira', 'JIRA')
+
+    types = ("jira", "JIRA")
 
     def __init__(self, config):
         self.config = config
-        self.root = self.config.get('jira', {}).get('root')
-        if self.root and self.root[-1] == '/':
+        self.root = self.config.get("jira", {}).get("root")
+        if self.root and self.root[-1] == "/":
             self.root = self.root[:-1]
         self.driver = None
 
@@ -40,7 +41,7 @@ class JiraSynchroniser(ExternalSynchroniser):
             self.driver.close()
 
     def get_name(self):
-        return 'JIRA'
+        return "JIRA"
 
     def sync(self, aggregated_time, synced_time):
         return {}
@@ -49,34 +50,34 @@ class JiraSynchroniser(ExternalSynchroniser):
         if entry.type not in self.types or not entry.taskid:
             return None
 
-        return f'{entry.project}-{entry.taskid}'
+        return f"{entry.project}-{entry.taskid}"
 
     def get_task_link(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
             return None
-        return f'{self.root}/browse/{self.get_formatted_task_id(entry)}'
+        return f"{self.root}/browse/{self.get_formatted_task_id(entry)}"
 
     def get_task_description(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
             return None
 
         # This operation is expenive. Allow users to bypass.
-        if os.environ.get('JIRA_DISABLE_TASK_DESCRIPTION_SCRAPE') == '1':
+        if os.environ.get("JIRA_DISABLE_TASK_DESCRIPTION_SCRAPE") == "1":
             return None
 
         formatted_task_id = self.get_formatted_task_id(entry)
         if not formatted_task_id:
             return None
 
-        cache_path = Path('~/.cache/tracktime/').expanduser()
+        cache_path = Path("~/.cache/tracktime/").expanduser()
         cache_path.mkdir(parents=True, exist_ok=True)
-        cache_file = cache_path.joinpath('jira_selenium_ms_sso.pickle')
+        cache_file = cache_path.joinpath("jira_selenium_ms_sso.pickle")
 
         # It's kinda inefficient to do this for every single task description,
         # but it's not as slow as Selenium, anyway.
         description_cache: Dict[str, str] = {}
         if cache_file.exists():
-            with open(cache_file, 'rb') as f:
+            with open(cache_file, "rb") as f:
                 try:
                     description_cache = pickle.load(f)
                 except Exception:
@@ -86,10 +87,11 @@ class JiraSynchroniser(ExternalSynchroniser):
             if not self.driver:
                 self.init_driver()
 
-            self.driver.get(f'{self.root}/browse/{formatted_task_id}')
+            self.driver.get(f"{self.root}/browse/{formatted_task_id}")
             try:
                 description = self.driver.find_element_by_id(
-                    'summary-val').get_attribute('innerHTML')
+                    "summary-val"
+                ).get_attribute("innerHTML")
             except Exception:
                 return None
 
@@ -98,16 +100,13 @@ class JiraSynchroniser(ExternalSynchroniser):
 
             # The description resides in the first part of the #summary-val
             # component's HTML. The <span> is the edit button as far as I can tell.
-            description_match = re.match(
-                '(.*)<span class=".*"></span>',
-                description,
-            )
+            description_match = re.match('(.*)<span class=".*"></span>', description)
             if not description_match:
                 return None
 
             description_cache[formatted_task_id] = description_match.group(1)
 
-            with open(cache_file, 'wb+') as f:
+            with open(cache_file, "wb+") as f:
                 pickle.dump(description_cache, f)
 
         return description_cache.get(formatted_task_id)

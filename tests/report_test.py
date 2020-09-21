@@ -16,19 +16,22 @@ def dummy_tracktime_dir():
 @pytest.fixture()
 def dummy_config(dummy_tracktime_dir):
     # Create a dummy configuration file
-    config_file = tempfile.NamedTemporaryFile('w+', delete=False)
-    config_file.writelines(f'{x}\n' for x in [
-        'fullname: Test User',
-        'sync_time: true',
-        f'directory: {dummy_tracktime_dir.name}',
-        'customer_aliases:',
-        '  SC: Some Company',
-        'customer_addresses:',
-        '  SC: |',
-        '    1234 Some Street',
-        '    Some City, CA 12345',
-        '    USA',
-    ])
+    config_file = tempfile.NamedTemporaryFile("w+", delete=False)
+    config_file.writelines(
+        f"{x}\n"
+        for x in [
+            "fullname: Test User",
+            "sync_time: true",
+            f"directory: {dummy_tracktime_dir.name}",
+            "customer_aliases:",
+            "  SC: Some Company",
+            "customer_addresses:",
+            "  SC: |",
+            "    1234 Some Street",
+            "    Some City, CA 12345",
+            "    USA",
+        ]
+    )
     config_file.close()
     return config_file
 
@@ -40,80 +43,81 @@ def test_report_date_display(dummy_config):
     lastweekstart = weekstart - timedelta(days=7)
     lastweekend = weekend - timedelta(days=7)
     test_cases = [
-        (('--thisyear', ), f'Time Report: {today.year}'),
-        (('--lastyear', ), f'Time Report: {today.year - 1}'),
-        (('--thismonth', ), f'Time Report: {today:%B %Y}'),
-        (('--thisweek', ), f'Time Report: {weekstart} - {weekend}'),
-        (('--lastweek', ), f'Time Report: {lastweekstart} - {lastweekend}'),
-        (('-y', '2019', '-m', '01'), 'Time Report: January 2019'),
-        (('-m', '11'), f'Time Report: November {today.year}'),
-        (
-            ('2019-01-02', '2019-02-09'),
-            'Time Report: 2019-01-02 - 2019-02-09',
-        ),
-        (
-            ('--today', ),
-            f'Time Report: {today.year}-{today.month:02}-{today.day:02}',
-        ),
+        (("--thisyear",), f"Time Report: {today.year}"),
+        (("--lastyear",), f"Time Report: {today.year - 1}"),
+        (("--thismonth",), f"Time Report: {today:%B %Y}"),
+        (("--thisweek",), f"Time Report: {weekstart} - {weekend}"),
+        (("--lastweek",), f"Time Report: {lastweekstart} - {lastweekend}"),
+        (("-y", "2019", "-m", "01"), "Time Report: January 2019"),
+        (("-m", "11"), f"Time Report: November {today.year}"),
+        (("2019-01-02", "2019-02-09"), "Time Report: 2019-01-02 - 2019-02-09"),
+        (("--today",), f"Time Report: {today.year}-{today.month:02}-{today.day:02}"),
     ]
     for date_args, expected in test_cases:
-        output_lines = subprocess.check_output(
-            ['tt', '--config', dummy_config.name, 'report',
-             *date_args]).decode().split(os.linesep)
+        output_lines = (
+            subprocess.check_output(
+                ["tt", "--config", dummy_config.name, "report", *date_args]
+            )
+            .decode()
+            .split(os.linesep)
+        )
 
         assert output_lines[0] == expected
 
 
 def test_invalid_date_specifications(dummy_config):
     test_cases = [
-        (('2019-01-01', ), 'Must specify range start and stop.'),
+        (("2019-01-01",), "Must specify range start and stop."),
         (
-            ('-y', '2019', '-m', '2018-02'),
-            'When specifying a year with --year/-y, the month must be in the '
-            'same year.',
+            ("-y", "2019", "-m", "2018-02"),
+            "When specifying a year with --year/-y, the month must be in the "
+            "same year.",
         ),
     ]
     for date_args, expected in test_cases:
         result = subprocess.run(
-            ['tt', '--config', dummy_config.name, 'report', *date_args],
+            ["tt", "--config", dummy_config.name, "report", *date_args],
             capture_output=True,
         )
         assert result.returncode != 0
-        assert result.stderr.decode().endswith(
-            f'Exception: {expected}{os.linesep}')
+        assert result.stderr.decode().endswith(f"Exception: {expected}{os.linesep}")
 
 
 def test_report(dummy_config):
-    output_lines = subprocess.check_output([
-        'tt', '--config', dummy_config.name, 'report', '-y', '2019', '-m', '01'
-    ]).decode().split(os.linesep)
+    output_lines = (
+        subprocess.check_output(
+            ["tt", "--config", dummy_config.name, "report", "-y", "2019", "-m", "01"]
+        )
+        .decode()
+        .split(os.linesep)
+    )
     print(output_lines)
 
     lines = [
-        'Time Report: January 2019',
-        '=========================',
-        '',
-        'User: Test User',
-        '',
-        'Grand Total: $0.00',
-        '',
-        'Statistics:',
-        '',
-        '    Days worked:                     0',
-        '    Average time per day worked:     0:00',
-        '    Average time per weekday worked: 0:00',
-        '    Weeks* worked:                   0.0',
-        '    Average time per week* worked:   0:00',
-        '',
-        '* a week is any set of five days (not necessarily within the same calendar week)',
-        '',
-        'Detailed Time Report:',
-        '',
-        '                                                 Hours    Rate ($/h)     Total ($)',
-        '----------------------------------------  ------------  ------------  ------------',
-        'TOTAL                                             0.00                           0',
-        '',
-        '',
+        "Time Report: January 2019",
+        "=========================",
+        "",
+        "User: Test User",
+        "",
+        "Grand Total: $0.00",
+        "",
+        "Statistics:",
+        "",
+        "    Days worked:                     0",
+        "    Average time per day worked:     0:00",
+        "    Average time per weekday worked: 0:00",
+        "    Weeks* worked:                   0.0",
+        "    Average time per week* worked:   0:00",
+        "",
+        "* a week is any set of five days (not necessarily within the same calendar week)",  # noqa: E501
+        "",
+        "Detailed Time Report:",
+        "",
+        "                                                 Hours    Rate ($/h)     Total ($)",  # noqa: E501
+        "----------------------------------------  ------------  ------------  ------------",  # noqa: E501
+        "TOTAL                                             0.00                           0",  # noqa: E501
+        "",
+        "",
     ]
 
     for i, (expected, actual) in enumerate(zip(lines, output_lines)):
@@ -124,44 +128,58 @@ def test_report(dummy_config):
 
 
 def test_report_with_customer(dummy_config):
-    output_lines = subprocess.check_output([
-        'tt', '--config', dummy_config.name, 'report', '-c', 'SC', '-y',
-        '2019', '-m', '01'
-    ]).decode().split(os.linesep)
+    output_lines = (
+        subprocess.check_output(
+            [
+                "tt",
+                "--config",
+                dummy_config.name,
+                "report",
+                "-c",
+                "SC",
+                "-y",
+                "2019",
+                "-m",
+                "01",
+            ]
+        )
+        .decode()
+        .split(os.linesep)
+    )
     print(output_lines)
 
     lines = [
-        'Time Report: January 2019',
-        '=========================',
-        '',
-        'User: Test User',
-        '',
-        'Customer:',
-        '',
-        '    Some Company',
-        '    1234 Some Street',
-        '    Some City, CA 12345',
-        '    USA',
-        '',
-        'Grand Total: $0.00',
-        '',
-        'Statistics:',
-        '',
-        '    Days worked:                     0',
-        '    Average time per day worked:     0:00',
-        '    Average time per weekday worked: 0:00',
-        '    Weeks* worked:                   0.0',
-        '    Average time per week* worked:   0:00',
-        '',
-        '* a week is any set of five days (not necessarily within the same calendar week)',
-        '',
-        'Detailed Time Report:',
-        '',
-        '                                                 Hours    Rate ($/h)     Total ($)',
-        '----------------------------------------  ------------  ------------  ------------',
-        'TOTAL                                             0.00                           0',
-        '',
-        '',
+        "Time Report: January 2019",
+        "=========================",
+        "",
+        "User: Test User",
+        "",
+        "Customer:",
+        "",
+        "    Some Company",
+        "    1234 Some Street",
+        "    Some City, CA 12345",
+        "    USA",
+        "",
+        "Grand Total: $0.00",
+        "",
+        "Statistics:",
+        "",
+        "    Days worked:                     0",
+        "    Average time per day worked:     0:00",
+        "    Average time per weekday worked: 0:00",
+        "    Weeks* worked:                   0.0",
+        "    Average time per week* worked:   0:00",
+        "",
+        "* a week is any set of five days (not necessarily within the same calendar week)",  # noqa: E501
+        "",
+        "Detailed Time Report:",
+        "",
+        "                                                 Hours    Rate ($/h)     Total ($)",  # noqa: E501
+        "----------------------------------------  ------------  ------------  ------------",  # noqa: E501
+        "TOTAL                                             0.00                           0",  # noqa: E501
+        "",
+        "",
     ]
 
     for i, (expected, actual) in enumerate(zip(lines, output_lines)):
