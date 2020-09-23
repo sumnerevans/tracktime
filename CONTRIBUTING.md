@@ -27,7 +27,8 @@ to reproduce.
 
 If you want to propose a code change, please submit a patch to the
 [~sumner/tracktime-devel](https://lists.sr.ht/~sumner/tracktime-devel)
-mailing list. If it is good, I will merge it in.
+mailing list. If it is good, I will merge it in. For help sending patches to
+this list, please consult [git-send-email.io](https://git-send-email.io).
 
 ### Installing Development Dependencies
 

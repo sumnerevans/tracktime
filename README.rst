@@ -186,6 +186,14 @@ Supported External Services
 
 - GitLab
 
+Contributing
+------------
+
+See the CONTRIBUTING.md_ document for details on how to contribute to the
+project.
+
+.. _CONTRIBUTING.md: https://git.sr.ht/~sumner/tracktime/tree/master/CONTRIBUTING.md
+
 Unsupported Edge Cases
 ----------------------
 
