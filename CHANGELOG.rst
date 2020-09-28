@@ -1,3 +1,19 @@
+v0.9.14
+=======
+
+* Fixed dependency issue where `argcomplete` was required as an
+  `install_dependency`.
+* Fixed issue with importing `importlib.util`.
+
+* INFRASTRUCTURE
+
+  * Fleshed out `CONTRIBUTING.md` document to help onboard contributors.
+  * Migrated to sr.ht because of usability regressions in GitLab.
+  * Migrated to using `black` for formatting instead of `yapf`.
+  * Migrated from Pipenv to Poetry because Poetry is actually fast.
+  * Added an `.envrc` and a `.editorconfig` file to help create consistent
+    development environments for contributors.
+
 v0.9.13
 =======
 

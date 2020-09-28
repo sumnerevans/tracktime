@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tracktime"
-version = "0.9.13"
+version = "0.9.14"
 description = "Time tracking library with command line interface."
 authors = ["Sumner Evans <me@sumnerevans.com>"]
 license = "GPL-3.0-or-later"
