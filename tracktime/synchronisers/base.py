@@ -1,6 +1,6 @@
 """Synchroniser module"""
 import csv
-import importlib
+import importlib.util
 import sys
 
 from collections import defaultdict
