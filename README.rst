@@ -111,7 +111,7 @@ options and what they do.
   day to consider it a work day. This is to avoid days where you work for a few
   minutes from skewing statistical results.
 
-.. _example configuration: https://gitlab.com/sumner/tracktime/snippets/1731133
+.. _example configuration: https://git.sr.ht/~sumner/tracktime/tree/master/examples/tracktimerc
 .. _tabulate documentation: https://bitbucket.org/astanin/python-tabulate#rst-header-table-format
 
 Architecture

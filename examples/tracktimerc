@@ -1,0 +1,25 @@
+# vim:ft=yaml
+fullname: Sumner Evans
+sync_time: true
+editor: C:\Users\sumner.evans\AppData\Local\Programs\Microsoft VS Code\Code.exe
+editor_args: --wait
+gitlab:
+  api_root: https://gitlab.com/api/v4/
+  api_key: pass show VCS/GitLab-API-Key|
+tableformat: fancy_grid
+project_rates:
+  sumner/tracktime: 50
+  sumner/offlinemsmtp: 50
+customer_aliases:
+  John: John Doe
+  James: James Smith
+customer_addresses:
+  Google: |
+    1600 Amphitheatre Parkway
+    Mountain View, CA 94043
+    USA
+  Microsoft: |
+    One Microsoft Way
+    Redmond, WA 98052
+external_synchroniser_files:
+  jira: C:\projects\tracktime\examples\jira.py
