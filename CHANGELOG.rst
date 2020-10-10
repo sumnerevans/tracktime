@@ -1,3 +1,12 @@
+v0.9.15
+=======
+
+* Use ``use nix`` with a ``shell.nix`` for consistent development environments.
+* Fixed link to example configuration and brought it in to the repository.
+* Added a synchroniser for sourcehut. [1]_
+
+.. [1] https://sr.ht
+
 v0.9.14
 =======
 

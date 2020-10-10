@@ -6,6 +6,10 @@ editor_args: --wait
 gitlab:
   api_root: https://gitlab.com/api/v4/
   api_key: pass show VCS/GitLab-API-Key|
+sourcehut:
+  api_root: https://todo.sr.ht/api/
+  access_token: pass VCS/Sourcehut-Access-Token|
+  username: ~sumner
 tableformat: fancy_grid
 project_rates:
   sumner/tracktime: 50

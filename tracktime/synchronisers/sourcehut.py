@@ -75,7 +75,7 @@ class SourcehutSynchronizer(ExternalSynchroniser):
             username, tracker = self._extract_username_and_tracker(project)
 
             # Only do time tracking on repos that are mine.
-            # TODO need to update this when the organization stuff is working.
+            # TODO (#16) need to update this when the organization stuff is working.
             if username != self.username:
                 return
 
