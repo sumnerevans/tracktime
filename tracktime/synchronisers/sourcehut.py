@@ -14,13 +14,13 @@ from requests import get, post, put
 from tracktime.synchronisers.base import ExternalSynchroniser
 
 
-class SourcehutSynchronizer(ExternalSynchroniser):
+class SourcehutSynchroniser(ExternalSynchroniser):
     types = ("srht", "sr.ht", "sh", "sourcehut")
 
     def __init__(self, config):
-        self.access_token = config.get("sourcehut").get("access_token")
-        self.api_root = config.get("sourcehut").get("api_root")
-        self.username = config.get("sourcehut").get("username")
+        self.access_token = config.get("sourcehut", {}).get("access_token")
+        self.api_root = config.get("sourcehut", {}).get("api_root")
+        self.username = config.get("sourcehut", {}).get("username")
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=50)
 
     def _make_request(self, rel_path, requester=post, params={}):
@@ -35,15 +35,16 @@ class SourcehutSynchronizer(ExternalSynchroniser):
         else:
             return self.username, project_str
 
-    def pluralize(self, string: str, number: int, pluralized_form: str = None) -> str:
+    @staticmethod
+    def pluralize(string: str, number: int, pluralized_form: str = None) -> str:
         """
         Pluralize the given string given the count as a number.
 
-        >>> pluralize('foo', 1)
+        >>> SourcehutSynchroniser.pluralize('foo', 1)
         'foo'
-        >>> pluralize('foo', 2)
+        >>> SourcehutSynchroniser.pluralize('foo', 2)
         'foos'
-        >>> pluralize('foo', 0)
+        >>> SourcehutSynchroniser.pluralize('foo', 0)
         'foos'
         """
         if number != 1:
@@ -54,8 +55,10 @@ class SourcehutSynchronizer(ExternalSynchroniser):
         hours = duration_minutes // 60
         minutes = duration_minutes % 60
         return (
-            f"{hours} {self.pluralize('hour', hours)} " if hours > 0 else ""
-        ) + f"{minutes} {self.pluralize('minute', minutes)}"
+            f"{hours} {SourcehutSynchroniser.pluralize('hour', hours)} "
+            if hours > 0
+            else ""
+        ) + f"{minutes} {SourcehutSynchroniser.pluralize('minute', minutes)}"
 
     def get_name(self):
         return "Sourcehut"
