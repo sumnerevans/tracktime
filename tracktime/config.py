@@ -48,12 +48,20 @@ def get_config(filename=None) -> Dict[str, Any]:
         cached_config.update(yaml.load(f, Loader=yaml.FullLoader) or {})
 
     # If the API Key is a shell command, execute it.
+    # TODO (tracktime#15) move this to synchroniser code
     gitlab = cached_config.get("gitlab")
     if gitlab:
         api_key = gitlab.get("api_key")
         if api_key and api_key.endswith("|"):
             cached_config["gitlab"]["api_key"] = (
                 check_output(api_key[:-1].split()).decode().strip()
+            )
+    sourcehut = cached_config.get("sourcehut")
+    if sourcehut:
+        access_token = sourcehut.get("access_token")
+        if access_token and access_token.endswith("|"):
+            cached_config["sourcehut"]["access_token"] = (
+                check_output(access_token[:-1].split()).decode().strip()
             )
 
     if "gitlab_api_key" in cached_config:

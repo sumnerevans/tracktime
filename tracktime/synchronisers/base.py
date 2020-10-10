@@ -118,6 +118,7 @@ class Synchroniser:
         parent = Path(__file__).parent
         synchronisers = {
             "gitlab": parent.joinpath("gitlab.py"),
+            "sourcehut": parent.joinpath("sourcehut.py"),
         }
         synchronisers.update(self.config["external_synchroniser_files"])
 
@@ -129,13 +130,16 @@ class Synchroniser:
                 spec.loader.exec_module(module)
 
                 # Find the Synchroniser
-                for item in filter(lambda x: not x.startswith("__"), dir(module)):
-                    item = getattr(module, item)
-                    if not type(item) == type or item == ExternalSynchroniser:
-                        continue
-                    if isinstance(item(self.config), ExternalSynchroniser):
-                        synchroniser = item(self.config)
-                        break
+                for element in filter(lambda x: not x.startswith("__"), dir(module)):
+                    try:
+                        item = getattr(module, element)
+                        if not type(item) == type or item == ExternalSynchroniser:
+                            continue
+                        if isinstance(item(self.config), ExternalSynchroniser):
+                            synchroniser = item(self.config)
+                            break
+                    except Exception:
+                        pass
                 else:
                     raise Exception(
                         f"Could not find valid synchroniser in {file_path}."
