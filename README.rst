@@ -27,6 +27,7 @@ Features
 - Generate rST, PDF, HTML reports for arbitrary date ranges (optionally
   restricted to a particular customer or project)
 - Synchronise time spent to GitLab using the Time Tracking API
+- Synchronise time spent to Sourcehut via comments on issues
 
 Installation
 ------------
@@ -185,6 +186,7 @@ Supported External Services
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - GitLab
+- Sourcehut
 
 Contributing
 ------------
