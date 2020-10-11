@@ -1,9 +1,9 @@
 tracktime
 =========
 
-.. image:: https://builds.sr.ht/~sumner/tracktime.svg
+.. image:: https://builds.sr.ht/~sumner.svg?search=~sumner/tracktime tags:build.yml
    :alt: Build Status
-   :target: https://builds.sr.ht/~sumner?search=%7Esumner%2Ftracktime
+   :target: https://builds.sr.ht/~sumner?search=%7Esumner%2Ftracktime+tags%3Abuild.yml
 .. image:: https://img.shields.io/pypi/v/tracktime?color=4DC71F&logo=python&logoColor=fff
    :alt: PyPi Version
    :target: https://pypi.org/project/tracktime/
