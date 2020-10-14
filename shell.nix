@@ -1,8 +1,11 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> {} }: with pkgs;
 pkgs.mkShell {
-  propagatedBuildInputs = with pkgs; [
+  propagatedBuildInputs = with python38Packages; [
+    chromedriver
     poetry
     python38
+    rnix-lsp
+    selenium
     wkhtmltopdf
   ];
 }

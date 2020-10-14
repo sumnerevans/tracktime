@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -27,13 +28,16 @@ class JiraSynchroniser(ExternalSynchroniser):
         self.root = self.config.get("jira", {}).get("root")
         self.username = self.config.get("jira", {}).get("sso_email")
         self.password = self.config.get("jira", {}).get("sso_password")
+        self.chrome_bin = self.config.get("chromedriver", {}).get("chrome_bin")
         if self.root and self.root[-1] == "/":
             self.root = self.root[:-1]
         self.driver = None
 
     def init_driver(self):
         # Create the driver.
-        self.driver = webdriver.Chrome()
+        options = Options()
+        options.binary_location = self.chrome_bin
+        self.driver = webdriver.Chrome(chrome_options=options)
         wait = WebDriverWait(self.driver, 10)
 
         # Open the JIRA root and clock on the Login button.
