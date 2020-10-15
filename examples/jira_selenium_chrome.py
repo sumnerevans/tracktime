@@ -36,7 +36,8 @@ class JiraSynchroniser(ExternalSynchroniser):
     def init_driver(self):
         # Create the driver.
         options = Options()
-        options.binary_location = self.chrome_bin
+        if self.chrome_bin:
+            options.binary_location = self.chrome_bin
         self.driver = webdriver.Chrome(chrome_options=options)
         wait = WebDriverWait(self.driver, 10)
 

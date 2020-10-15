@@ -1,3 +1,15 @@
+v0.9.16
+=======
+
+* Small bugfix for sourcehut synchroniser when time entries were specified in
+  different but equivalent ways.
+* Added an option to the ``jira_selenium_chrome.py`` example to specify the
+  Chrome binary file.
+
+* INFRASTRUCTURE
+
+  * Converted to use ``poetry`` instead of ``setup.py`` for handling building.
+
 v0.9.15
 =======
 
