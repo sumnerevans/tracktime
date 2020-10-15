@@ -23,7 +23,8 @@ tasks:
       poetry check
       flake8
       mypy ${PROJECT_NAME}
-      ./.builds/bin/custom_style_check.py
+      black --check .
+      .builds/bin/custom_style_check.py
 
   # TODO figure out how to publish htmlcov files
   - test: |
@@ -33,6 +34,6 @@ tasks:
       poetry build
 
   - deploy: |
-      ./.builds/bin/run_if_tagged_with_version                      \
+      .builds/bin/run_if_tagged_with_version                        \
         "twine upload -r testpypi dist/*"                           \
         "twine upload dist/*"

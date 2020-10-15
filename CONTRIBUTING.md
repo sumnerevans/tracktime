@@ -90,3 +90,4 @@ same checks that the lint job runs yourself with the following commands:
     $ flake8
     $ mypy tracktime
     $ black --check .
+    $ .builds/bin/custom_style_check.py
