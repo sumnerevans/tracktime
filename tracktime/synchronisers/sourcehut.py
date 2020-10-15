@@ -5,13 +5,14 @@ import concurrent.futures
 import pickle
 import re
 import threading
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 from urllib import parse
 
 from requests import get, post, put
 
-from tracktime.synchronisers.base import ExternalSynchroniser
+from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
 
 
 class SourcehutSynchroniser(ExternalSynchroniser):
@@ -82,16 +83,13 @@ class SourcehutSynchroniser(ExternalSynchroniser):
             if username != self.username:
                 return
 
-            ticketid = taskid.strip("#")
-            project = f"{username}/{tracker}"
-
-            time_diff = duration - synced_time[(type_, project, taskid)]
+            time_diff = duration - synced_time[task_tuple]
 
             # Skip tasks that don't have any change.
             if time_diff == 0:
                 return
 
-            ticket_uri = f"/user/{username}/trackers/{tracker}/tickets/{ticketid}"
+            ticket_uri = f"/user/{username}/trackers/{tracker}/tickets/{taskid}"
 
             try:
                 # Try and find the existing comment and edit it.
@@ -115,7 +113,7 @@ class SourcehutSynchroniser(ExternalSynchroniser):
                         # correct.
                         if comment_text == new_text:
                             with synced_time_lock:
-                                synced_time[(type_, project, taskid)] = duration
+                                synced_time[task_tuple] = duration
                             return
 
                         if comment_text.startswith(tracktime_prefix):
@@ -138,17 +136,27 @@ class SourcehutSynchroniser(ExternalSynchroniser):
                     )
 
                 print("[SUCCESS]" if result.status_code == 200 else "[FAILED]", end=" ")
-                print(f"setting time spent on {project}#{ticketid} to {duration_str}.")
+                print(f"setting time spent on {project}#{taskid} to {duration_str}.")
 
                 if result.status_code == 200:
                     with synced_time_lock:
-                        synced_time[(type_, project, taskid)] = duration
+                        synced_time[task_tuple] = duration
 
             except Exception:
                 return None
 
+        normalized_aggregated_time: AggregatedTime = defaultdict(int)
+        for (type_, project, taskid), v in aggregated_time.items():
+            username, tracker = self._extract_username_and_tracker(project)
+            ticketid = taskid.strip("#")
+            project = f"{username}/{tracker}"
+            normalized_aggregated_time[(type_, project, ticketid)] += v
+
         concurrent.futures.wait(
-            [self.executor.submit(do_sync(k, v)) for k, v in aggregated_time.items()],
+            [
+                self.executor.submit(do_sync(k, v))
+                for k, v in normalized_aggregated_time.items()
+            ],
             timeout=None,
             return_when=concurrent.futures.ALL_COMPLETED,
         )
