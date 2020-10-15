@@ -20,19 +20,20 @@ tasks:
       echo "source $(poetry env info -p)/bin/activate" >> ~/.buildenv
 
   - lint: |
-      python setup.py check -mrs
+      poetry check
       flake8
       mypy ${PROJECT_NAME}
-      ./.builds/bin/custom_style_check.py
+      black --check .
+      .builds/bin/custom_style_check.py
 
   # TODO figure out how to publish htmlcov files
   - test: |
       pytest
 
   - build: |
-      python setup.py sdist
+      poetry build
 
   - deploy: |
-      ./.builds/bin/run_if_tagged_with_version                      \
+      .builds/bin/run_if_tagged_with_version                        \
         "twine upload -r testpypi dist/*"                           \
         "twine upload dist/*"
