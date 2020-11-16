@@ -4,6 +4,10 @@ v0.9.17
 * Fixed an issue with the sourcehut synchroniser where time reporting on an
   issue was not correct when time was tracked across multiple months. (#18)
 
+* INFRASTRUCTURE
+
+  * Use ``poetry publish`` instead of twine for deploying to PyPi.
+
 v0.9.16
 =======
 

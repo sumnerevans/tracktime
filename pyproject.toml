@@ -45,7 +45,6 @@ rope = "^0.17.0"
 rst2html5 = "^1.10.6"
 selenium = "^3.141.0"
 termcolor = "^1.1.0"
-twine = "^3.2.0"
 yapf = "^0.30.0"
 
 [tool.pytest.ini_options]

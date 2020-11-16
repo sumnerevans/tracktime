@@ -4,8 +4,8 @@ packages:
 sources:
   - https://git.sr.ht/~sumner/tracktime
 secrets:
-  # PyPi Credentials
-  - a935a60f-b0ae-4232-b17e-e6b921ab0b91
+  # PyPi Deploy Credentials for Tracktime
+  - d5c21a37-01c0-403c-a9d4-ff7f31095b92
 environment:
   PROJECT_NAME: tracktime
 triggers:
@@ -34,6 +34,5 @@ tasks:
       poetry build
 
   - deploy: |
-      .builds/bin/run_if_tagged_with_version                        \
-        "twine upload -r testpypi dist/*"                           \
-        "twine upload dist/*"
+      poetry publish --dry-run
+      .builds/bin/run_if_tagged_with_version "poetry publish"
