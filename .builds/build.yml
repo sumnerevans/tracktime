@@ -1,6 +1,6 @@
-image: archlinux
+image: nixos/unstable
 packages:
-  - python-poetry
+  - nixos.python38Packages.poetry
 sources:
   - https://git.sr.ht/~sumner/tracktime
 secrets:
