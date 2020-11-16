@@ -32,9 +32,13 @@ class SourcehutSynchroniser(ExternalSynchroniser):
 
     def _extract_username_and_tracker(self, project_str):
         if "/" in project_str:
-            return project_str.split("/")
+            username, tracker = project_str.split("/")
         else:
-            return self.username, project_str
+            username, tracker = self.username, project_str
+
+        if not username.startswith("~"):
+            username = "~" + username
+        return username, tracker
 
     @staticmethod
     def pluralize(string: str, number: int, pluralized_form: str = None) -> str:
@@ -52,7 +56,8 @@ class SourcehutSynchroniser(ExternalSynchroniser):
             return pluralized_form or f"{string}s"
         return string
 
-    def format_duration(self, duration_minutes):
+    @staticmethod
+    def format_duration(duration_minutes: int):
         hours = duration_minutes // 60
         minutes = duration_minutes % 60
         return (
@@ -64,7 +69,84 @@ class SourcehutSynchroniser(ExternalSynchroniser):
     def get_name(self):
         return "Sourcehut"
 
-    def sync(self, aggregated_time, synced_time):
+    firstline_re = re.compile(
+        r"\[tracktime\] ~\w+ has spent (\d+ hours )?\d+ minutes on this task.?"
+    )
+    month_line_re = re.compile(r"\s*\* (\d+)-(\d+): (?:(\d+) hours )?(\d+) minutes")
+
+    @staticmethod
+    def parse_comment(text: str) -> Optional[Dict[Tuple[int, int], int]]:
+        """
+        Parses comments of the form::
+
+            [tracktime] ~sumner has spent 12 hours 48 minutes on this task.
+            * 2020-10: 8 hours 12 minutes
+            * 2020-11: 4 hours 36 minutes
+
+        and returns a dictionary of this form::
+
+            {
+                (2020, 10): 492,
+                (2020, 11): 276,
+            }
+
+        >>> SourcehutSynchroniser.parse_comment(
+        ... '''[tracktime] ~sumner has spent 48 minutes on this task.
+        ...  * 2020-11: 48 minutes''')
+        {(2020, 11): 48}
+        >>> SourcehutSynchroniser.parse_comment(
+        ... '''[tracktime] ~sumner has spent 12 hours 48 minutes on this task.
+        ...  * 2020-10: 8 hours 12 minutes
+        ...  * 2020-11: 4 hours 36 minutes''')
+        {(2020, 10): 492, (2020, 11): 276}
+        """
+        lines = text.split("\n")
+        if not SourcehutSynchroniser.firstline_re.match(lines[0]):
+            return None
+        month_data = {}
+        for month_line in lines[1:]:
+            match = SourcehutSynchroniser.month_line_re.match(month_line)
+            if match:
+                vals = (int(x) if x is not None else 0 for x in match.groups())
+                year, month, hours, minutes = vals
+                month_data[(year, month)] = hours * 60 + minutes
+
+        return month_data
+
+    @staticmethod
+    def generate_comment(month_data: Dict[Tuple[int, int], int], username: str) -> str:
+        """
+        Takes data of the form::
+
+            {
+                (2020, 10): 492,
+                (2020, 11): 276,
+            }
+            [tracktime] ~sumner has spent 12 hours 48 minutes on this task.
+            * 2020-10: 8 hours 12 minutes
+            * 2020-11: 4 hours 36 minutes
+
+        and returns a string of this form::
+
+            [tracktime] ~sumner has spent 12 hours 48 minutes on this task.
+            * 2020-10: 8 hours 12 minutes
+            * 2020-11: 4 hours 36 minutes
+        """
+        total_duration_str = SourcehutSynchroniser.format_duration(
+            sum(month_data.values())
+        )
+        lines = [f"[tracktime] {username} has spent {total_duration_str} on this task."]
+        for ((year, month), duration) in sorted(month_data.items()):
+            duration_str = SourcehutSynchroniser.format_duration(duration)
+            lines.append(f" * {year}-{month}: {duration_str}")
+        return "\n".join(lines)
+
+    def sync(
+        self,
+        aggregated_time: AggregatedTime,
+        synced_time: AggregatedTime,
+        year_month: Tuple[int, int],
+    ) -> AggregatedTime:
         """Synchronize time entries with Sourcehut."""
         # Go through all of the aggredated time and determine how much time
         # needs to be synchronised over to GitLab for each taskid.
@@ -101,24 +183,34 @@ class SourcehutSynchroniser(ExternalSynchroniser):
                 )
                 comment_id = None
                 tracktime_prefix = f"[tracktime] {self.username}"
-                duration_str = self.format_duration(duration)
-                new_text = f"{tracktime_prefix} has spent {duration_str} on this task"
 
                 for result in results:
                     if "comment" in result.get("event_type", []):
                         comment = result.get("comment", {})
                         comment_text = comment.get("text", "")
 
-                        # We don't have to do anything if the comment_text is already
+                        comment_month_data = SourcehutSynchroniser.parse_comment(
+                            comment_text
+                        )
+                        if comment_month_data is None:
+                            continue
+
+                        # We don't have to do anything if the duration is already
                         # correct.
-                        if comment_text == new_text:
+                        if duration == comment_month_data.get(year_month):
                             with synced_time_lock:
                                 synced_time[task_tuple] = duration
                             return
 
+                        # This is the tracktime comment.
                         if comment_text.startswith(tracktime_prefix):
                             comment_id = comment.get("id")
                             break
+
+                month_data = {**(comment_month_data or {}), year_month: duration}
+                new_text = SourcehutSynchroniser.generate_comment(
+                    month_data, self.username
+                )
 
                 if comment_id:
                     edit_url = f"{ticket_uri}/comments/{comment_id}"
@@ -135,8 +227,12 @@ class SourcehutSynchroniser(ExternalSynchroniser):
                         requester=put,
                     )
 
+                duration_str = self.format_duration(duration)
                 print("[SUCCESS]" if result.status_code == 200 else "[FAILED]", end=" ")
-                print(f"setting time spent on {project}#{taskid} to {duration_str}.")
+                print(
+                    f"setting time spent on {project}#{taskid} in "
+                    f"{year_month[0]}-{year_month[1]} to {duration_str}."
+                )
 
                 if result.status_code == 200:
                     with synced_time_lock:

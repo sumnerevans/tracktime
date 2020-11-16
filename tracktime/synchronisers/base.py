@@ -30,16 +30,21 @@ class ExternalSynchroniser:
             'ExternalSynchroniser requires "get_name" to be implemented.'
         )
 
-    def sync(self, aggregated_time, synced_time):
+    def sync(
+        self,
+        aggregated_time: AggregatedTime,
+        synced_time: AggregatedTime,
+        year_month: Tuple[int, int],
+    ) -> AggregatedTime:
         """
         Synchronise time over to the external service. All classes that inherit
         from ``ExternalSynchroniser`` must implement this function.
 
         Arguments:
-        :param aggregated_time: a dictionary of (type, project, taskid) to
-                                duration
-        :param synced_time:     a dictionary of (type, project, taskid) to
-                                duration
+        :param aggregated_time: a dictionary of (type, project, taskid) to duration
+        :param synced_time: a dictionary of (type, project, taskid) to duration
+        :param year_month: a tuple of the form (year, month) representing the year and
+            month being synced.
 
         Returns:
         a dictionary of (type, project, taskid) to duration
@@ -201,7 +206,13 @@ class Synchroniser:
 
         for synchroniser in self.get_synchronisers():
             print(f"Syncronizing with {synchroniser.get_name()}.")
-            synced_time.update(synchroniser.sync(aggregated_time, synced_time))
+            synced_time.update(
+                synchroniser.sync(
+                    aggregated_time,
+                    synced_time,
+                    (year, month),
+                )
+            )
 
         # Update the .synced file with the updated amounts.
         with open(synced_file_path, "w+", newline="") as f:

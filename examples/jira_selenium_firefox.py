@@ -6,13 +6,13 @@ import pickle
 import re
 import time
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 
-from tracktime.synchronisers.base import ExternalSynchroniser
+from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
 
 
 class JiraSynchroniser(ExternalSynchroniser):
@@ -72,8 +72,13 @@ class JiraSynchroniser(ExternalSynchroniser):
     def get_name(self):
         return "JIRA"
 
-    def sync(self, aggregated_time, synced_time):
-        return {}
+    def sync(
+        self,
+        aggregated_time: AggregatedTime,
+        synced_time: AggregatedTime,
+        year_month: Tuple[int, int],
+    ) -> AggregatedTime:
+        return synced_time
 
     def get_formatted_task_id(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:

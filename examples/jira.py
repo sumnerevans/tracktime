@@ -1,7 +1,7 @@
 import requests
-from typing import Optional
+from typing import Optional, Tuple
 
-from tracktime.synchronisers.base import ExternalSynchroniser
+from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
 
 
 class JiraSynchroniser(ExternalSynchroniser):
@@ -18,8 +18,13 @@ class JiraSynchroniser(ExternalSynchroniser):
     def get_name(self):
         return "JIRA"
 
-    def sync(self, aggregated_time, synced_time):
-        return {}
+    def sync(
+        self,
+        aggregated_time: AggregatedTime,
+        synced_time: AggregatedTime,
+        year_month: Tuple[int, int],
+    ) -> AggregatedTime:
+        return synced_time
 
     def get_formatted_task_id(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:

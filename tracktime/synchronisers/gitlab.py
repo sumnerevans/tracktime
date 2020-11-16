@@ -9,7 +9,7 @@ from urllib import parse
 
 from requests import get, post
 
-from tracktime.synchronisers.base import ExternalSynchroniser
+from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
 
 
 class GitLabSynchroniser(ExternalSynchroniser):
@@ -30,7 +30,12 @@ class GitLabSynchroniser(ExternalSynchroniser):
     def get_name(self):
         return "GitLab"
 
-    def sync(self, aggregated_time, synced_time):
+    def sync(
+        self,
+        aggregated_time: AggregatedTime,
+        synced_time: AggregatedTime,
+        year_month: Tuple[int, int],
+    ) -> AggregatedTime:
         """Synchronize time entries with GitLab."""
         # Go through all of the aggredated time and determine how much time
         # needs to be synchronised over to GitLab for each taskid.
