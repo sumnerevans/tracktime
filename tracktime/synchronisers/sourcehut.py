@@ -183,6 +183,7 @@ class SourcehutSynchroniser(ExternalSynchroniser):
                 )
                 comment_id = None
                 tracktime_prefix = f"[tracktime] {self.username}"
+                comment_month_data = None
 
                 for result in results:
                     if "comment" in result.get("event_type", []):

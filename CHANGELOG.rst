@@ -1,3 +1,9 @@
+v0.9.18
+=======
+
+* Critical bug fix for sourcehut synchroniser preventing adding a new comment
+  with the time data.
+
 v0.9.17
 =======
 
