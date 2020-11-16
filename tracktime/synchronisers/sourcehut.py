@@ -189,11 +189,9 @@ class SourcehutSynchroniser(ExternalSynchroniser):
                         comment = result.get("comment", {})
                         comment_text = comment.get("text", "")
 
-                        comment_month_data = SourcehutSynchroniser.parse_comment(
-                            comment_text
+                        comment_month_data = (
+                            SourcehutSynchroniser.parse_comment(comment_text) or {}
                         )
-                        if comment_month_data is None:
-                            continue
 
                         # We don't have to do anything if the duration is already
                         # correct.
