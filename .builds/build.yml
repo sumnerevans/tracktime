@@ -33,6 +33,10 @@ tasks:
   - build: |
       poetry build
 
-  - deploy: |
+  - test-deploy: |
       poetry publish --dry-run
-      .builds/bin/run_if_tagged_with_version "poetry publish"
+
+  - deploy: |
+      .builds/bin/tagged_with_version || echo "Skipping deploy since not tagged with version"
+      .builds/bin/tagged_with_version || complete-build
+      poetry publish
