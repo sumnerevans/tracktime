@@ -1,20 +1,14 @@
 # Contributing
 
-Contributions are welcome! Please
-[submit a ticket](https://todo.sr.ht/~sumner/tracktime) to the ticket
-tracker, submit a patch to the
-[~sumner/tracktime-devel](https://lists.sr.ht/~sumner/tracktime-devel)
-mailing list, or discuss the project in general on the
-[~sumner/tracktime-discuss](https://lists.sr.ht/~sumner/tracktime-discuss)
-mailing list.
+Contributions are welcome! Please start discussions and send patches to the
+[~sumner/public-inbox][public-inbox] mailing list. Confirmed bugs and approved
+feature requests can be added to the [tracktime ticket tracker][tracker].
 
 ## Issue Reporting
 
-You can report issues or propose features in the
-[ticket tracker](https://todo.sr.ht/~sumner/tracktime). For longer-form
-discourse, please use either
-[~sumner/tracktime-devel](https://lists.sr.ht/~sumner/tracktime-devel) or
-[~sumner/tracktime-discuss](https://lists.sr.ht/~sumner/tracktime-discuss).
+Please report any bugs and suggest features by sending an email to the
+[~sumner/public-inbox][public-inbox] mailing list. Confirmed bugs and approved
+feature requests can be added to the [tracktime ticket racker][tracker].
 
 *Please note that as of right now, I (Sumner) am basically the only contributor
 to this project, so my response time to your issue may be anywhere from instant
@@ -26,9 +20,9 @@ to reproduce.
 ## Code
 
 If you want to propose a code change, please submit a patch to the
-[~sumner/tracktime-devel](https://lists.sr.ht/~sumner/tracktime-devel)
-mailing list. If it is good, I will merge it in. For help sending patches to
-this list, please consult [git-send-email.io](https://git-send-email.io).
+[~sumner/public-inbox][public-inbox] mailing list. If it is good, I will merge
+it in. For help sending patches to this list, please consult
+[git-send-email.io](https://git-send-email.io).
 
 ### Installing Development Dependencies
 
@@ -91,3 +85,6 @@ same checks that the lint job runs yourself with the following commands:
     $ mypy tracktime
     $ black --check .
     $ .builds/bin/custom_style_check.py
+
+[public-inbox]: https://lists.sr.ht/~sumner/public-inbox
+[tracker]: https://todo.sr.ht/~sumner/tracktime
