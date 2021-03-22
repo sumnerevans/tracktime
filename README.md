@@ -1,6 +1,6 @@
 # tracktime
 
-[![builds.sr.ht status](https://builds.sr.ht/~sumner.svg?search=%7Esumner%2Ftracktime+tags%3Abuild.yml)](https://builds.sr.ht/~sumner?search=%7Esumner%2Ftracktime+tags%3Abuild.yml)
+[![builds.sr.ht status](https://builds.sr.ht/~sumner/tracktime/commits/build.yml.svg)](https://builds.sr.ht/~sumner/tracktime/commits/build.yml)
 [![PyPi Version](https://img.shields.io/pypi/v/tracktime?color=4DC71F&logo=python&logoColor=fff)](https://pypi.org/project/tracktime/)
 [![AUR Version](https://img.shields.io/aur/version/tracktime?logo=linux&logoColor=fff)](https://aur.archlinux.org/packages/tracktime/)
 [![LiberaPay Donation Status](https://img.shields.io/liberapay/receives/sumner.svg?logo=liberapay)](https://liberapay.com/sumner/donate)
