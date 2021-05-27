@@ -22,10 +22,9 @@ class GitLabSynchroniser(ExternalSynchroniser):
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=50)
 
     def _make_request(self, rel_path, requester=post, params={}):
-        params = parse.urlencode({"private_token": self.api_key, **params})
         rel_path = rel_path[1:] if rel_path.startswith("/") else rel_path
         path = parse.urljoin(self.api_root, rel_path)
-        return requester(path, params)
+        return requester(path, {"private_token": self.api_key, **params})
 
     def get_name(self):
         return "GitLab"
