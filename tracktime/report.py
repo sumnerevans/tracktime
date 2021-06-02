@@ -45,9 +45,6 @@ class ReportTimeStatistics:
     average_time_per_week_worked: float
 
     def __init__(self, report):
-        def mean(numbers):
-            return sum(numbers) / len(numbers)
-
         # Only considers days where more than the day_worked_min_threshold for
         # minutes worked was surpassed. This avoids counting days where you work
         # for a few minutes. The same thing for weeks, except multiplied by 7.
@@ -61,7 +58,7 @@ class ReportTimeStatistics:
 
         self.days_worked = len(days_worked)
         self.weekdays_worked = len(
-            [1 for d, m in days_worked.items() if d.weekday() < 5]
+            [1 for d, _ in days_worked.items() if d.weekday() < 5]
         )
         self.average_time_per_day_worked = (
             0 if self.days_worked == 0 else (total_minutes_worked / self.days_worked)
@@ -78,9 +75,13 @@ class ReportTimeStatistics:
             week_stats[d.isocalendar()[1]] += m
 
         self.weeks_worked = len(days_worked) / 5
-        self.average_time_per_week_worked = (
-            0 if self.weeks_worked == 0 else (total_minutes_worked / self.weeks_worked)
-        )
+
+        if self.weekdays_worked == 0:
+            self.average_time_per_week_worked = 0
+        elif self.weeks_worked < 1:
+            self.average_time_per_week_worked = total_minutes_worked
+        else:
+            self.average_time_per_week_worked = total_minutes_worked / self.weeks_worked
 
     def _format_hours(self, minutes: float) -> str:
         minutes = round(minutes)
