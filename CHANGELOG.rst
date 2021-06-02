@@ -1,3 +1,15 @@
+v0.9.19
+=======
+
+* Fixed bug with average time per week worked calculation when weeks worked < 1.
+* Fixed bug with how the GitLab synchroniser was passing arguments to
+  ``requests``.
+
+* INFRASTRUCTURE
+
+  * Convert README to Markdown
+  * Convert ``build.yaml`` to use ``complete-build``
+
 v0.9.18
 =======
 
