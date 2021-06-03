@@ -98,18 +98,21 @@ class GitHubSynchroniser(ExternalSynchroniser):
             task_id = task_id[1:]
 
         if not description_cache.get((project, task_id)):
+            task_types = ("issue", "pullRequest", "discussion")
+            task_type_query_parts = [
+                f"{t}(number: {task_id}) {{ title }}" for t in task_types
+            ]
             query = f"""
             repository(owner: "{owner}", name: "{name}") {{
-                issue(number: {task_id}) {{ title }}
-                pullRequest(number: {task_id}) {{ title }}
+                {"".join(task_type_query_parts)}
             }}
             """
             repository = get_path(self.gql_query(query), "data", "repository")
-            if i := repository.get("issue"):
-                description = i.get("title")
-            elif p := repository.get("pullRequest"):
-                description = p.get("title")
-            else:
+            description = None
+            for t in task_types:
+                if value := repository.get(t):
+                    description = value.get("title")
+            if description is None:
                 return None
 
             description_cache[(project, task_id)] = description
