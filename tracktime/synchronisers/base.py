@@ -122,6 +122,7 @@ class Synchroniser:
     def get_synchronisers(self):
         parent = Path(__file__).parent
         synchronisers = {
+            "github": parent.joinpath("github.py"),
             "gitlab": parent.joinpath("gitlab.py"),
             "sourcehut": parent.joinpath("sourcehut.py"),
         }

@@ -49,6 +49,13 @@ def get_config(filename=None) -> Dict[str, Any]:
 
     # If the API Key is a shell command, execute it.
     # TODO (tracktime#15) move this to synchroniser code
+    github = cached_config.get("github")
+    if github:
+        access_token = github.get("access_token")
+        if access_token and access_token.endswith("|"):
+            cached_config["github"]["access_token"] = (
+                check_output(access_token[:-1].split()).decode().strip()
+            )
     gitlab = cached_config.get("gitlab")
     if gitlab:
         api_key = gitlab.get("api_key")
