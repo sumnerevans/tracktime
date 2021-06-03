@@ -46,7 +46,7 @@ class GitHubSynchroniser(ExternalSynchroniser):
     def get_formatted_task_id(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
             return None
-        return f"#{entry.taskid}"
+        return entry.taskid if entry.taskid.startswith("#") else f"#{entry.taskid}"
 
     def get_task_link(self, entry: TimeEntry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:
