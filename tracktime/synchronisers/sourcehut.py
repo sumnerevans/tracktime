@@ -148,6 +148,9 @@ class SourcehutSynchroniser(ExternalSynchroniser):
         year_month: Tuple[int, int],
     ) -> AggregatedTime:
         """Synchronize time entries with Sourcehut."""
+        if not self.username:
+            return synced_time
+
         # Go through all of the aggredated time and determine how much time
         # needs to be synchronised over to GitLab for each taskid.
         synced_time_lock = threading.Lock()
