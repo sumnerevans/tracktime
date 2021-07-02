@@ -15,6 +15,7 @@ def test_default_config():
         },
         "customer_rates": {},
         "project_rates": {},
+        "report_statistics": True,
         "sync_time": False,
         "tableformat": "simple",
         "external_synchroniser_files": {},

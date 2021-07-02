@@ -28,6 +28,7 @@ def get_config(filename=None) -> Dict[str, Any]:
             "api_root": "https://gitlab.com/api/v4/",
         },
         "project_rates": {},
+        "report_statistics": True,
         "sync_time": False,
         "tableformat": "simple",
         "external_synchroniser_files": {},

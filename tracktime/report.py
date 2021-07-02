@@ -202,6 +202,11 @@ class Report:
         self.stats = ReportTimeStatistics(self)
 
     def customer_project_str(self, customer, project, html=False):
+        if self.customer:
+            return project or ("<no project>" if not html else "<i>no project</i>")
+        if self.project:
+            return customer or ("<no customer>" if not html else "<i>no customer</i>")
+
         if not customer and not project:
             return (
                 "<no project or customer>"
@@ -285,21 +290,22 @@ class Report:
         lines.append(f"**Grand Total:** ${self.round(self.grand_total)}")
         lines.append("")
 
-        lines += [
-            "**Statistics:**",
-            "",
-        ]
-        statistics = self.stats.statistics_dictionary
-        max_desc_length = max(map(len, statistics.keys()))
-        for desc, val in statistics.items():
-            desc = desc + ":"
-            lines.append(f"    | {desc.ljust(max_desc_length+2)}{val}")
-        lines.append("")
-        lines.append(
-            "* a week is any set of five days (not necessarily within the same "
-            "calendar week)"
-        )
-        lines.append("")
+        if self.config["report_statistics"]:
+            lines += [
+                "**Statistics:**",
+                "",
+            ]
+            statistics = self.stats.statistics_dictionary
+            max_desc_length = max(map(len, statistics.keys()))
+            for desc, val in statistics.items():
+                desc = desc + ":"
+                lines.append(f"    | {desc.ljust(max_desc_length+2)}{val}")
+            lines.append("")
+            lines.append(
+                "* a week is any set of five days (not necessarily within the same "
+                "calendar week)"
+            )
+            lines.append("")
 
         # Include the report table
         def ellipsize(string, length=40):
@@ -467,22 +473,25 @@ class Report:
             </tr>
             """
 
-        statistics_html = """
-        <h3>Statistics</h3>
-        <table class="statistics-table">
-        """
-        for desc, val in self.stats.statistics_dictionary.items():
-            statistics_html += f"""
-            <tr>
-                <td><b>{desc}:</b></td>
-                <td>{val}</td>
-            </tr>
+        if self.config["report_statistics"]:
+            statistics_html = """
+            <h3>Statistics</h3>
+            <table class="statistics-table">
             """
-        statistics_html += "</table>"
-        statistics_html += """<i>
-            * a week is any set of five days (not necessarily within the same
-            calendar week)
-        </i>"""
+            for desc, val in self.stats.statistics_dictionary.items():
+                statistics_html += f"""
+                <tr>
+                    <td><b>{desc}:</b></td>
+                    <td>{val}</td>
+                </tr>
+                """
+            statistics_html += "</table>"
+            statistics_html += """<i>
+                * a week is any set of five days (not necessarily within the same
+                calendar week)
+            </i>"""
+        else:
+            statistics_html = ""
 
         data = [
             (
