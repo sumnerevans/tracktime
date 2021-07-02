@@ -1,3 +1,11 @@
+v0.9.20
+=======
+
+* Add GitHub Synchroniser for making rich reports for GitHub issues/PRs
+* Add option ``report_statistics`` to config to enable/disable statistics
+  reporting.
+* Removed ``docutils`` from project dependencies since it is a dev dependency.
+
 v0.9.19
 =======
 
