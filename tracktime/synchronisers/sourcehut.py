@@ -95,6 +95,10 @@ class SourcehutSynchroniser(ExternalSynchroniser):
         ...  * 2020-11: 48 minutes''')
         {(2020, 11): 48}
         >>> SourcehutSynchroniser.parse_comment(
+        ... '''[tracktime] ~sumner has spent 48 minutes on this task.
+        ...  * 2020-1: 49 minutes''')
+        {(2020, 1): 49}
+        >>> SourcehutSynchroniser.parse_comment(
         ... '''[tracktime] ~sumner has spent 12 hours 48 minutes on this task.
         ...  * 2020-10: 8 hours 12 minutes
         ...  * 2020-11: 4 hours 36 minutes''')
@@ -138,7 +142,7 @@ class SourcehutSynchroniser(ExternalSynchroniser):
         lines = [f"[tracktime] {username} has spent {total_duration_str} on this task."]
         for ((year, month), duration) in sorted(month_data.items()):
             duration_str = SourcehutSynchroniser.format_duration(duration)
-            lines.append(f" * {year}-{month}: {duration_str}")
+            lines.append(f" * {year}-{month:02}: {duration_str}")
         return "\n".join(lines)
 
     def sync(
@@ -233,7 +237,7 @@ class SourcehutSynchroniser(ExternalSynchroniser):
                 print("[SUCCESS]" if result.status_code == 200 else "[FAILED]", end=" ")
                 print(
                     f"setting time spent on {project}#{taskid} in "
-                    f"{year_month[0]}-{year_month[1]} to {duration_str}."
+                    f"{year_month[0]}-{year_month[1]:02} to {duration_str}."
                 )
 
                 if result.status_code == 200:
@@ -303,14 +307,7 @@ class SourcehutSynchroniser(ExternalSynchroniser):
             ticketid = entry.taskid.strip("#")
             uri = f"/user/{username}/trackers/{tracker}/tickets/{ticketid}"
             try:
-                description = (
-                    self._make_request(
-                        uri,
-                        requester=get,
-                    )
-                    .json()
-                    .get("title")
-                )
+                description = self._make_request(uri, requester=get).json().get("title")
             except Exception:
                 return None
 
