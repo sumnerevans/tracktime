@@ -74,7 +74,7 @@ class ReportTimeStatistics:
         for d, m in report.day_stats.items():
             week_stats[d.isocalendar()[1]] += m
 
-        self.weeks_worked = len(days_worked) / 5
+        self.weeks_worked = self.weekdays_worked / 5
 
         if self.weekdays_worked == 0:
             self.average_time_per_week_worked = 0
@@ -302,7 +302,7 @@ class Report:
                 lines.append(f"    | {desc.ljust(max_desc_length+2)}{val}")
             lines.append("")
             lines.append(
-                "* a week is any set of five days (not necessarily within the same "
+                "* a week is any set of five weekdays (not necessarily within the same "
                 "calendar week)"
             )
             lines.append("")
@@ -487,7 +487,7 @@ class Report:
                 """
             statistics_html += "</table>"
             statistics_html += """<i>
-                * a week is any set of five days (not necessarily within the same
+                * a week is any set of five weekdays (not necessarily within the same
                 calendar week)
             </i>"""
         else:
