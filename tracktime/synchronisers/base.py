@@ -124,6 +124,7 @@ class Synchroniser:
         synchronisers = {
             "github": parent.joinpath("github.py"),
             "gitlab": parent.joinpath("gitlab.py"),
+            "linear": parent.joinpath("linear.py"),
             "sourcehut": parent.joinpath("sourcehut.py"),
         }
         synchronisers.update(self.config["external_synchroniser_files"])
