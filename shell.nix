@@ -1,9 +1,9 @@
 { pkgs ? import <nixpkgs> {} }: with pkgs;
 pkgs.mkShell {
-  propagatedBuildInputs = with python38Packages; [
+  propagatedBuildInputs = with python3Packages; [
     chromedriver
     poetry
-    python38
+    python3
     rnix-lsp
     selenium
     wkhtmltopdf
