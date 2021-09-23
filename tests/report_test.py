@@ -109,7 +109,7 @@ def test_report(dummy_config):
         "    Weeks* worked:                   0.0",
         "    Average time per week* worked:   0:00",
         "",
-        "* a week is any set of five days (not necessarily within the same calendar week)",  # noqa: E501
+        "* a week is any set of five weekdays (not necessarily within the same calendar week)",  # noqa: E501
         "",
         "Detailed Time Report:",
         "",
@@ -171,7 +171,7 @@ def test_report_with_customer(dummy_config):
         "    Weeks* worked:                   0.0",
         "    Average time per week* worked:   0:00",
         "",
-        "* a week is any set of five days (not necessarily within the same calendar week)",  # noqa: E501
+        "* a week is any set of five weekdays (not necessarily within the same calendar week)",  # noqa: E501
         "",
         "Detailed Time Report:",
         "",
