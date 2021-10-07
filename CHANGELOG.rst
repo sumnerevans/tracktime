@@ -1,3 +1,17 @@
+v0.10.0
+=======
+
+* Add Linear Synchroniser for making rich reports for Linear issues.
+* Statistics now define a week as any set of five weekdays worked rather than
+  any set of five days.
+* Fixed bug with Sourcehut synchroniser where the month not correctly
+  zero-padded.
+* Internal changes:
+
+  * Use ``ABC`` and ``abstractmethod`` for the ``ExternalSynchroniser`` class to
+    make it easier to to know what needs to be implemented on a new
+    synchroniser.
+
 v0.9.20
 =======
 
