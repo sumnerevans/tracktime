@@ -97,6 +97,10 @@ class SourcehutSynchroniser(ExternalSynchroniser):
         ...  * 2020-1: 49 minutes''')
         {(2020, 1): 49}
         >>> SourcehutSynchroniser.parse_comment(
+        ... '''[tracktime] ~sumner has spent 48 minutes on this task.
+        ...  * 2020-01: 49 minutes''')
+        {(2020, 1): 49}
+        >>> SourcehutSynchroniser.parse_comment(
         ... '''[tracktime] ~sumner has spent 12 hours 48 minutes on this task.
         ...  * 2020-10: 8 hours 12 minutes
         ...  * 2020-11: 4 hours 36 minutes''')
