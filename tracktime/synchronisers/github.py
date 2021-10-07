@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Tuple
 import requests
 
 from tracktime.time_entry import TimeEntry
-from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
+from tracktime.synchronisers.base import ExternalSynchroniser
 
 
 def get_path(obj: Dict[str, Any], *path: str) -> Any:
@@ -17,6 +17,7 @@ def get_path(obj: Dict[str, Any], *path: str) -> Any:
 
 
 class GitHubSynchroniser(ExternalSynchroniser):
+    name = "GitHub"
     types = ("gh", "github")
 
     def gql_query(self, query: str) -> Dict[str, Any]:
@@ -31,17 +32,6 @@ class GitHubSynchroniser(ExternalSynchroniser):
         github_config = config.get("github", {})
         self.access_token = github_config.get("access_token")
         self.username = github_config.get("username")
-
-    def get_name(self):
-        return "GitHub"
-
-    def sync(
-        self,
-        aggregated_time: AggregatedTime,
-        synced_time: AggregatedTime,
-        year_month: Tuple[int, int],
-    ) -> AggregatedTime:
-        return synced_time
 
     def get_formatted_task_id(self, entry) -> Optional[str]:
         if entry.type not in self.types or not entry.taskid:

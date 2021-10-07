@@ -16,6 +16,7 @@ from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
 
 
 class SourcehutSynchroniser(ExternalSynchroniser):
+    name = "Sourcehut"
     types = ("srht", "sr.ht", "sh", "sourcehut")
 
     def __init__(self, config):
@@ -65,9 +66,6 @@ class SourcehutSynchroniser(ExternalSynchroniser):
             if hours > 0
             else ""
         ) + f"{minutes} {SourcehutSynchroniser.pluralize('minute', minutes)}"
-
-    def get_name(self):
-        return "Sourcehut"
 
     firstline_re = re.compile(
         r"\[tracktime\] ~\w+ has spent (\d+ hours )?\d+ minutes on this task.?"

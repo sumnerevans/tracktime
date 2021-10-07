@@ -13,6 +13,7 @@ from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
 
 
 class GitLabSynchroniser(ExternalSynchroniser):
+    name = "GitLab"
     types = ("gl", "gitlab")
     task_types = {"#": "issue", "!": "merge_request"}
 
@@ -25,9 +26,6 @@ class GitLabSynchroniser(ExternalSynchroniser):
         rel_path = rel_path[1:] if rel_path.startswith("/") else rel_path
         path = parse.urljoin(self.api_root, rel_path)
         return requester(path, {"private_token": self.api_key, **params})
-
-    def get_name(self):
-        return "GitLab"
 
     def sync(
         self,

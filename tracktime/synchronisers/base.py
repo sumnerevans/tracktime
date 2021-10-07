@@ -2,7 +2,7 @@
 import csv
 import importlib.util
 import sys
-
+from abc import ABC, ABCMeta, abstractmethod
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
@@ -14,21 +14,20 @@ from tracktime import EntryList
 AggregatedTime = DefaultDict[Tuple[str, str, str], int]
 
 
-class ExternalSynchroniser:
+class ExternalSynchroniser(ABC):
     """
     Implementors of this class must handle parallelism and caching themselves.
     """
 
-    def get_name(self):
+    @property
+    @abstractmethod
+    def name(self):
         """
         Returns the human name for the external synchroniser.
 
         Returns:
         a string of the name of the external synchroniser.
         """
-        raise NotImplementedError(
-            'ExternalSynchroniser requires "get_name" to be implemented.'
-        )
 
     def sync(
         self,
@@ -49,9 +48,7 @@ class ExternalSynchroniser:
         Returns:
         a dictionary of (type, project, taskid) to duration
         """
-        raise NotImplementedError(
-            'ExternalSynchroniser requires "sync" to be implemented.'
-        )
+        return synced_time
 
     def get_formatted_task_id(self, entry) -> Optional[str]:
         """
@@ -140,7 +137,7 @@ class Synchroniser:
                 for element in filter(lambda x: not x.startswith("__"), dir(module)):
                     try:
                         item = getattr(module, element)
-                        if not type(item) == type or item == ExternalSynchroniser:
+                        if type(item) != ABCMeta or item == ExternalSynchroniser:
                             continue
                         if isinstance(item(self.config), ExternalSynchroniser):
                             synchroniser = item(self.config)
@@ -207,7 +204,7 @@ class Synchroniser:
                     synced_time[task_tuple] = int(row["synced"])
 
         for synchroniser in self.get_synchronisers():
-            print(f"Syncronizing with {synchroniser.get_name()}.")
+            print(f"Syncronizing with {synchroniser.name}.")
             synced_time.update(
                 synchroniser.sync(
                     aggregated_time,
