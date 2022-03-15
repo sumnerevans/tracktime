@@ -1,0 +1,58 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: trailing-whitespace
+        exclude_types: [markdown]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  # poetry check
+  # TODO replace with upstream once poetry has direct pre-commit support
+  - repo: https://github.com/medigateio/poetry-pre-commit
+    rev: 1.1.12-v2
+    hooks:
+      - id: poetry-check
+
+  # black
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        files: ^(tracktime|tests|examples)/.*\.py$
+        entry: black --check
+        language: system
+
+  # isort
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        files: ^(tracktime|tests|examples)/.*\.py$
+
+  # flake8
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        files: ^(tracktime|tests|examples)/.*\.py$
+
+  # mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.931
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-termcolor==1.1.3
+          - types-pyyaml==6.0.4
+          - types-requests==2.27.12
+          - types-tabulate==0.8.5
+
+  # custom style checks
+  - repo: local
+    hooks:
+      - id: custom-style-check
+        name: custom style check
+        entry: ./cicd/custom_style_check.py
+        language: system

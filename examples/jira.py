@@ -1,5 +1,6 @@
-import requests
 from typing import Optional, Tuple
+
+import requests
 
 from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
 

@@ -1,11 +1,10 @@
 import csv
 import os
-
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Union
 
 from tracktime.time_entry import TimeEntry
-from datetime import timedelta, date, datetime
 from tracktime.time_parser import parse_time
 
 

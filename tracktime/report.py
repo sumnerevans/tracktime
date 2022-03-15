@@ -1,9 +1,8 @@
 import calendar
-
 from collections import defaultdict
 from datetime import date, timedelta
 from pathlib import Path
-from typing import DefaultDict, Tuple, Dict
+from typing import DefaultDict, Dict, Tuple
 
 import pdfkit  # type: ignore
 import tabulate

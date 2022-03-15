@@ -1,7 +1,7 @@
 import os
+import subprocess
 import tempfile
 from datetime import date, timedelta
-import subprocess
 
 import pytest
 

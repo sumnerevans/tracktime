@@ -9,9 +9,9 @@ import os
 import pickle
 import re
 from pathlib import Path
+from typing import Dict, Optional, Tuple
 
 from selenium import webdriver
-from typing import Dict, Optional, Tuple
 
 from tracktime.synchronisers.base import AggregatedTime, ExternalSynchroniser
 

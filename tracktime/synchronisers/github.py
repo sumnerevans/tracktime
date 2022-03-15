@@ -5,8 +5,8 @@ from typing import Any, Dict, Optional, Tuple
 
 import requests
 
-from tracktime.time_entry import TimeEntry
 from tracktime.synchronisers.base import ExternalSynchroniser
+from tracktime.time_entry import TimeEntry
 
 
 def get_path(obj: Dict[str, Any], *path: str) -> Any:

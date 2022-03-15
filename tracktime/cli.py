@@ -1,7 +1,6 @@
+import calendar
 import os
 import sys
-import calendar
-
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from subprocess import call

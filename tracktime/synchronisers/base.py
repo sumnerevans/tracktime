@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from subprocess import PIPE, run
-from typing import Optional, DefaultDict, Tuple
+from typing import DefaultDict, Optional, Tuple
 
 from tracktime import EntryList
 
