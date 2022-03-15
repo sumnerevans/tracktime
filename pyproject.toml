@@ -5,7 +5,7 @@ description = "Time tracking library with command line interface."
 authors = ["Sumner Evans <inquiries@sumnerevans.com>"]
 license = "GPL-3.0-or-later"
 readme = "README.md"
-repository = "https://git.sr.ht/~sumner/tracktime"
+repository = "https://github.com/sumnerevans/tracktime"
 keywords = ["time", "tracking"]
 classifiers = [
     #   3 - Alpha
@@ -22,7 +22,7 @@ classifiers = [
 tt = "tracktime.__main__:main"
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://todo.sr.ht/~sumner/tracktime"
+"Bug Tracker" = "https://github.com/sumnerevans/tracktime/issues"
 
 [tool.poetry.dependencies]
 python = "^3.7"
