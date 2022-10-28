@@ -72,8 +72,8 @@ with open(Path("pyproject.toml")) as f:
     else:  # nobreak
         raise AssertionError("No version in pyproject.toml")
 
-with open(Path("CHANGELOG.rst")) as f:
-    assert f.readline().strip() == f"v{version}", "Version mismatch: CHANGELOG"
+with open(Path("CHANGELOG.md")) as f:
+    assert f.readline().strip() == f"# v{version}", "Version mismatch: CHANGELOG"
 
 
 sys.exit(0 if valid else 1)
