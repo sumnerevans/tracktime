@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	arg "github.com/alexflint/go-arg"
 	"github.com/rs/zerolog/log"
 
 	"github.com/sumnerevans/tracktime/commands"
-	"github.com/sumnerevans/tracktime/config"
 	"github.com/sumnerevans/tracktime/lib"
 )
 
@@ -15,7 +15,7 @@ type stop struct {
 	Stop string `arg:"-s,--stop" help:"the time at which to stop the current time entry" default:"now"`
 }
 
-func (s *stop) Run(config *config.Config) error {
+func (s *stop) Run(config *lib.Config) error {
 	return nil
 }
 
@@ -25,17 +25,7 @@ type resume struct {
 	Start       string `arg:"-s,--start" help:"the start time of the resumed time entry" default:"now"`
 }
 
-func (s *resume) Run(config *config.Config) error {
-	return nil
-}
-
-type list struct {
-	Date     string `arg:"-d,--date" help:"the date to list time entries for" default:"today"`
-	Customer string `arg:"-c,--customer" help:"list only time entries for the given customer"`
-}
-
-func (s *list) Run(config *config.Config) error {
-	log.Trace().Str("command", "list").Msg("run")
+func (s *resume) Run(config *lib.Config) error {
 	return nil
 }
 
@@ -43,7 +33,7 @@ type edit struct {
 	Date string `arg:"-d,--date" help:"the date to list time entries for" default:"today"`
 }
 
-func (s *edit) Run(config *config.Config) error {
+func (s *edit) Run(config *lib.Config) error {
 	return nil
 }
 
@@ -51,7 +41,7 @@ type sync struct {
 	Month string `arg:"positional" help:"the month to synchronize time entries for (accepted formats: 01, 1, Jan, January, 2019-01)" default:"this month"`
 }
 
-func (s *sync) Run(config *config.Config) error {
+func (s *sync) Run(config *lib.Config) error {
 	return nil
 }
 
@@ -110,19 +100,19 @@ type report struct {
 	OutputFile string `arg:"-o,--outfile" help:"specify the filename to export the report to (supports PDF, HTML, and RST files, if set to '-' then the report is printed to stdout)" default:"-"`
 }
 
-func (s *report) Run(config *config.Config) error {
+func (s *report) Run(config *lib.Config) error {
 	return nil
 }
 
 type args struct {
-	Start      *commands.StartCommand `arg:"subcommand" help:"start a new time entry for today"`
-	Stop       *stop                  `arg:"subcommand" help:"stop the current time entry"`
-	Resume     *resume                `arg:"subcommand" help:"resume a time entry from today"`
-	List       *list                  `arg:"subcommand" help:"list the time entries for a date"`
-	Edit       *edit                  `arg:"subcommand" help:"edit time entries for a date"`
-	Sync       *sync                  `arg:"subcommand" help:"synchronize time spent on tasks for a month to external services"`
-	Report     *report                `arg:"subcommand" help:"output a report about time spent in a time range"`
-	ConfigFile lib.Filename           `arg:"--config" help:"the configuration file to use" default:"$HOME/.config/tracktime/tracktimerc"`
+	Start      *commands.Start `arg:"subcommand" help:"start a new time entry for today"`
+	Stop       *stop           `arg:"subcommand" help:"stop the current time entry"`
+	Resume     *resume         `arg:"subcommand" help:"resume a time entry from today"`
+	List       *commands.List  `arg:"subcommand" help:"list the time entries for a date"`
+	Edit       *edit           `arg:"subcommand" help:"edit time entries for a date"`
+	Sync       *sync           `arg:"subcommand" help:"synchronize time spent on tasks for a month to external services"`
+	Report     *report         `arg:"subcommand" help:"output a report about time spent in a time range"`
+	ConfigFile lib.Filename    `arg:"--config" help:"the configuration file to use" default:"$HOME/.config/tracktime/tracktimerc"`
 }
 
 func (args) Version() string {
@@ -137,7 +127,7 @@ func main() {
 	var args args
 	arg.MustParse(&args)
 
-	config, err := config.ReadConfig(args.ConfigFile)
+	config, err := lib.ReadConfig(args.ConfigFile)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Couldn't read config file")
 	}
@@ -158,7 +148,7 @@ func main() {
 	case args.Report != nil:
 		args.Report.Run(config)
 	default:
-		args.List = &list{Date: "today"}
+		args.List = &commands.List{Date: lib.Date{Time: time.Now()}}
 		args.List.Run(config)
 	}
 }
