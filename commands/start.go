@@ -3,10 +3,10 @@ package commands
 import (
 	"fmt"
 
-	"github.com/sumnerevans/tracktime/config"
+	"github.com/sumnerevans/tracktime/lib"
 )
 
-type StartCommand struct {
+type Start struct {
 	Description string `arg:"positional" placeholder:"DESC" help:"the descripiton of the time entry"`
 	Start       string `arg:"-s,--start" help:"the start time of the time entry" default:"now"`
 	Type        string `arg:"-t,--type" help:"the type of the time entry"`
@@ -15,7 +15,7 @@ type StartCommand struct {
 	TaskID      string `arg:"-i,--taskid" help:"the task ID of the time entry"`
 }
 
-func (s *StartCommand) Run(config *config.Config) error {
+func (s *Start) Run(config *lib.Config) error {
 	fmt.Println(config)
 	fmt.Println(s)
 	return nil
