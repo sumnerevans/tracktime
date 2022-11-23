@@ -239,3 +239,28 @@ func (el *EntryList) Stop(stop *Time) error {
 	el.entries[len(el.entries)-1].Stop = stop
 	return el.SaveAndSync()
 }
+
+func (el *EntryList) Resume(resumeIndex int, description *string, start *Time) error {
+	var oldEntry *TimeEntry
+	if resumeIndex == -1 {
+		if len(el.entries) > 0 {
+			oldEntry = el.entries[len(el.entries)-1]
+		} else {
+			yesterdayEntries, err := EntryListForDay(el.Config, el.Date.AddDays(-1))
+			if err != nil {
+				return err
+			}
+			if len(yesterdayEntries.entries) == 0 {
+				return fmt.Errorf("No time entry to resume.")
+			}
+			oldEntry = yesterdayEntries.entries[len(yesterdayEntries.entries)-1]
+		}
+	} else {
+		oldEntry = el.entries[resumeIndex-1]
+	}
+
+	if description == nil {
+		description = &oldEntry.Description
+	}
+	return el.Start(start, *description, oldEntry.Type, oldEntry.Project, oldEntry.Customer, oldEntry.TaskID)
+}
