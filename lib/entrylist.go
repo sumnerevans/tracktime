@@ -70,16 +70,18 @@ type EntryList struct {
 	entries []*TimeEntry
 }
 
+func DayFilename(config *Config, date Date) string {
+	return filepath.Join(
+		config.Directory.Expand(),
+		date.Format("2006"),
+		date.Format("01"),
+		date.Format("02"),
+	)
+}
+
 func EntryListForDay(config *Config, date Date) (*EntryList, error) {
 	el := EntryList{Date: date, Config: config}
-	filename := filepath.Join(
-		el.Config.Directory.Expand(),
-		el.Date.Format("2006"),
-		el.Date.Format("01"),
-		el.Date.Format("02"),
-	)
-
-	file, err := os.OpenFile(filename, os.O_CREATE, 0x700)
+	file, err := os.OpenFile(DayFilename(config, date), os.O_CREATE, 0x700)
 	if err != nil {
 		return nil, err
 	}
