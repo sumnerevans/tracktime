@@ -231,3 +231,11 @@ func (el *EntryList) Start(start *Time, description string, taskType TimeEntryTy
 	el.AddEntry(newEntry)
 	return el.SaveAndSync()
 }
+
+func (el *EntryList) Stop(stop *Time) error {
+	if len(el.entries) == 0 || el.entries[len(el.entries)-1].Stop != nil {
+		return fmt.Errorf("No time entry to stop.")
+	}
+	el.entries[len(el.entries)-1].Stop = stop
+	return el.SaveAndSync()
+}
