@@ -20,3 +20,7 @@ func (d *Date) UnmarshalText(text []byte) error {
 	}
 	return nil
 }
+
+func Today() Date {
+	return Date{Time: time.Now()}
+}
