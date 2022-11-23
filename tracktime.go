@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	arg "github.com/alexflint/go-arg"
@@ -9,14 +11,6 @@ import (
 	"github.com/sumnerevans/tracktime/commands"
 	"github.com/sumnerevans/tracktime/lib"
 )
-
-type stop struct {
-	Stop string `arg:"-s,--stop" help:"the time at which to stop the current time entry" default:"now"`
-}
-
-func (s *stop) Run(config *lib.Config) error {
-	return nil
-}
 
 type resume struct {
 	Entry       int    `arg:"positional" help:"the entry number to resume" default:"-1"`
@@ -38,7 +32,7 @@ func (s *sync) Run(config *lib.Config) error {
 
 type args struct {
 	Start      *commands.Start  `arg:"subcommand" help:"start a new time entry for today"`
-	Stop       *stop            `arg:"subcommand" help:"stop the current time entry"`
+	Stop       *commands.Stop   `arg:"subcommand" help:"stop the current time entry"`
 	Resume     *resume          `arg:"subcommand" help:"resume a time entry from today"`
 	List       *commands.List   `arg:"subcommand" help:"list the time entries for a date"`
 	Edit       *commands.Edit   `arg:"subcommand" help:"edit time entries for a date"`
@@ -85,6 +79,6 @@ func main() {
 	}
 
 	if err != nil {
-		log.Error().Err(err).Msg("There was an error with the command")
+		fmt.Fprintf(os.Stderr, err.Error())
 	}
 }
