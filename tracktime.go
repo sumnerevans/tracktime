@@ -66,21 +66,25 @@ func main() {
 
 	switch {
 	case args.Start != nil:
-		args.Start.Run(config)
+		err = args.Start.Run(config)
 	case args.Stop != nil:
-		args.Stop.Run(config)
+		err = args.Stop.Run(config)
 	case args.Resume != nil:
-		args.Resume.Run(config)
+		err = args.Resume.Run(config)
 	case args.List != nil:
-		args.List.Run(config)
+		err = args.List.Run(config)
 	case args.Edit != nil:
-		args.Edit.Run(config)
+		err = args.Edit.Run(config)
 	case args.Sync != nil:
-		args.Sync.Run(config)
+		err = args.Sync.Run(config)
 	case args.Report != nil:
-		args.Report.Run(config)
+		err = args.Report.Run(config)
 	default:
 		args.List = &commands.List{Date: lib.Date{Time: time.Now()}}
-		args.List.Run(config)
+		err = args.List.Run(config)
+	}
+
+	if err != nil {
+		log.Error().Err(err).Msg("There was an error with the command")
 	}
 }

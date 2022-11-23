@@ -80,12 +80,12 @@ func DayFilename(config *Config, date Date) string {
 }
 
 func EntryListForDay(config *Config, date Date) (*EntryList, error) {
-	el := EntryList{Date: date, Config: config}
-	file, err := os.OpenFile(DayFilename(config, date), os.O_CREATE, 0x700)
+	file, err := os.OpenFile(DayFilename(config, date), os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, err
 	}
 
+	el := EntryList{Date: date, Config: config}
 	reader := csv.NewReader(file)
 	i := 0
 	for {
@@ -135,4 +135,99 @@ func (el *EntryList) TotalTimeForCustomer(customer string) time.Duration {
 		}
 	}
 	return minutes
+}
+
+func (el *EntryList) AddEntry(entry *TimeEntry) {
+	insertIdx := len(el.entries) + 1
+	for i, e := range el.entries {
+		if e.Stop != nil && entry.Start.Between(e.Start, e.Stop) {
+			// The entry is being started in the middle of this one
+			entry.Stop = e.Stop
+			e.Stop = entry.Start
+			insertIdx = i + 1
+			break
+		}
+
+		if entry.Start.Before(e.Start) {
+			// The entry is being started before this.
+			entry.Stop = e.Start
+			insertIdx = i
+			break
+		}
+
+		if e.Start.Before(entry.Start) && e.Stop == nil {
+			// There is an unended time entry. Stop it, and start the new one.
+			e.Stop = entry.Start
+			insertIdx = i + 1
+			break
+		}
+	}
+
+	newEntries := make([]*TimeEntry, len(el.entries)+1)
+	for i := 0; i < len(newEntries); i++ {
+		if i < insertIdx {
+			newEntries[i] = el.entries[i]
+		} else if i == insertIdx {
+			newEntries[i] = entry
+		} else {
+			newEntries[i] = el.entries[i-1]
+		}
+	}
+	el.entries = newEntries
+}
+
+func (el *EntryList) Save() error {
+	file, err := os.OpenFile(DayFilename(el.Config, el.Date), os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+
+	writer := csv.NewWriter(file)
+	err = writer.Write([]string{"start", "stop", "type", "project", "taskid", "customer", "description"})
+	if err != nil {
+		return err
+	}
+
+	for _, e := range el.entries {
+		err = writer.Write([]string{
+			e.Start.String(),
+			e.Stop.String(),
+			string(e.Type),
+			e.Project,
+			e.TaskID,
+			e.Customer,
+			e.Description,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	writer.Flush()
+	return writer.Error()
+}
+
+func (el *EntryList) Sync() error {
+	// TODO
+	return nil
+}
+
+func (el *EntryList) SaveAndSync() error {
+	err := el.Save()
+	if err != nil {
+		return err
+	}
+	return el.Sync()
+}
+
+func (el *EntryList) Start(start *Time, description string, taskType TimeEntryType, project, customer, taskID string) error {
+	newEntry := &TimeEntry{
+		Start:       start,
+		Type:        taskType,
+		Project:     project,
+		Customer:    customer,
+		TaskID:      taskID,
+		Description: description,
+	}
+	el.AddEntry(newEntry)
+	return el.SaveAndSync()
 }
