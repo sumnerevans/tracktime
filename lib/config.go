@@ -7,8 +7,10 @@ import (
 )
 
 type Config struct {
-	FullName  string       `yaml:"fullname"`
-	Directory Filename `yaml:"directory"`
+	FullName   string   `yaml:"fullname"`
+	Directory  Filename `yaml:"directory"`
+	Editor     string   `yaml:"editor"`
+	EditorArgs []string `yaml:"editor_args"`
 }
 
 func ReadConfig(f Filename) (*Config, error) {

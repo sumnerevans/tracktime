@@ -16,6 +16,7 @@ func (d *Date) UnmarshalText(text []byte) error {
 	case "yesterday":
 		d.Time = time.Now().AddDate(0, 0, -1)
 	default:
+		// TODO
 		return fmt.Errorf("Invalid date '%s'.", string(text))
 	}
 	return nil
