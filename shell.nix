@@ -11,6 +11,5 @@ pkgs.mkShell {
     python3
     rnix-lsp
     selenium
-    wkhtmltopdf
   ];
 }
