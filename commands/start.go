@@ -16,7 +16,9 @@ type Start struct {
 }
 
 func (s *Start) Run(config *lib.Config) error {
+	entryList, err := lib.EntryListForDay(config, lib.Today())
 	fmt.Println(config)
 	fmt.Println(s)
+	fmt.Printf("%v %v", entryList, err)
 	return nil
 }
