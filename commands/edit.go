@@ -14,7 +14,12 @@ type Edit struct {
 }
 
 func (s *Edit) Run(config *lib.Config) error {
-	// TODO make sure the header exists
+	// Make sure the header exists
+	if entryList, err := lib.EntryListForDay(config, lib.Today()); err != nil {
+		return err
+	} else if err := entryList.Save(); err != nil {
+		return err
+	}
 
 	editor := config.Editor
 	if editor == "" {
