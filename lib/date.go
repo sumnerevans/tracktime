@@ -9,6 +9,10 @@ type Date struct {
 	time.Time
 }
 
+func Today() Date {
+	return Date{Time: time.Now()}
+}
+
 func (d *Date) UnmarshalText(text []byte) error {
 	switch string(text) {
 	case "today":
@@ -22,6 +26,6 @@ func (d *Date) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func Today() Date {
-	return Date{Time: time.Now()}
+func (d *Date) AddDays(numDays int) Date {
+	return Date{Time: d.Time.AddDate(0, 0, numDays)}
 }

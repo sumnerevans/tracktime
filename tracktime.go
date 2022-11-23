@@ -12,16 +12,6 @@ import (
 	"github.com/sumnerevans/tracktime/lib"
 )
 
-type resume struct {
-	Entry       int    `arg:"positional" help:"the entry number to resume" default:"-1"`
-	Description string `arg:"positional" placeholder:"DESC" help:"the description for the new time entry (defaults to that of the entry being resumed)"`
-	Start       string `arg:"-s,--start" help:"the start time of the resumed time entry" default:"now"`
-}
-
-func (s *resume) Run(config *lib.Config) error {
-	return nil
-}
-
 type sync struct {
 	Month string `arg:"positional" help:"the month to synchronize time entries for (accepted formats: 01, 1, Jan, January, 2019-01)" default:"this month"`
 }
@@ -33,7 +23,7 @@ func (s *sync) Run(config *lib.Config) error {
 type args struct {
 	Start      *commands.Start  `arg:"subcommand" help:"start a new time entry for today"`
 	Stop       *commands.Stop   `arg:"subcommand" help:"stop the current time entry"`
-	Resume     *resume          `arg:"subcommand" help:"resume a time entry from today"`
+	Resume     *commands.Resume `arg:"subcommand" help:"resume a time entry from today"`
 	List       *commands.List   `arg:"subcommand" help:"list the time entries for a date"`
 	Edit       *commands.Edit   `arg:"subcommand" help:"edit time entries for a date"`
 	Sync       *sync            `arg:"subcommand" help:"synchronize time spent on tasks for a month to external services"`
