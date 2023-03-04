@@ -16,24 +16,22 @@ repos:
       - id: poetry-check
 
   # black
-  - repo: local
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
     hooks:
       - id: black
-        name: black
         files: ^(tracktime|tests|examples)/.*\.py$
-        entry: black --check
-        language: system
 
   # isort
   - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
       - id: isort
         files: ^(tracktime|tests|examples)/.*\.py$
 
   # flake8
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 4.0.1
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
     hooks:
       - id: flake8
         files: ^(tracktime|tests|examples)/.*\.py$
@@ -55,7 +53,9 @@ repos:
       - id: custom-style-check
         name: custom style check
         entry: ./cicd/custom_style_check.py
-        language: system
+        language: python
+        additional_dependencies:
+          - termcolor==2.1.1
 
   - repo: https://github.com/tekwizely/pre-commit-golang
     rev: v1.0.0-beta.5

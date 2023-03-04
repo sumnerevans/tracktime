@@ -13,5 +13,6 @@ func (s *Resume) Run(config *lib.Config) error {
 	if err != nil {
 		return err
 	}
+	// TODO sync
 	return entryList.Resume(s.Entry, s.Description, s.Start)
 }

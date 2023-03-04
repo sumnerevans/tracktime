@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"github.com/rs/zerolog/log"
+
 	"github.com/sumnerevans/tracktime/lib"
 )
 
