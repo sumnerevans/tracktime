@@ -182,7 +182,12 @@ class Report:
 
                 self.day_stats[day] += entry.duration()
 
-                self.report_map[(entry.customer, entry.project,)][entry.taskid][
+                self.report_map[
+                    (
+                        entry.customer,
+                        entry.project,
+                    )
+                ][entry.taskid][
                     entry.description.upper()
                 ].add(entry)
 
@@ -355,7 +360,7 @@ class Report:
             "",
         ]
 
-        for (i, ((customer, project), tasks)) in enumerate(self.report_map.items()):
+        for i, ((customer, project), tasks) in enumerate(self.report_map.items()):
             if i > 0:
                 lines.append("")
             lines.append(
@@ -502,7 +507,7 @@ class Report:
             ),
         ]
 
-        for (i, ((customer, project), tasks)) in enumerate(self.report_map.items()):
+        for i, ((customer, project), tasks) in enumerate(self.report_map.items()):
             rate, total = self.rate_totals_map[(customer, project)]
             data.append(("spacer", "", ""))
             data.append(

@@ -22,8 +22,8 @@ func (gh *GitHubSynchroniser) Sync(ctx context.Context, aggregatedTime, syncedTi
 	return aggregatedTime, nil
 }
 
-func (gh *GitHubSynchroniser) cleanTaskID(taskID string) string {
-	return strings.TrimPrefix(taskID, "#")
+func (gh *GitHubSynchroniser) cleanTaskID(taskID lib.TaskID) string {
+	return strings.TrimPrefix(string(taskID), "#")
 }
 
 func (gh *GitHubSynchroniser) GetFormattedTaskID(entry *lib.TimeEntry) string {
@@ -36,7 +36,7 @@ func (gh *GitHubSynchroniser) GetFormattedTaskID(entry *lib.TimeEntry) string {
 
 func (gh *GitHubSynchroniser) GetTaskLink(entry *lib.TimeEntry) string {
 	var owner, project string
-	projectParts := strings.Split(entry.Project, "/")
+	projectParts := strings.Split(string(entry.Project), "/")
 	if len(projectParts) == 1 {
 		if gh.Config.Username == "" {
 			return ""

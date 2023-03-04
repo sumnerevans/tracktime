@@ -9,8 +9,8 @@ import (
 )
 
 type List struct {
-	Date     lib.Date `arg:"-d,--date" help:"the date to list time entries for" default:"today"`
-	Customer string   `arg:"-c,--customer" help:"list only time entries for the given customer"`
+	Date     lib.Date     `arg:"-d,--date" help:"the date to list time entries for" default:"today"`
+	Customer lib.Customer `arg:"-c,--customer" help:"list only time entries for the given customer"`
 }
 
 func (l *List) Run(config *lib.Config) error {

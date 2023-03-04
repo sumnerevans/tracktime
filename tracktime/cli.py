@@ -145,7 +145,6 @@ def report(args):
         )
         end_date = start_date + timedelta(days=6)
     else:  # monthly
-
         # Default to last month. Need to do this calculation to correctly get
         # the previous month across years.
         last_day_of_last_month = date(today.year, today.month, 1) - timedelta(days=1)

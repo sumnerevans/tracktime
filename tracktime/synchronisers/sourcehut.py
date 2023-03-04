@@ -142,7 +142,7 @@ class SourcehutSynchroniser(ExternalSynchroniser):
             sum(month_data.values())
         )
         lines = [f"[tracktime] {username} has spent {total_duration_str} on this task."]
-        for ((year, month), duration) in sorted(month_data.items()):
+        for (year, month), duration in sorted(month_data.items()):
             duration_str = SourcehutSynchroniser.format_duration(duration)
             lines.append(f" * {year}-{month:02}: {duration_str}")
         return "\n".join(lines)

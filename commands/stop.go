@@ -11,5 +11,6 @@ func (s *Stop) Run(config *lib.Config) error {
 	if err != nil {
 		return err
 	}
+	// TODO sync
 	return entryList.Stop(s.Stop)
 }

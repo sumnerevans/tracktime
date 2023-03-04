@@ -16,6 +16,10 @@ func (d *Time) UnmarshalText(text []byte) (err error) {
 	return
 }
 
+func TimeFromMinutes(minutes int) *Time {
+	return &Time{minutes: minutes}
+}
+
 func TimeFrom(t time.Time) *Time {
 	return &Time{minutes: t.Minute() + t.Hour()*60}
 }
@@ -36,7 +40,7 @@ func ParseTime(timeStr string) (*Time, error) {
 			return TimeFrom(parsed), nil
 		}
 	}
-	return &Time{}, fmt.Errorf("Error parsing time '%s'", timeStr)
+	return &Time{}, fmt.Errorf("error parsing time '%s'", timeStr)
 }
 
 func (t *Time) Between(start *Time, end *Time) bool {

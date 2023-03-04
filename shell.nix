@@ -5,10 +5,9 @@ pkgs.mkShell {
     go-tools
     gopls
     gotools
+    pre-commit
 
     chromedriver
-    poetry
-    python3
     rnix-lsp
     selenium
   ];
