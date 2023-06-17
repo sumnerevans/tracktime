@@ -142,7 +142,7 @@ func (el *EntryList) TotalTimeForCustomer(customer Customer) time.Duration {
 }
 
 func (el *EntryList) AddEntry(entry *TimeEntry) {
-	insertIdx := len(el.entries) + 1
+	insertIdx := len(el.entries)
 	for i, e := range el.entries {
 		if e.Stop != nil && entry.Start.Between(e.Start, e.Stop) {
 			// The entry is being started in the middle of this one

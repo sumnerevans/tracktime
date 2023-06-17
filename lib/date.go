@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -22,21 +23,34 @@ func Today() Date {
 }
 
 func (d *Date) UnmarshalText(text []byte) error {
-	switch string(text) {
+	now := time.Now().Local()
+	switch strings.ToLower(string(text)) {
 	case "today":
-		d.Time = time.Now().Local()
+		d.Time = now
 	case "yesterday":
-		d.Time = time.Now().Local().AddDate(0, 0, -1)
+		d.Time = now.AddDate(0, 0, -1)
+	case "monday":
+		if now.Weekday() == time.Monday {
+			d.Time = now
+		} else {
+			d.Time = now.AddDate(0, 0, int(time.Monday-now.Weekday()))
+		}
+	case "tuesday":
+		if now.Weekday() == time.Tuesday {
+			d.Time = now
+		} else {
+			d.Time = now.AddDate(0, 0, int(time.Tuesday-now.Weekday()))
+		}
 	default:
-		// formatsWithoutYear := []string{"01", "January", "Jan", "1"}
-		// for _, format := range formats {
-		// 	parsed, err := time.Parse(format, string(text))
-		// 	if err == nil {
-		// 		d.year = now.Year()
-		// 		d.month = parsed.Month()
-		// 		return nil
-		// 	}
-		// }
+		formatsWithoutYear := []string{"02", "2"}
+		for _, format := range formatsWithoutYear {
+			parsed, err := time.Parse(format, string(text))
+			if err == nil {
+				fmt.Printf("Parsed %v\n", parsed)
+				d.Time = time.Date(now.Year(), now.Month(), parsed.Day(), 0, 0, 0, 0, time.Local)
+				return nil
+			}
+		}
 		return fmt.Errorf("invalid date '%s'", string(text))
 	}
 	return nil
