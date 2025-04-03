@@ -98,6 +98,8 @@ class GitHubSynchroniser(ExternalSynchroniser):
             }}
             """
             repository = get_path(self.gql_query(query), "data", "repository")
+            if repository is None:
+                return None
             description = None
             for t in task_types:
                 if value := repository.get(t):
