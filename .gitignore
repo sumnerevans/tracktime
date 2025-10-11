@@ -1,6 +1,7 @@
 .direnv
 .vscode/
 *.orig
+.claude/
 
 # Created by https://www.gitignore.io/api/python
 
