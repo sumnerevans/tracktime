@@ -31,15 +31,14 @@ type SyncConfig struct {
 }
 
 type ReportingConfig struct {
-	FullName              string            `yaml:"fullname"`
-	ProjectRates          map[string]int    `yaml:"project_rates"`
-	CustomerRates         map[string]int    `yaml:"customer_rates"`
-	CustomerAliases       map[string]string `yaml:"customer_aliases"`
-	CustomerAddresses     map[string]string `yaml:"customer_addresses"`
-	DayWorkedMinThreshold int               `yaml:"day_worked_min_threshold"`
-	ReportStatistics      bool              `yaml:"report_statistics"`
-	// TODO
-	// TableFormat           string            `yaml:"table_format"`
+	FullName              string             `yaml:"fullname"`
+	ProjectRates          map[string]float64 `yaml:"project_rates"`
+	CustomerRates         map[string]float64 `yaml:"customer_rates"`
+	CustomerAliases       map[string]string  `yaml:"customer_aliases"`
+	CustomerAddresses     map[string]string  `yaml:"customer_addresses"`
+	DayWorkedMinThreshold int                `yaml:"day_worked_min_threshold"`
+	ReportStatistics      bool               `yaml:"report_statistics"`
+	TableFormat           string             `yaml:"table_format"`
 }
 
 type Config struct {
