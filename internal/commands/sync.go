@@ -3,8 +3,8 @@ package commands
 import (
 	"context"
 
-	"github.com/sumnerevans/tracktime/lib"
-	"github.com/sumnerevans/tracktime/synchroniser"
+	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/synchroniser"
 )
 
 type Sync struct {

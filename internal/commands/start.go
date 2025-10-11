@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/sumnerevans/tracktime/lib"
+	"github.com/sumnerevans/tracktime/internal/lib"
 )
 
 type Start struct {

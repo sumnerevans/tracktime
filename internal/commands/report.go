@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/sumnerevans/tracktime/lib"
+	"github.com/sumnerevans/tracktime/internal/lib"
 )
 
 type Sort int

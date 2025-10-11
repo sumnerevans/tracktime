@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sumnerevans/tracktime/lib"
+	"github.com/sumnerevans/tracktime/internal/lib"
 )
 
 type GitHubSynchroniser struct {

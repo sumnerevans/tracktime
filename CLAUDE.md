@@ -19,7 +19,7 @@ tracktime is a filesystem-backed time tracking solution that stores time trackin
 
 **Build and run:**
 ```bash
-go build -o tt tracktime.go
+go build -o tt ./cmd/tt
 ./tt --help
 ```
 

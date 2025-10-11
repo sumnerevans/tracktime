@@ -8,8 +8,8 @@ import (
 	arg "github.com/alexflint/go-arg"
 	"github.com/rs/zerolog/log"
 
-	"github.com/sumnerevans/tracktime/commands"
-	"github.com/sumnerevans/tracktime/lib"
+	"github.com/sumnerevans/tracktime/internal/commands"
+	"github.com/sumnerevans/tracktime/internal/lib"
 )
 
 type args struct {

@@ -1,6 +1,6 @@
 package commands
 
-import "github.com/sumnerevans/tracktime/lib"
+import "github.com/sumnerevans/tracktime/internal/lib"
 
 type Stop struct {
 	Stop *lib.Time `arg:"-s,--stop" help:"the time at which to stop the current time entry" default:"now"`

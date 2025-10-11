@@ -1,6 +1,6 @@
 package commands
 
-import "github.com/sumnerevans/tracktime/lib"
+import "github.com/sumnerevans/tracktime/internal/lib"
 
 type Resume struct {
 	Entry       int       `arg:"positional" help:"the entry number to resume" default:"-1"`

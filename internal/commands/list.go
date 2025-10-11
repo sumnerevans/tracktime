@@ -5,7 +5,7 @@ import (
 	"github.com/rodaine/table"
 	"github.com/rs/zerolog/log"
 
-	"github.com/sumnerevans/tracktime/lib"
+	"github.com/sumnerevans/tracktime/internal/lib"
 )
 
 type List struct {

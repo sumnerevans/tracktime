@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/sumnerevans/tracktime/lib"
+	"github.com/sumnerevans/tracktime/internal/lib"
 )
 
 type AggregatedTimeKey struct {

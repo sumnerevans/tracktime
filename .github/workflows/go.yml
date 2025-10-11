@@ -70,7 +70,7 @@ jobs:
           cache: true
 
       - name: Build binary
-        run: go build -v -o tt tracktime.go
+        run: go build -v -o tt ./cmd/tt
 
       - name: Upload artifact
         if: matrix.go-version == '1.25'
