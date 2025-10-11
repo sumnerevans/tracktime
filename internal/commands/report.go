@@ -2,11 +2,11 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/rs/zerolog/log"
-
 	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/report"
 )
 
 type Sort int
@@ -26,6 +26,13 @@ func (s *Sort) UnmarshalText(b []byte) error {
 		return fmt.Errorf("invalid sort value '%s'", string(b))
 	}
 	return nil
+}
+
+func (s Sort) toReportSort() report.Sort {
+	if s == SortTimeSpent {
+		return report.SortTimeSpent
+	}
+	return report.SortAlphabetical
 }
 
 type Report struct {
@@ -109,47 +116,45 @@ func (r *Report) Run(config *lib.Config) error {
 		return fmt.Errorf("start date must be before end date")
 	}
 
-	aggregatedTime := map[lib.Customer]map[lib.Project]map[lib.TaskID]map[string][]*lib.TimeEntry{}
-	dayStats := map[lib.Date]time.Duration{}
+	// Determine sort direction (desc overrides asc)
+	reverse := r.Desc
 
-	for day := start; day.Before(end.Time) || day.Equal(end.Time); day = day.AddDays(1) {
-		entryList, err := lib.EntryListForDay(config, day)
-		if err != nil {
-			log.Fatal().Err(err).Msg("Failed to read entry list")
-		}
-
-		for _, entry := range entryList.EntriesForCustomer(r.Customer) {
-			if r.Project != "" && entry.Project != r.Project {
-				continue
-			}
-
-			if _, ok := dayStats[day]; !ok {
-				dayStats[day] = time.Duration(0)
-			}
-			duration, err := entry.Duration(false)
-			if err != nil {
-				return fmt.Errorf("unended time entry on %s", day.Time.Format("2006-01-02"))
-			}
-			dayStats[day] = dayStats[day] + duration
-
-			if _, ok := aggregatedTime[entry.Customer]; !ok {
-				aggregatedTime[entry.Customer] = map[lib.Project]map[lib.TaskID]map[string][]*lib.TimeEntry{}
-			}
-			if _, ok := aggregatedTime[entry.Customer][entry.Project]; !ok {
-				aggregatedTime[entry.Customer][entry.Project] = map[lib.TaskID]map[string][]*lib.TimeEntry{}
-			}
-			if _, ok := aggregatedTime[entry.Customer][entry.Project][entry.TaskID]; !ok {
-				aggregatedTime[entry.Customer][entry.Project][entry.TaskID] = map[string][]*lib.TimeEntry{}
-			}
-			if _, ok := aggregatedTime[entry.Customer][entry.Project][entry.TaskID][entry.Description]; !ok {
-				aggregatedTime[entry.Customer][entry.Project][entry.TaskID][entry.Description] = append(aggregatedTime[entry.Customer][entry.Project][entry.TaskID][entry.Description], entry)
-			}
-
-			fmt.Printf(" ENTRY  %v\n", entry)
-		}
+	// Determine grains
+	taskGrain := r.TaskGrain || r.DescriptionGrain
+	descriptionGrain := r.DescriptionGrain
+	if r.NoTaskGrain {
+		taskGrain = false
+		descriptionGrain = false
+	}
+	if r.NoDescriptionGrain {
+		descriptionGrain = false
 	}
 
-	fmt.Printf("REPORT  %v\n", aggregatedTime)
+	// Create report
+	rep, err := report.New(
+		config,
+		start,
+		end,
+		r.Customer,
+		r.Project,
+		r.Sort.toReportSort(),
+		reverse,
+		taskGrain,
+		descriptionGrain,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create report: %w", err)
+	}
+
+	// Generate output
+	output := rep.GenerateTextReport()
+
+	// Strip formatting for stdout (match Python behavior line 651)
+	output = strings.ReplaceAll(output, "| ", "")
+	output = strings.ReplaceAll(output, "**", "")
+
+	// Print to stdout (or file, TODO)
+	fmt.Println(output)
 
 	return nil
 }
