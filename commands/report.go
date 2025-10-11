@@ -48,7 +48,7 @@ type Report struct {
 	// Specify the grains to show
 	TaskGrain          bool `arg:"--taskgrain" help:"report on the task grain"`
 	NoTaskGrain        bool `arg:"--no-taskgrain" help:"do not report on the task grain"`
-	DescriptionGrain   bool `arg:"--no-descriptiongrain" help:"report on the task grain"`
+	DescriptionGrain   bool `arg:"--descriptiongrain" help:"report on the task grain"`
 	NoDescriptionGrain bool `arg:"--no-descriptiongrain" help:"do not report on the task grain"`
 
 	// Narrow the set of time entries to report on
