@@ -42,12 +42,33 @@ func (d *Date) UnmarshalText(text []byte) error {
 			d.Time = now.AddDate(0, 0, int(time.Tuesday-now.Weekday()))
 		}
 	default:
-		formatsWithoutYear := []string{"02", "2"}
-		for _, format := range formatsWithoutYear {
-			parsed, err := time.Parse(format, string(text))
+		// Try each format in priority order
+		formats := []struct {
+			layout       string
+			defaultYear  bool
+			defaultMonth bool
+		}{
+			{"2006-01-02", false, false}, // YYYY-MM-DD
+			{"2006/01/02", false, false}, // YYYY/MM/DD
+			{"06-01-02", false, false},   // YY-MM-DD
+			{"06/01/02", false, false},   // YY/MM/DD
+			{"01-02", true, false},       // MM-DD (default year)
+			{"1-2", true, false},         // M-D (default year)
+			{"02", true, true},           // DD (default year+month)
+			{"2", true, true},            // D (default year+month)
+		}
+
+		for _, fmt := range formats {
+			parsed, err := time.Parse(fmt.layout, string(text))
 			if err == nil {
-				fmt.Printf("Parsed %v\n", parsed)
-				d.Time = time.Date(now.Year(), now.Month(), parsed.Day(), 0, 0, 0, 0, time.Local)
+				year, month, day := parsed.Date()
+				if fmt.defaultYear {
+					year = now.Year()
+				}
+				if fmt.defaultMonth {
+					month = now.Month()
+				}
+				d.Time = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
 				return nil
 			}
 		}
