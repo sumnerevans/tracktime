@@ -162,27 +162,29 @@ REPORT  {...}
 
 ## Migration Priorities
 
-Based on current state, suggested priorities:
+Based on current state and user needs:
 
-1. **High Priority** - Complete sync command:
-   - Implement `.synced` file I/O
-   - Add aggregation logic (similar to report)
-   - Complete GitHub synchroniser API calls
-   - Add GitLab, Sourcehut, Linear synchronisers
-
-2. **High Priority** - Complete report command:
+1. **High Priority** - Complete report command:
    - Implement output formatters (stdout, HTML, RST, PDF)
    - Apply grain and sort options
    - Match Python output format
+   - This is the most important feature for daily use
 
-3. **Medium Priority** - Testing:
+2. **Medium Priority** - Testing:
    - Add unit tests for commands
    - Add integration tests
    - Test edge cases (overlapping entries, invalid times, etc.)
 
-4. **Low Priority** - Feature parity:
+3. **Low Priority** - Sync command and synchronizers:
+   - Implement `.synced` file I/O
+   - Add aggregation logic
+   - Complete GitHub synchroniser API calls
+   - Add GitLab, Sourcehut, Linear synchronisers
+   - Note: Synchronizers are not critical for current workflow
+
+4. **Low Priority** - Feature parity and documentation:
    - Ensure all Python features are covered
-   - Documentation
+   - Documentation updates
 
 ---
 
