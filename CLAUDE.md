@@ -134,6 +134,38 @@ Customer → Project → TaskID → Description → []*TimeEntry
 
 Supports multiple grains (task-level, description-level) and sorting options. Currently outputs debug format; full report generation is a TODO.
 
+## Development Workflow
+
+- **Commit early and often**: Create git commits after completing logical units of work (individual features, bug fixes, or refactors). Don't wait to batch multiple changes together.
+- **Push often**: After completing commits, push to remote regularly to keep the remote branch up to date.
+- **Document analyses**: When performing complex analysis (code architecture, migration planning, debugging), write the findings to a markdown file in `.claude/` for reference. This helps maintain context and provides documentation for the user.
+- **Git workflow**:
+  - Always use separate `git add` and `git commit` commands (never combine them with `&&`).
+  - Write suggested commit message to `.claude/commit_msg.txt`
+  - Include Claude as co-author in commit messages:
+    ```
+    <commit message>
+
+    Co-Authored-By: Claude <noreply@anthropic.com>
+    ```
+  - Show the suggested message to the user
+  - Ask user to approve or edit: "Commit message written to `.claude/commit_msg.txt`. Reply 'commit' to proceed, or edit the file and let me know when ready."
+  - Wait for user confirmation before running `git commit -F .claude/commit_msg.txt`
+  - After committing, ask if user wants to push: "Ready to push? Reply 'push' to run git push."
+- **Commit message format**: Use `<component>: <short description>` format. Keep it concise and don't reference the branch name.
+  - Example: `lib/date: add flexible date parsing`
+  - Example: `pre-commit: remove Python linters`
+- **Run linters before committing**: Always run pre-commit hooks before creating commits to catch formatting issues early. Use:
+  ```bash
+  pre-commit run -av go-imports-repo
+  pre-commit run -av go-vet-repo-mod
+  pre-commit run -av go-staticcheck-repo-mod
+  ```
+  Or run all hooks at once:
+  ```bash
+  pre-commit run --all-files
+  ```
+
 ## Important Notes
 
 - **Unsupported edge cases**: Daylight saving time, multi-day entries, timezone switches within a day
