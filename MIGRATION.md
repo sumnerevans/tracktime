@@ -20,7 +20,7 @@ The Go rewrite is located in the root directory alongside the legacy Python impl
 | Component | Location | Description | Status |
 |-----------|----------|-------------|--------|
 | **Configuration** | `lib/config.go:45-55` | YAML config parser for `~/.config/tracktime/tracktimerc` | ✅ Complete |
-| **Date Type** | `lib/date.go` | Date operations and parsing | ✅ Complete |
+| **Date Type** | `lib/date.go` | Date operations and parsing (full Python parity) | ✅ Complete with tests |
 | **Time Type** | `lib/time.go` | HH:MM time format handling | ✅ Complete with tests |
 | **Month Type** | `lib/month.go` | Month operations and parsing | ✅ Complete with tests |
 | **TimeEntry** | `lib/entrylist.go:30-39` | Core time entry data structure | ✅ Complete |
@@ -32,6 +32,11 @@ The Go rewrite is located in the root directory alongside the legacy Python impl
 - Auto-stop logic for overlapping entries
 - Day file path generation (`YEAR/MONTH/DAY` structure)
 - Time entry type shortcuts (`gh` → `github`, `gl` → `gitlab`)
+- Flexible date parsing matching Python implementation:
+  - Full dates: `YYYY-MM-DD`, `YYYY/MM/DD`, `YY-MM-DD`, `YY/MM/DD`
+  - Partial dates: `MM-DD`, `M-D` (defaults to current year)
+  - Day only: `DD`, `D` (defaults to current year and month)
+  - Keywords: `today`, `yesterday`
 
 ---
 
@@ -150,6 +155,7 @@ REPORT  {...}
 |---------|---------------|-------|
 | `lib/time.go` | ✅ Has tests (`lib/time_test.go`) | Time parsing and formatting |
 | `lib/month.go` | ✅ Has tests (`lib/month_test.go`) | Month parsing |
+| `lib/date.go` | ✅ Has tests (`lib/date_test.go`) | Date parsing (all formats), AddDays, AddMonths |
 | Other packages | ❌ No tests yet | Need test coverage |
 
 ---
