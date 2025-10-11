@@ -12,14 +12,12 @@
       in {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            pkg-config
-            poetry
-            python3
             chromedriver
-            wkhtmltopdf
-            python3Packages.selenium
-
+            go
+            go-tools
+            gotools
             pre-commit
+            python3Packages.selenium
           ];
 
           # Run this command, only after creating the virtual environment
