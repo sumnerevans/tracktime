@@ -1,9 +1,12 @@
 package report
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/rodaine/table"
 
 	"github.com/sumnerevans/tracktime/internal/lib"
 )
@@ -74,43 +77,29 @@ func (r *Report) GenerateTextReport() string {
 	lines = append(lines, "")
 
 	// TOTAL row
-	totalRow := r.formatTableRow(
-		"TOTAL",
-		r.totalMinutes(),
-		"",
-		r.GrandTotal(),
-		true, // is header row
-	)
-	lines = append(lines, totalRow...)
-	lines = append(lines, "")
+	reportTable := table.New("", "Hours", "Rate ($/h)", "Total ($)")
+	reportTable.AddRow("TOTAL", fmt.Sprintf("%.2f", r.totalMinutes()/60.0), "", fmt.Sprintf("%.2f", r.GrandTotal()))
 
 	// Customer/Project rows
 	cps := r.SortedCustomerProjects()
-	for i, cp := range cps {
-		if i > 0 {
-			lines = append(lines, "")
-		}
-
+	for _, cp := range cps {
 		// Customer/project summary row
 		cpName := r.customerProjectStr(cp, false)
 		cpMinutes := r.TotalMinutesForCustomerProject(cp)
 		rt := r.RateTotals[cp]
 
-		cpRow := r.formatTableRow(cpName, cpMinutes, fmt.Sprintf("%.2f", rt.Rate), rt.Total, false)
-		lines = append(lines, cpRow...)
+		reportTable.AddRow(cpName, fmt.Sprintf("%.2f", cpMinutes/60.0), fmt.Sprintf("%.2f", rt.Rate), fmt.Sprintf("%.2f", rt.Total))
 
 		if !r.TaskGrain {
 			continue
 		}
-
-		lines = append(lines, "")
 
 		// Task level
 		taskIDs := r.SortedTaskIDs(cp)
 		for _, taskID := range taskIDs {
 			taskName := r.formatTaskName(cp, taskID)
 			taskMinutes := r.TotalMinutesForTask(cp, taskID)
-			lines = append(lines, padEntry(taskName, taskMinutes, 0))
+			reportTable.AddRow(" * "+taskName, fmt.Sprintf("%.2f", taskMinutes/60.0), "", "")
 
 			if !r.DescriptionGrain {
 				continue
@@ -120,12 +109,9 @@ func (r *Report) GenerateTextReport() string {
 			descriptions := r.AggregatedTime[cp][taskID]
 			if len(descriptions) == 1 {
 				if _, hasEmpty := descriptions[""]; hasEmpty {
-					lines = append(lines, "")
 					continue
 				}
 			}
-
-			lines = append(lines, "")
 
 			// Description level
 			descs := r.SortedDescriptions(cp, taskID)
@@ -135,12 +121,13 @@ func (r *Report) GenerateTextReport() string {
 					displayDesc = "<NO DESCRIPTION>"
 				}
 				descMinutes := r.TotalMinutesForDescription(cp, taskID, desc)
-				lines = append(lines, padEntry(displayDesc, descMinutes, 1))
+				reportTable.AddRow("    * "+displayDesc, fmt.Sprintf("%.2f", descMinutes/60.0), "", "")
 			}
-
-			lines = append(lines, "")
 		}
 	}
+
+	lines = append(lines, r.tableToString(reportTable))
+	lines = append(lines, "")
 
 	return strings.Join(lines, "\n")
 }
@@ -265,39 +252,12 @@ func (r *Report) formatTaskName(cp CustomerProject, taskID lib.TaskID) string {
 	return taskName
 }
 
-// formatTableRow formats a table row with proper alignment
-func (r *Report) formatTableRow(desc string, minutes float64, rate string, total float64, isHeader bool) []string {
-	hours := minutes / 60.0
-
-	if isHeader {
-		// Header row with column titles
-		return []string{
-			fmt.Sprintf("%-40s %10s %10s %10s", ellipsize(desc, 40), "Hours", "Rate ($/h)", "Total ($)"),
-			strings.Repeat("-", 80),
-			fmt.Sprintf("%-40s %10.2f %10s %10.2f", ellipsize(desc, 40), hours, rate, total),
-		}
-	}
-
-	// Regular row
-	return []string{
-		fmt.Sprintf("%-40s %10.2f %10s %10.2f", ellipsize(desc, 40), hours, rate, total),
-	}
-}
-
-// padEntry formats a task or description entry with indentation
-func padEntry(text string, minutes float64, indentLevel int) string {
-	hours := minutes / 60.0
-	indent := strings.Repeat(" ", 1+indentLevel*2)
-	entry := fmt.Sprintf("%s * %s", indent, text)
-	return fmt.Sprintf("%-40s       %10.2f", ellipsize(entry, 40), hours)
-}
-
-// ellipsize truncates strings to maxLen with "..." suffix
-func ellipsize(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen-3] + "..."
+// tableToString converts a table to its string representation
+func (r *Report) tableToString(tbl table.Table) string {
+	var buf bytes.Buffer
+	tbl.WithWriter(&buf).Print()
+	// Trim the leading/trailing newlines that Print() adds
+	return strings.TrimSpace(buf.String())
 }
 
 // padRight pads a string to the right with spaces
