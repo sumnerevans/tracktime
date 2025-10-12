@@ -22,89 +22,75 @@ func Today() Date {
 	return NewDateFromTime(time.Now())
 }
 
+// mostRecentWeekday returns the most recent occurrence of the target weekday,
+// including today if today matches the target weekday.
+func mostRecentWeekday(now time.Time, target time.Weekday) time.Time {
+	if now.Weekday() == target {
+		return now
+	}
+	return now.AddDate(0, 0, int(target-now.Weekday()))
+}
+
 func (d *Date) UnmarshalText(text []byte) error {
 	now := time.Now().Local()
-	switch strings.ToLower(string(text)) {
+	input := strings.ToLower(string(text))
+
+	// Handle special keywords
+	switch input {
 	case "today":
 		d.Time = now
+		return nil
 	case "yesterday":
 		d.Time = now.AddDate(0, 0, -1)
-	case "monday":
-		if now.Weekday() == time.Monday {
-			d.Time = now
-		} else {
-			d.Time = now.AddDate(0, 0, int(time.Monday-now.Weekday()))
-		}
-	case "tuesday":
-		if now.Weekday() == time.Tuesday {
-			d.Time = now
-		} else {
-			d.Time = now.AddDate(0, 0, int(time.Tuesday-now.Weekday()))
-		}
-	case "wednesday":
-		if now.Weekday() == time.Wednesday {
-			d.Time = now
-		} else {
-			d.Time = now.AddDate(0, 0, int(time.Wednesday-now.Weekday()))
-		}
-	case "thursday":
-		if now.Weekday() == time.Thursday {
-			d.Time = now
-		} else {
-			d.Time = now.AddDate(0, 0, int(time.Thursday-now.Weekday()))
-		}
-	case "friday":
-		if now.Weekday() == time.Friday {
-			d.Time = now
-		} else {
-			d.Time = now.AddDate(0, 0, int(time.Friday-now.Weekday()))
-		}
-	case "saturday":
-		if now.Weekday() == time.Saturday {
-			d.Time = now
-		} else {
-			d.Time = now.AddDate(0, 0, int(time.Saturday-now.Weekday()))
-		}
-	case "sunday":
-		if now.Weekday() == time.Sunday {
-			d.Time = now
-		} else {
-			d.Time = now.AddDate(0, 0, int(time.Sunday-now.Weekday()))
-		}
-	default:
-		// Try each format in priority order
-		formats := []struct {
-			layout       string
-			defaultYear  bool
-			defaultMonth bool
-		}{
-			{"2006-01-02", false, false}, // YYYY-MM-DD
-			{"2006/01/02", false, false}, // YYYY/MM/DD
-			{"06-01-02", false, false},   // YY-MM-DD
-			{"06/01/02", false, false},   // YY/MM/DD
-			{"01-02", true, false},       // MM-DD (default year)
-			{"1-2", true, false},         // M-D (default year)
-			{"02", true, true},           // DD (default year+month)
-			{"2", true, true},            // D (default year+month)
-		}
-
-		for _, fmt := range formats {
-			parsed, err := time.Parse(fmt.layout, string(text))
-			if err == nil {
-				year, month, day := parsed.Date()
-				if fmt.defaultYear {
-					year = now.Year()
-				}
-				if fmt.defaultMonth {
-					month = now.Month()
-				}
-				d.Time = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
-				return nil
-			}
-		}
-		return fmt.Errorf("invalid date '%s'", string(text))
+		return nil
 	}
-	return nil
+
+	// Handle weekday names
+	weekdays := map[string]time.Weekday{
+		"sunday":    time.Sunday,
+		"monday":    time.Monday,
+		"tuesday":   time.Tuesday,
+		"wednesday": time.Wednesday,
+		"thursday":  time.Thursday,
+		"friday":    time.Friday,
+		"saturday":  time.Saturday,
+	}
+	if weekday, ok := weekdays[input]; ok {
+		d.Time = mostRecentWeekday(now, weekday)
+		return nil
+	}
+
+	// Handle date formats - try each format in priority order
+	formats := []struct {
+		layout       string
+		defaultYear  bool
+		defaultMonth bool
+	}{
+		{"2006-01-02", false, false}, // YYYY-MM-DD
+		{"2006/01/02", false, false}, // YYYY/MM/DD
+		{"06-01-02", false, false},   // YY-MM-DD
+		{"06/01/02", false, false},   // YY/MM/DD
+		{"01-02", true, false},       // MM-DD (default year)
+		{"1-2", true, false},         // M-D (default year)
+		{"02", true, true},           // DD (default year+month)
+		{"2", true, true},            // D (default year+month)
+	}
+
+	for _, fmt := range formats {
+		parsed, err := time.Parse(fmt.layout, string(text))
+		if err == nil {
+			year, month, day := parsed.Date()
+			if fmt.defaultYear {
+				year = now.Year()
+			}
+			if fmt.defaultMonth {
+				month = now.Month()
+			}
+			d.Time = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid date '%s'", string(text))
 }
 
 func (d Date) AddDays(numDays int) Date {
