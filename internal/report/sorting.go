@@ -26,8 +26,8 @@ func (r *Report) SortedCustomerProjects() []CustomerProject {
 			return si < sj
 		}
 		// Time spent: sort by total minutes
-		minutesI := r.TotalMinutesForCustomerProject(cps[i])
-		minutesJ := r.TotalMinutesForCustomerProject(cps[j])
+		minutesI := r.totalMinutesForCustomerProject(cps[i])
+		minutesJ := r.totalMinutesForCustomerProject(cps[j])
 		if r.Reverse {
 			return minutesI < minutesJ
 		}

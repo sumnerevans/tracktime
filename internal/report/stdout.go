@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/rodaine/table"
-
-	"github.com/sumnerevans/tracktime/internal/timeentry"
 )
 
 // ansiRegex matches ANSI escape codes
@@ -71,7 +68,7 @@ func (r *Report) GenerateTextReport() string {
 	}
 
 	// Grand Total
-	fmt.Fprintf(&buf, "%s %s\n", bold.Sprint("Grand Total:"), boldCyan.Sprintf("$%.2f", r.GrandTotal()))
+	fmt.Fprintf(&buf, "%s %s\n", bold.Sprint("Grand Total:"), boldCyan.Sprintf("$%.2f", r.grandTotal()))
 	buf.WriteString("\n")
 
 	// Statistics (if enabled)
@@ -111,7 +108,7 @@ func (r *Report) GenerateTextReport() string {
 		boldYellow.Sprint(ellipsize("TOTAL", 40)),
 		bold.Sprintf("%.2f", r.totalMinutes()/60.0),
 		"",
-		bold.Sprint(cyan.Sprintf("$%.2f", r.GrandTotal())),
+		bold.Sprint(cyan.Sprintf("$%.2f", r.grandTotal())),
 	)
 
 	// Customer/Project rows
@@ -130,7 +127,7 @@ func (r *Report) GenerateTextReport() string {
 
 		reportTable.AddRow(
 			boldYellow.Sprint(ellipsize(r.customerProjectStr(cp, false), 40)),
-			fmt.Sprintf("%.2f", r.TotalMinutesForCustomerProject(cp)/60.0),
+			fmt.Sprintf("%.2f", r.totalMinutesForCustomerProject(cp)/60.0),
 			rate,
 			total,
 		)
@@ -170,131 +167,4 @@ func (r *Report) GenerateTextReport() string {
 	reportTable.WithWriter(&buf).Print()
 	buf.WriteString("\n")
 	return buf.String()
-}
-
-// headerText returns the report header with smart date formatting
-func (r *Report) headerText() string {
-	// Check for whole year
-	if r.StartDate.Year() == r.EndDate.Year() &&
-		r.StartDate.Month() == time.January && r.StartDate.Day() == 1 &&
-		r.EndDate.Month() == time.December && r.EndDate.Day() == 31 {
-		return fmt.Sprintf("Time Report: %d", r.StartDate.Year())
-	}
-
-	// Check for single month
-	if r.StartDate.Year() == r.EndDate.Year() && r.StartDate.Month() == r.EndDate.Month() {
-		daysInMonth := time.Date(r.StartDate.Year(), r.StartDate.Month()+1, 0, 0, 0, 0, 0, time.UTC).Day()
-		if r.StartDate.Day() == 1 && r.EndDate.Day() == daysInMonth {
-			return fmt.Sprintf("Time Report: %s", r.StartDate.Format("January 2006"))
-		}
-
-		// Check for single day
-		if r.StartDate.Day() == r.EndDate.Day() {
-			return fmt.Sprintf("Time Report: %s", r.StartDate.Format("2006-01-02"))
-		}
-	}
-
-	// Default: show range
-	return fmt.Sprintf("Time Report: %s - %s", r.StartDate.Format("2006-01-02"), r.EndDate.Format("2006-01-02"))
-}
-
-// customerProjectStr formats customer/project string
-func (r *Report) customerProjectStr(cp CustomerProject, html bool) string {
-	noProject := "<no project>"
-	noCustomer := "<no customer>"
-	noBoth := "<no project or customer>"
-
-	if html {
-		noProject = "<i>no project</i>"
-		noCustomer = "<i>no customer</i>"
-		noBoth = "<i>no project or customer</i>"
-	}
-
-	if r.Customer != "" {
-		// Filtering by customer, show project
-		if cp.Project != "" {
-			return string(cp.Project)
-		}
-		return noProject
-	}
-
-	if r.Project != "" {
-		// Filtering by project, show customer
-		if cp.Customer != "" {
-			return string(cp.Customer)
-		}
-		return noCustomer
-	}
-
-	// Show both
-	if cp.Customer == "" && cp.Project == "" {
-		return noBoth
-	}
-	if cp.Customer != "" && cp.Project != "" {
-		return fmt.Sprintf("%s: %s", cp.Customer, cp.Project)
-	}
-	if cp.Customer != "" {
-		return string(cp.Customer)
-	}
-	return string(cp.Project)
-}
-
-// addressLines returns customer address lines
-func (r *Report) addressLines() []string {
-	var lines []string
-
-	// Add alias
-	alias := string(r.Customer)
-	if r.Config.Reporting.CustomerAliases != nil {
-		if a, ok := r.Config.Reporting.CustomerAliases[string(r.Customer)]; ok {
-			alias = a
-		}
-	}
-	lines = append(lines, alias)
-
-	// Add address
-	if r.Config.Reporting.CustomerAddresses != nil {
-		if addr, ok := r.Config.Reporting.CustomerAddresses[string(r.Customer)]; ok {
-			addrLines := strings.Split(strings.TrimSpace(addr), "\n")
-			lines = append(lines, addrLines...)
-		}
-	}
-
-	return lines
-}
-
-// formatTaskName formats a task name with ID and description
-func (r *Report) formatTaskName(cp CustomerProject, taskID timeentry.TaskID) string {
-	// Get first entry to check type
-	var firstEntry *timeentry.TimeEntry
-	for _, entries := range r.AggregatedTime[cp][taskID] {
-		if len(entries) > 0 {
-			firstEntry = entries[0]
-			break
-		}
-	}
-
-	if firstEntry == nil {
-		return "<NO TASK>"
-	}
-
-	taskName := "<NO TASK>"
-	if taskID != "" {
-		// Task IDs already include prefixes in the CSV data (#123, !456, etc.)
-		// so just use them directly
-		taskName = string(taskID)
-	}
-
-	// TODO: Add synchronizer task description lookup
-	// For now, just return the formatted task ID
-	return taskName
-}
-
-// totalMinutes returns total minutes across all entries
-func (r *Report) totalMinutes() float64 {
-	var total float64
-	for _, duration := range r.DayStats {
-		total += duration.Minutes()
-	}
-	return total
 }

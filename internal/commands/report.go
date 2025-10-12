@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -197,15 +198,27 @@ func (r *Report) Run(config *config.Config) error {
 		return fmt.Errorf("failed to create report: %w", err)
 	}
 
-	// Generate output
-	output := rep.GenerateTextReport()
+	// Determine output format based on file extension
+	outputPath := string(r.OutputFile)
 
-	// Strip formatting for stdout (match Python behavior line 651)
-	output = strings.ReplaceAll(output, "| ", "")
-	output = strings.ReplaceAll(output, "**", "")
-
-	// Print to stdout (or file, TODO)
-	fmt.Println(output)
+	if outputPath == "-" {
+		// stdout - use text report with colors
+		output := rep.GenerateTextReport()
+		// Strip formatting for stdout (match Python behavior line 651)
+		output = strings.ReplaceAll(output, "| ", "")
+		output = strings.ReplaceAll(output, "**", "")
+		fmt.Println(output)
+	} else if strings.HasSuffix(strings.ToLower(outputPath), ".md") {
+		// Markdown export
+		output := rep.GenerateMarkdownReport()
+		expandedPath := r.OutputFile.Expand()
+		if err := os.WriteFile(expandedPath, []byte(output), 0644); err != nil {
+			return fmt.Errorf("failed to write markdown report: %w", err)
+		}
+		fmt.Printf("Markdown report exported to %s\n", expandedPath)
+	} else {
+		return fmt.Errorf("unsupported output format for file %s (supported: .md, or use '-' for stdout)", outputPath)
+	}
 
 	return nil
 }
