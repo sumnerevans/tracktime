@@ -17,10 +17,9 @@ tracktime is a filesystem-backed time tracking solution that stores time trackin
 
 ### Go Development (current branch: golang)
 
-**Build and run:**
+**Run:**
 ```bash
-go build -o tt ./cmd/tt
-./tt --help
+go run ./cmd/tt --help
 ```
 
 **Run tests:**
@@ -137,7 +136,6 @@ Supports multiple grains (task-level, description-level) and sorting options. Cu
 ## Development Workflow
 
 - **Commit early and often**: Create git commits after completing logical units of work (individual features, bug fixes, or refactors). Don't wait to batch multiple changes together.
-- **Push often**: After completing commits, push to remote regularly to keep the remote branch up to date.
 - **Document analyses**: When performing complex analysis (code architecture, migration planning, debugging), write the findings to a markdown file in `.claude/` for reference. This helps maintain context and provides documentation for the user.
 - **Git workflow**:
   - Always use separate `git add` and `git commit` commands (never combine them with `&&`).
@@ -151,7 +149,6 @@ Supports multiple grains (task-level, description-level) and sorting options. Cu
   - Show the suggested message to the user
   - Ask user to approve or edit: "Commit message written to `.claude/commit_msg.txt`. Reply 'commit' to proceed, or edit the file and let me know when ready."
   - Wait for user confirmation before running `git commit -F .claude/commit_msg.txt`
-  - After committing, ask if user wants to push: "Ready to push? Reply 'push' to run git push."
 - **Commit message format**: Use `<component>: <short description>` format. Keep it concise and don't reference the branch name.
   - Example: `lib/date: add flexible date parsing`
   - Example: `pre-commit: remove Python linters`
