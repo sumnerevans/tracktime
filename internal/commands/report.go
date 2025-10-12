@@ -63,7 +63,7 @@ type Report struct {
 	Project  lib.Project  `arg:"-p,--project" help:"project name to generate a report for"`
 
 	// How to sort the report
-	Sort Sort `arg:"-s,--sort" help:"the grain to sort the report by (alphabetical,alpha,a or time-spent,time,t)" default:"alphabetical"`
+	Sort Sort `arg:"-s,--sort" help:"the grain to sort the report by (alphabetical,alpha,a or time-spent,time,t)" default:"time-spent"`
 	Desc bool `arg:"--desc" help:"sort descending"`
 	Asc  bool `arg:"--asc" help:"sort ascending"`
 
@@ -73,32 +73,69 @@ type Report struct {
 
 func (r *Report) Run(config *lib.Config) error {
 	var start, end lib.Date
-	switch {
-	case r.Today:
-		start = lib.Today()
-		end = lib.Today()
-	case r.Yesterday:
-		start = lib.Today().AddDays(-1)
-		end = lib.Today().AddDays(-1)
-	case r.ThisWeek:
-		start = lib.Today().AddDays(-int(lib.Today().Weekday()))
-		end = lib.Today().AddDays(6 - int(lib.Today().Weekday()))
-	case r.LastWeek:
-		start = lib.Today().AddDays(-int(lib.Today().Weekday()) - 7)
-		end = lib.Today().AddDays(6 - int(lib.Today().Weekday()) - 7)
-	case r.ThisMonth:
-		start = lib.Today().AddDays(1 - int(lib.Today().Day()))
-		end = lib.Today().AddMonths(1).AddDays(-int(lib.Today().AddMonths(1).Day()))
-	case r.ThisYear:
-		start = lib.NewDate(lib.Today().Year(), 1, 1)
-		end = lib.NewDate(lib.Today().Year(), 12, 31)
-	case r.LastYear:
-		start = lib.NewDate(lib.Today().Year()-1, 1, 1)
-		end = lib.NewDate(lib.Today().Year()-1, 12, 31)
-	default: // Last month
-		start = lib.Today().AddMonths(-1).AddDays(1 - int(lib.Today().AddMonths(-1).Day()))
-		end = lib.Today().AddDays(-int(lib.Today().Day()))
+	today := lib.Today()
+
+	// Handle positional range arguments first
+	if r.Start != nil && r.End != nil {
+		start = *r.Start
+		end = *r.End
+	} else if r.Year != 0 || r.ThisYear || r.LastYear {
+		// Yearly range
+		year := today.Year()
+		if r.Year != 0 {
+			year = r.Year
+		} else if r.LastYear {
+			year--
+		}
+		start = lib.NewDate(year, 1, 1)
+		end = lib.NewDate(year, 12, 31)
+
+		// If month is also specified, narrow to that month
+		if !r.Month.IsZero() {
+			monthWithYear := r.Month
+			if r.Month.Year() == 0 {
+				// Month was specified without year, use the year from above
+				monthWithYear = lib.NewMonth(year, r.Month.Month())
+			}
+			if monthWithYear.Year() != year {
+				return fmt.Errorf("when specifying a year, the month must be in the same year")
+			}
+			start = lib.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), 1)
+			end = lib.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), monthWithYear.DaysInMonth())
+		}
+	} else if r.Today {
+		start = today
+		end = today
+	} else if r.Yesterday {
+		start = today.AddDays(-1)
+		end = today.AddDays(-1)
+	} else if r.ThisWeek {
+		start = today.AddDays(-int(today.Weekday()))
+		end = today.AddDays(6 - int(today.Weekday()))
+	} else if r.LastWeek {
+		start = today.AddDays(-int(today.Weekday()) - 7)
+		end = today.AddDays(6 - int(today.Weekday()) - 7)
+	} else {
+		// Monthly (default)
+		// Default to last month
+		lastMonth := today.AddMonths(-1)
+		start = lib.NewDate(lastMonth.Year(), int(lastMonth.Month()), 1)
+
+		if !r.Month.IsZero() {
+			monthWithYear := r.Month
+			if r.Month.Year() == 0 {
+				// Month was specified without year, use current year
+				monthWithYear = lib.NewMonth(today.Year(), r.Month.Month())
+			}
+			start = lib.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), 1)
+		} else if r.ThisMonth {
+			start = lib.NewDate(today.Year(), int(today.Month()), 1)
+		}
+
+		end = lib.NewDate(start.Year(), int(start.Month()), start.DaysInMonth())
 	}
+
+	// Allow positional arguments to override
 	if r.Start != nil {
 		start = *r.Start
 	}
@@ -116,12 +153,24 @@ func (r *Report) Run(config *lib.Config) error {
 		return fmt.Errorf("start date must be before end date")
 	}
 
-	// Determine sort direction (desc overrides asc)
+	// Determine sort direction
+	// Reverse=false gives: alphabetical A-Z, time-spent largest-first (both are defaults)
+	// User can override with --desc (Reverse=true) or --asc (Reverse=false)
 	reverse := r.Desc
 
-	// Determine grains
-	taskGrain := r.TaskGrain || r.DescriptionGrain
-	descriptionGrain := r.DescriptionGrain
+	// Determine grains with defaults based on date range (match Python logic)
+	dateDiff := int(end.Sub(start.Time).Hours() / 24)
+	taskGrain := dateDiff <= 31       // Default: enabled for ranges <= 31 days
+	descriptionGrain := dateDiff <= 7 // Default: enabled for ranges <= 7 days
+
+	// Override with explicit flags
+	if r.TaskGrain {
+		taskGrain = true
+	}
+	if r.DescriptionGrain {
+		descriptionGrain = true
+		taskGrain = true // Description grain requires task grain
+	}
 	if r.NoTaskGrain {
 		taskGrain = false
 		descriptionGrain = false
