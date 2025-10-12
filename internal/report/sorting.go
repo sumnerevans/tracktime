@@ -8,8 +8,8 @@ import (
 	"github.com/sumnerevans/tracktime/internal/timeentry"
 )
 
-// SortedCustomerProjects returns CustomerProject keys sorted according to report settings
-func (r *Report) SortedCustomerProjects() []CustomerProject {
+// sortedCustomerProjects returns CustomerProject keys sorted according to report settings
+func (r *Report) sortedCustomerProjects() []CustomerProject {
 	cps := make([]CustomerProject, 0, len(r.AggregatedTime))
 	for cp := range r.AggregatedTime {
 		cps = append(cps, cp)
@@ -37,8 +37,8 @@ func (r *Report) SortedCustomerProjects() []CustomerProject {
 	return cps
 }
 
-// SortedTaskIDs returns TaskID keys for a customer/project sorted according to report settings
-func (r *Report) SortedTaskIDs(cp CustomerProject) []timeentry.TaskID {
+// sortedTaskIDs returns TaskID keys for a customer/project sorted according to report settings
+func (r *Report) sortedTaskIDs(cp CustomerProject) []timeentry.TaskID {
 	tasks := r.AggregatedTime[cp]
 	taskIDs := make([]timeentry.TaskID, 0, len(tasks))
 	for taskID := range tasks {
@@ -56,8 +56,8 @@ func (r *Report) SortedTaskIDs(cp CustomerProject) []timeentry.TaskID {
 			return si < sj
 		}
 		// Time spent: sort by total minutes for this task
-		minutesI := r.TotalMinutesForTask(cp, taskIDs[i])
-		minutesJ := r.TotalMinutesForTask(cp, taskIDs[j])
+		minutesI := r.totalMinutesForTask(cp, taskIDs[i])
+		minutesJ := r.totalMinutesForTask(cp, taskIDs[j])
 		if r.Reverse {
 			return minutesI < minutesJ
 		}
@@ -67,8 +67,8 @@ func (r *Report) SortedTaskIDs(cp CustomerProject) []timeentry.TaskID {
 	return taskIDs
 }
 
-// SortedDescriptions returns description keys for a task sorted according to report settings
-func (r *Report) SortedDescriptions(cp CustomerProject, taskID timeentry.TaskID) []string {
+// sortedDescriptions returns description keys for a task sorted according to report settings
+func (r *Report) sortedDescriptions(cp CustomerProject, taskID timeentry.TaskID) []string {
 	descriptions := r.AggregatedTime[cp][taskID]
 	descs := make([]string, 0, len(descriptions))
 	for desc := range descriptions {
@@ -86,8 +86,8 @@ func (r *Report) SortedDescriptions(cp CustomerProject, taskID timeentry.TaskID)
 			return si < sj
 		}
 		// Time spent: sort by total minutes for this description
-		minutesI := r.TotalMinutesForDescription(cp, taskID, descs[i])
-		minutesJ := r.TotalMinutesForDescription(cp, taskID, descs[j])
+		minutesI := r.totalMinutesForDescription(cp, taskID, descs[i])
+		minutesJ := r.totalMinutesForDescription(cp, taskID, descs[j])
 		if r.Reverse {
 			return minutesI < minutesJ
 		}
@@ -97,8 +97,8 @@ func (r *Report) SortedDescriptions(cp CustomerProject, taskID timeentry.TaskID)
 	return descs
 }
 
-// TotalMinutesForTask returns total minutes for a specific task
-func (r *Report) TotalMinutesForTask(cp CustomerProject, taskID timeentry.TaskID) float64 {
+// totalMinutesForTask returns total minutes for a specific task
+func (r *Report) totalMinutesForTask(cp CustomerProject, taskID timeentry.TaskID) float64 {
 	var total time.Duration
 	for _, entries := range r.AggregatedTime[cp][taskID] {
 		for _, entry := range entries {
@@ -110,8 +110,8 @@ func (r *Report) TotalMinutesForTask(cp CustomerProject, taskID timeentry.TaskID
 	return total.Minutes()
 }
 
-// TotalMinutesForDescription returns total minutes for a specific description
-func (r *Report) TotalMinutesForDescription(cp CustomerProject, taskID timeentry.TaskID, description string) float64 {
+// totalMinutesForDescription returns total minutes for a specific description
+func (r *Report) totalMinutesForDescription(cp CustomerProject, taskID timeentry.TaskID, description string) float64 {
 	var total time.Duration
 	for _, entry := range r.AggregatedTime[cp][taskID][description] {
 		if duration, err := entry.Duration(false); err == nil {

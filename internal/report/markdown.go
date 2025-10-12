@@ -58,7 +58,7 @@ func (r *Report) GenerateMarkdownReport() string {
 		r.grandTotal()))
 
 	// Customer/Project rows
-	for _, cp := range r.SortedCustomerProjects() {
+	for _, cp := range r.sortedCustomerProjects() {
 		rt := r.RateTotals[cp]
 
 		rate := ""
@@ -79,12 +79,12 @@ func (r *Report) GenerateMarkdownReport() string {
 		}
 
 		// Task level
-		for _, taskID := range r.SortedTaskIDs(cp) {
+		for _, taskID := range r.sortedTaskIDs(cp) {
 			taskName := r.formatTaskName(cp, taskID)
 			// Use &nbsp; for indentation in markdown tables
 			buf.WriteString(fmt.Sprintf("| &nbsp;&nbsp;• %s | %.2f | | |\n",
 				html.EscapeString(taskName),
-				r.TotalMinutesForTask(cp, taskID)/60.0))
+				r.totalMinutesForTask(cp, taskID)/60.0))
 
 			if !r.DescriptionGrain {
 				continue
@@ -99,7 +99,7 @@ func (r *Report) GenerateMarkdownReport() string {
 			}
 
 			// Description level
-			for _, desc := range r.SortedDescriptions(cp, taskID) {
+			for _, desc := range r.sortedDescriptions(cp, taskID) {
 				displayDesc := desc
 				if displayDesc == "" {
 					displayDesc = "(no description)"
@@ -107,7 +107,7 @@ func (r *Report) GenerateMarkdownReport() string {
 				// Use more &nbsp; for deeper indentation
 				buf.WriteString(fmt.Sprintf("| &nbsp;&nbsp;&nbsp;&nbsp;◦ %s | %.2f | | |\n",
 					html.EscapeString(displayDesc),
-					r.TotalMinutesForDescription(cp, taskID, desc)/60.0))
+					r.totalMinutesForDescription(cp, taskID, desc)/60.0))
 			}
 		}
 	}

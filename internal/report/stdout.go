@@ -112,7 +112,7 @@ func (r *Report) GenerateTextReport() string {
 	)
 
 	// Customer/Project rows
-	for _, cp := range r.SortedCustomerProjects() {
+	for _, cp := range r.sortedCustomerProjects() {
 		// Customer/project summary row
 		rt := r.RateTotals[cp]
 
@@ -137,9 +137,9 @@ func (r *Report) GenerateTextReport() string {
 		}
 
 		// Task level
-		for _, taskID := range r.SortedTaskIDs(cp) {
+		for _, taskID := range r.sortedTaskIDs(cp) {
 			taskName := " * " + r.formatTaskName(cp, taskID)
-			reportTable.AddRow(ellipsize(taskName, 40), fmt.Sprintf("%.2f", r.TotalMinutesForTask(cp, taskID)/60.0), "", "")
+			reportTable.AddRow(ellipsize(taskName, 40), fmt.Sprintf("%.2f", r.totalMinutesForTask(cp, taskID)/60.0), "", "")
 
 			if !r.DescriptionGrain {
 				continue
@@ -154,12 +154,12 @@ func (r *Report) GenerateTextReport() string {
 			}
 
 			// Description level
-			for _, desc := range r.SortedDescriptions(cp, taskID) {
+			for _, desc := range r.sortedDescriptions(cp, taskID) {
 				if desc == "" {
 					desc = "<NO DESCRIPTION>"
 				}
 				descName := "    * " + desc
-				reportTable.AddRow(ellipsize(descName, 40), fmt.Sprintf("%.2f", r.TotalMinutesForDescription(cp, taskID, desc)/60.0), "", "")
+				reportTable.AddRow(ellipsize(descName, 40), fmt.Sprintf("%.2f", r.totalMinutesForDescription(cp, taskID, desc)/60.0), "", "")
 			}
 		}
 	}

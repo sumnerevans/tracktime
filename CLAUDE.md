@@ -171,6 +171,11 @@ Supports multiple grains (task-level, description-level) and sorting options. Cu
 
 ## Coding Style
 
+- **Go Visibility Rules**: In Go, identifiers (functions, types, variables, etc.) are exported (public) if they start with an uppercase letter, and unexported (private to the package) if they start with a lowercase letter.
+  - **Exported (public)**: `SortedCustomerProjects()`, `CustomerProject`, `Report`
+  - **Unexported (private)**: `sortedCustomerProjects()`, `customerProject`, `report`
+  - **Best practice**: Only export identifiers that need to be used outside the package. Keep internal implementation details private.
+
 - **Avoid single-use variables**: Don't create variables to hold the result of a function call if the variable is only used once immediately after. Inline the function call instead.
   - **Exception**: Long or complex function invocations that hurt readability can use a variable for clarity.
   - **Bad**:
