@@ -29,8 +29,7 @@ func (r *Report) GenerateTextReport() string {
 	if r.Customer != "" {
 		buf.WriteString("**Customer:**\n")
 		buf.WriteString("\n")
-		addressLines := r.addressLines()
-		for _, line := range addressLines {
+		for _, line := range r.addressLines() {
 			fmt.Fprintf(&buf, "    | %s\n", line)
 		}
 		buf.WriteString("\n")
@@ -70,23 +69,19 @@ func (r *Report) GenerateTextReport() string {
 		AddRow("TOTAL", fmt.Sprintf("%.2f", r.totalMinutes()/60.0), "", fmt.Sprintf("%.2f", r.GrandTotal()))
 
 	// Customer/Project rows
-	cps := r.SortedCustomerProjects()
-	for _, cp := range cps {
+	for _, cp := range r.SortedCustomerProjects() {
 		// Customer/project summary row
-		cpMinutes := r.TotalMinutesForCustomerProject(cp)
 		rt := r.RateTotals[cp]
 
-		reportTable.AddRow(r.customerProjectStr(cp, false), fmt.Sprintf("%.2f", cpMinutes/60.0), fmt.Sprintf("%.2f", rt.Rate), fmt.Sprintf("%.2f", rt.Total))
+		reportTable.AddRow(r.customerProjectStr(cp, false), fmt.Sprintf("%.2f", r.TotalMinutesForCustomerProject(cp)/60.0), fmt.Sprintf("%.2f", rt.Rate), fmt.Sprintf("%.2f", rt.Total))
 
 		if !r.TaskGrain {
 			continue
 		}
 
 		// Task level
-		taskIDs := r.SortedTaskIDs(cp)
-		for _, taskID := range taskIDs {
-			taskMinutes := r.TotalMinutesForTask(cp, taskID)
-			reportTable.AddRow(" * "+r.formatTaskName(cp, taskID), fmt.Sprintf("%.2f", taskMinutes/60.0), "", "")
+		for _, taskID := range r.SortedTaskIDs(cp) {
+			reportTable.AddRow(" * "+r.formatTaskName(cp, taskID), fmt.Sprintf("%.2f", r.TotalMinutesForTask(cp, taskID)/60.0), "", "")
 
 			if !r.DescriptionGrain {
 				continue
@@ -101,13 +96,11 @@ func (r *Report) GenerateTextReport() string {
 			}
 
 			// Description level
-			descs := r.SortedDescriptions(cp, taskID)
-			for _, desc := range descs {
+			for _, desc := range r.SortedDescriptions(cp, taskID) {
 				if desc == "" {
 					desc = "<NO DESCRIPTION>"
 				}
-				descMinutes := r.TotalMinutesForDescription(cp, taskID, desc)
-				reportTable.AddRow("    * "+desc, fmt.Sprintf("%.2f", descMinutes/60.0), "", "")
+				reportTable.AddRow("    * "+desc, fmt.Sprintf("%.2f", r.TotalMinutesForDescription(cp, taskID, desc)/60.0), "", "")
 			}
 		}
 	}
