@@ -1,9 +1,10 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/fatih/color"
 	"github.com/rodaine/table"
-	"github.com/rs/zerolog/log"
 
 	"github.com/sumnerevans/tracktime/internal/config"
 	"github.com/sumnerevans/tracktime/internal/timeentry"
@@ -18,26 +19,28 @@ type List struct {
 func (l *List) Run(config *config.Config) error {
 	entryList, err := timeentry.EntryListForDay(config, l.Date)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to read entry list")
+		return fmt.Errorf("failed to read entry list: %w", err)
 	}
 
-	green := color.New(color.FgGreen, color.Bold)
-	green.Printf("Entries for %s\n", l.Date.Format("2006-01-02"))
-	green.Print("======================\n\n")
+	greenUnderline := color.New(color.FgGreen, color.Bold, color.Underline)
+	greenUnderline.Printf("Entries for %s\n\n", l.Date.Format("2006-01-02"))
 
-	tbl := table.New("#", "start", "stop", "project", "type", "task ID", "customer", "description")
+	tbl := table.
+		New("#", "start", "stop", "project", "type", "task ID", "customer", "description").
+		WithHeaderFormatter(greenUnderline.SprintfFunc()).
+		WithFirstColumnFormatter(color.New(color.FgYellow).SprintfFunc()).
+		WithPadding(3)
+
 	for _, entry := range entryList.EntriesForCustomer(l.Customer) {
 		tbl.AddRow(entry.Index, entry.Start, entry.Stop, entry.Project, entry.Type, entry.TaskID, entry.Customer, entry.Description)
 	}
 
-	tbl.WithHeaderFormatter(green.SprintfFunc())
-	tbl.WithFirstColumnFormatter(color.New(color.FgYellow).SprintfFunc())
-	tbl.WithPadding(3)
-
 	tbl.Print()
 
 	duration := entryList.TotalTimeForCustomer(l.Customer)
-	green.Printf("\nTotal: %d:%d\n", int(duration.Minutes())/60, int(duration.Minutes())%60)
 
-	return err
+	color.New(color.FgGreen, color.Bold).
+		Printf("\nTotal: %d:%d\n", int(duration.Minutes())/60, int(duration.Minutes())%60)
+
+	return nil
 }
