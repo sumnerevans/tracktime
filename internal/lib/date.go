@@ -31,6 +31,21 @@ func mostRecentWeekday(now time.Time, target time.Weekday) time.Time {
 	return now.AddDate(0, 0, int(target-now.Weekday()))
 }
 
+// UnmarshalText parses a date from text input, supporting multiple formats:
+//
+// Special keywords:
+//   - "today": Current date
+//   - "yesterday": Previous day
+//
+// Weekday names (case-insensitive):
+//   - "monday", "tuesday", etc.: Most recent occurrence of that weekday
+//     (includes today if today is that weekday, otherwise goes backwards)
+//
+// Date formats:
+//   - YYYY-MM-DD, YYYY/MM/DD: Full dates
+//   - YY-MM-DD, YY/MM/DD: Two-digit year
+//   - MM-DD, M-D: Defaults to current year
+//   - DD, D: Defaults to current year and month
 func (d *Date) UnmarshalText(text []byte) error {
 	now := time.Now().Local()
 	input := strings.ToLower(string(text))
