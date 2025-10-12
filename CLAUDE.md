@@ -163,6 +163,26 @@ Supports multiple grains (task-level, description-level) and sorting options. Cu
   pre-commit run --all-files
   ```
 
+## Coding Style
+
+- **Avoid single-use variables**: Don't create variables to hold the result of a function call if the variable is only used once immediately after. Inline the function call instead.
+  - **Exception**: Long or complex function invocations that hurt readability can use a variable for clarity.
+  - **Bad**:
+    ```go
+    header := r.headerText()
+    buf.WriteString(header)
+    ```
+  - **Good**:
+    ```go
+    buf.WriteString(r.headerText())
+    ```
+  - **Exception (acceptable)**:
+    ```go
+    // Complex invocation with multiple chained calls
+    formattedResult := someObj.VeryLongMethodName().WithMultipleChainedCalls().AndMoreChaining()
+    buf.WriteString(formattedResult)
+    ```
+
 ## Important Notes
 
 - **Unsupported edge cases**: Daylight saving time, multi-day entries, timezone switches within a day
