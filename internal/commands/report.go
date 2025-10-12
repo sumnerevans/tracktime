@@ -203,11 +203,7 @@ func (r *Report) Run(config *config.Config) error {
 
 	if outputPath == "-" {
 		// stdout - use text report with colors
-		output := rep.GenerateTextReport()
-		// Strip formatting for stdout (match Python behavior line 651)
-		output = strings.ReplaceAll(output, "| ", "")
-		output = strings.ReplaceAll(output, "**", "")
-		fmt.Println(output)
+		fmt.Println(rep.GenerateTextReport())
 	} else if strings.HasSuffix(strings.ToLower(outputPath), ".md") {
 		// Markdown export
 		output := rep.GenerateMarkdownReport()
