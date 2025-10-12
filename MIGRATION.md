@@ -120,16 +120,19 @@ tracktime/                  # Legacy Python implementation
 **Implemented Files:**
 - `internal/report/report.go` - Core report logic and data aggregation
 - `internal/report/stdout.go` - Text report generation (complete)
+- `internal/report/markdown.go` - Markdown export (complete)
 - `internal/report/statistics.go` - Statistics calculations
 - `internal/report/sorting.go` - Sort logic for customers/projects/tasks
 
-**❌ Export Formats - Not Implemented:**
-- PDF export (Python uses ReportLab)
-- HTML export
-- RST export
-- File output (--outfile flag parsed but not wired up)
+**✅ Implemented Export Formats:**
+- Markdown export (.md) - Complete!
 
-**Note:** The report command stdout output is **100% complete** with full color formatting and proper table alignment. Only export formats (PDF/HTML/RST) remain to be implemented.
+**❌ Export Formats - Not Implemented:**
+- HTML export
+- Typst export (potential intermediate format for PDF generation)
+- PDF export (likely via Typst→PDF, Python used pdfkit/wkhtmltopdf)
+
+**Note:** The report command stdout output is **100% complete** with full color formatting and proper table alignment. Markdown export is also complete. Only HTML, Typst, and PDF export formats remain to be implemented.
 
 #### Sync Command Details
 
@@ -183,9 +186,10 @@ tracktime/                  # Legacy Python implementation
 
 ### Report Functionality
 - ✅ Stdout output (complete with colors and formatting!)
-- ❌ PDF export (Python uses ReportLab)
+- ✅ Markdown export (.md files) - Complete!
 - ❌ HTML export
-- ❌ RST export
+- ❌ Typst export (potential intermediate format for PDF generation)
+- ❌ PDF export (likely via Typst→PDF, Python used pdfkit/wkhtmltopdf)
 
 ### Sync Functionality
 - ❌ `.synced` file reading/writing
@@ -218,11 +222,12 @@ Based on current state and user needs:
 
 1. **High Priority** - Complete report export formats:
    - ✅ ~~Stdout formatting~~ (DONE!)
-   - ❌ Implement PDF export (requires library selection and integration)
+   - ✅ ~~Implement Markdown export~~ (DONE!)
    - ❌ Implement HTML export
-   - ❌ Implement RST export
-   - ❌ Wire up --outfile flag to write to files
-   - Note: Stdout output is complete and production-ready
+   - ❌ Implement Typst export (potential intermediate format for PDF)
+   - ❌ Implement PDF export (likely Typst→PDF conversion, requires library selection)
+   - Note: Stdout output and Markdown export are complete and production-ready
+   - Note: Export format decision: stdout (colors), markdown, html, typst (maybe), pdf (RST removed)
 
 2. **Medium Priority** - Testing:
    - Add unit tests for commands (start, stop, resume, list, edit, sync, report)
