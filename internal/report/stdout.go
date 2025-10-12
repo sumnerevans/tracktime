@@ -13,37 +13,38 @@ import (
 
 // GenerateTextReport generates a plain text report matching Python's output format
 func (r *Report) GenerateTextReport() string {
-	var lines []string
+	var buf strings.Builder
 
 	// Header
 	header := r.headerText()
-	lines = append(lines, header)
-	lines = append(lines, strings.Repeat("=", len(header)))
-	lines = append(lines, "")
+	buf.WriteString(header)
+	buf.WriteString("\n")
+	buf.WriteString(strings.Repeat("=", len(header)))
+	buf.WriteString("\n\n")
 
 	// User
-	lines = append(lines, fmt.Sprintf("**User:** %s", r.Config.Reporting.FullName))
-	lines = append(lines, "")
+	fmt.Fprintf(&buf, "**User:** %s\n", r.Config.Reporting.FullName)
+	buf.WriteString("\n")
 
 	// Customer address (if single customer report)
 	if r.Customer != "" {
-		lines = append(lines, "**Customer:**")
-		lines = append(lines, "")
+		buf.WriteString("**Customer:**\n")
+		buf.WriteString("\n")
 		addressLines := r.addressLines()
 		for _, line := range addressLines {
-			lines = append(lines, fmt.Sprintf("    | %s", line))
+			fmt.Fprintf(&buf, "    | %s\n", line)
 		}
-		lines = append(lines, "")
+		buf.WriteString("\n")
 	}
 
 	// Grand Total
-	lines = append(lines, fmt.Sprintf("**Grand Total:** $%.2f", r.GrandTotal()))
-	lines = append(lines, "")
+	fmt.Fprintf(&buf, "**Grand Total:** $%.2f\n", r.GrandTotal())
+	buf.WriteString("\n")
 
 	// Statistics (if enabled)
 	if r.Config.Reporting.ReportStatistics {
-		lines = append(lines, "**Statistics:**")
-		lines = append(lines, "")
+		buf.WriteString("**Statistics:**\n")
+		buf.WriteString("\n")
 		stats := r.CalculateStatistics()
 		statsMap := stats.StatisticsMap()
 
@@ -65,16 +66,16 @@ func (r *Report) GenerateTextReport() string {
 		}
 		for _, key := range order {
 			value := statsMap[key]
-			lines = append(lines, fmt.Sprintf("    | %s %s", padRight(key+":", maxLen+2), value))
+			fmt.Fprintf(&buf, "    | %s %s\n", padRight(key+":", maxLen+2), value)
 		}
-		lines = append(lines, "")
-		lines = append(lines, "* a week is any set of five weekdays (not necessarily within the same calendar week)")
-		lines = append(lines, "")
+		buf.WriteString("\n")
+		buf.WriteString("* a week is any set of five weekdays (not necessarily within the same calendar week)\n")
+		buf.WriteString("\n")
 	}
 
 	// Detailed Time Report
-	lines = append(lines, "**Detailed Time Report:**")
-	lines = append(lines, "")
+	buf.WriteString("**Detailed Time Report:**\n")
+	buf.WriteString("\n")
 
 	// TOTAL row
 	reportTable := table.New("", "Hours", "Rate ($/h)", "Total ($)")
@@ -126,10 +127,10 @@ func (r *Report) GenerateTextReport() string {
 		}
 	}
 
-	lines = append(lines, r.tableToString(reportTable))
-	lines = append(lines, "")
+	buf.WriteString(r.tableToString(reportTable))
+	buf.WriteString("\n")
 
-	return strings.Join(lines, "\n")
+	return buf.String()
 }
 
 // headerText returns the report header with smart date formatting
