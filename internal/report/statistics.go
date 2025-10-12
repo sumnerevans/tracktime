@@ -39,13 +39,11 @@ func (r *Report) CalculateStatistics() *Statistics {
 
 	// Calculate averages
 	if stats.DaysWorked > 0 {
-		avgMinutes := totalMinutes / float64(stats.DaysWorked)
-		stats.AvgTimePerDay = time.Duration(avgMinutes) * time.Minute
+		stats.AvgTimePerDay = time.Duration(totalMinutes/float64(stats.DaysWorked)) * time.Minute
 	}
 
 	if stats.WeekdaysWorked > 0 {
-		avgMinutes := totalMinutes / float64(stats.WeekdaysWorked)
-		stats.AvgTimePerWeekday = time.Duration(avgMinutes) * time.Minute
+		stats.AvgTimePerWeekday = time.Duration(totalMinutes/float64(stats.WeekdaysWorked)) * time.Minute
 	}
 
 	// Calculate weeks worked and average per week
@@ -57,8 +55,7 @@ func (r *Report) CalculateStatistics() *Statistics {
 		// Less than a week worked, use total
 		stats.AvgTimePerWeek = time.Duration(totalMinutes) * time.Minute
 	} else {
-		avgMinutes := totalMinutes / stats.WeeksWorked
-		stats.AvgTimePerWeek = time.Duration(avgMinutes) * time.Minute
+		stats.AvgTimePerWeek = time.Duration(totalMinutes/stats.WeeksWorked) * time.Minute
 	}
 
 	return &stats
@@ -67,7 +64,5 @@ func (r *Report) CalculateStatistics() *Statistics {
 // formatDuration formats duration as H:MM
 func formatDuration(d time.Duration) string {
 	minutes := int(d.Minutes())
-	hours := minutes / 60
-	mins := minutes % 60
-	return fmt.Sprintf("%d:%02d", hours, mins)
+	return fmt.Sprintf("%d:%02d", minutes/60, minutes%60)
 }
