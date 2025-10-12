@@ -17,9 +17,15 @@ tracktime is a filesystem-backed time tracking solution that stores time trackin
 
 ### Go Development (current branch: golang)
 
+**Configuration:**
+When running the Go version of tracktime, use the example config at `examples/tracktimerc.go-example`. Either:
+- Copy it to `~/.config/tracktime/tracktimerc`, or
+- Use the `--config` flag: `go run ./cmd/tt --config examples/tracktimerc.go-example`
+
 **Run:**
 ```bash
 go run ./cmd/tt --help
+go run ./cmd/tt --config examples/tracktimerc.go-example report --thisweek
 ```
 
 **Run tests:**

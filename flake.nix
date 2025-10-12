@@ -18,6 +18,7 @@
             gotools
             pre-commit
             python3Packages.selenium
+            poetry
           ];
 
           # Run this command, only after creating the virtual environment
