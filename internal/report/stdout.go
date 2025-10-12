@@ -65,8 +65,7 @@ func (r *Report) GenerateTextReport() string {
 			lines = append(lines, fmt.Sprintf("    | %s %s", padRight(key+":", maxLen+2), value))
 		}
 		lines = append(lines, "")
-		lines = append(lines, "* a week is any set of five weekdays (not necessarily within the same")
-		lines = append(lines, "calendar week)")
+		lines = append(lines, "* a week is any set of five weekdays (not necessarily within the same calendar week)")
 		lines = append(lines, "")
 	}
 
