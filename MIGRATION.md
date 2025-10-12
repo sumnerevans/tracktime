@@ -23,12 +23,13 @@ The entire codebase was refactored from a flat structure into a proper Go projec
 - New package: `internal/report/` (split from commands for better organization)
 
 **September-October 2025 - Report Command Implementation:**
-The report command received extensive development (10+ commits) and now has full stdout output functionality:
-- Complete text report generation matching Python output
+The report command received extensive development (10+ commits) and now has functional stdout output:
+- Text report generation with all core features
 - Statistics calculation and formatting
 - Table formatting using rodaine/table library
 - All sorting and grain options working
-- Only export formats (PDF/HTML/RST) remain to be implemented
+- Stdout formatting needs polish to match Python output exactly
+- Export formats (PDF/HTML/RST) remain to be implemented
 
 ### Current Project Structure
 
@@ -93,12 +94,12 @@ tracktime/                  # Legacy Python implementation
 
 | Command | File | What Works | What's Missing |
 |---------|------|------------|----------------|
-| **report** | `internal/commands/report.go` + `internal/report/*.go` | Full stdout text output, statistics, aggregation, all options | PDF, HTML, RST export formats; file output |
+| **report** | `internal/commands/report.go` + `internal/report/*.go` | Statistics, aggregation, all date/filter options, basic stdout output | Stdout formatting polish, PDF/HTML/RST export formats, file output |
 | **sync** | `internal/commands/sync.go` | Command structure, argument parsing | Full implementation (currently just spawns goroutines) |
 
 #### Report Command Details
 
-**✅ Fully Working (Stdout Output):**
+**✅ Fully Working:**
 - ✅ All date range shortcuts (`--today`, `--yesterday`, `--thisweek`, `--lastweek`, `--thismonth`, `--lastmonth`, `--thisyear`, `--lastyear`)
 - ✅ Month/year shorthand (`-m`, `-y`)
 - ✅ Positional date range (start/end dates)
@@ -107,16 +108,18 @@ tracktime/                  # Legacy Python implementation
 - ✅ Statistics calculation (days worked, average time per day/weekday/week)
 - ✅ Sort by alphabetical or time-spent, ascending/descending
 - ✅ Grain options (task/description level) with smart defaults based on date range
-- ✅ Formatted table output using rodaine/table library
 - ✅ Rate and total calculations
-- ✅ Header formatting matching Python output
-- ✅ Grand total display
 
 **Implemented Files:**
 - `internal/report/report.go` - Core report logic and data aggregation
-- `internal/report/stdout.go` - Text report generation (complete)
+- `internal/report/stdout.go` - Text report generation
 - `internal/report/statistics.go` - Statistics calculations
 - `internal/report/sorting.go` - Sort logic for customers/projects/tasks
+
+**🚧 Needs Polish:**
+- ⚠️ Stdout formatting quality (functional but needs visual improvements)
+- ⚠️ Table alignment and spacing
+- ⚠️ Match Python output format exactly
 
 **❌ Still Missing:**
 - PDF export (Python uses ReportLab)
@@ -124,7 +127,7 @@ tracktime/                  # Legacy Python implementation
 - RST export
 - File output (--outfile flag parsed but not wired up)
 
-**Note:** The report command is **~90% complete**. Stdout output fully matches Python implementation. Only export formats remain.
+**Note:** The report command is **~85% complete**. Core functionality and data aggregation work perfectly. Stdout formatting needs polish to match Python output quality. Export formats remain to be implemented.
 
 #### Sync Command Details
 
@@ -177,7 +180,7 @@ tracktime/                  # Legacy Python implementation
 - ❌ Linear synchroniser
 
 ### Report Functionality
-- ✅ Formatted stdout output (complete!)
+- 🚧 Stdout output (functional but needs formatting polish)
 - ❌ PDF export (Python uses ReportLab)
 - ❌ HTML export
 - ❌ RST export
@@ -211,13 +214,13 @@ tracktime/                  # Legacy Python implementation
 
 Based on current state and user needs:
 
-1. **High Priority** - Complete report export formats:
-   - ✅ ~~Stdout output~~ (DONE!)
+1. **High Priority** - Complete report command:
+   - 🚧 Polish stdout formatting to match Python output exactly
    - ❌ Implement PDF export (requires library selection and integration)
    - ❌ Implement HTML export
    - ❌ Implement RST export
    - ❌ Wire up --outfile flag to write to files
-   - Note: Stdout reporting is fully functional and matches Python output
+   - Note: Core functionality works but output formatting needs improvement
 
 2. **Medium Priority** - Testing:
    - Add unit tests for commands (start, stop, resume, list, edit, sync, report)
@@ -304,18 +307,18 @@ Current version: **v0.11.0** (as declared in `cmd/tt/main.go:28`)
 
 ## Summary
 
-The Go rewrite is **~75% complete** and already usable for daily time tracking:
+The Go rewrite is **~70% complete** and already usable for daily time tracking:
 
 | Component | Completion |
 |-----------|------------|
 | Core library (types, config, entry list) | **100%** ✅ |
 | Basic commands (start, stop, resume, list, edit) | **100%** ✅ |
-| Report command (stdout output) | **100%** ✅ |
+| Report command (stdout output) | **85%** 🚧 (functional but needs formatting polish) |
 | Report export formats (PDF/HTML/RST) | **0%** ❌ |
 | Sync command | **10%** ❌ |
 | Synchronizers | **5%** ❌ |
 | Test coverage | **20%** (types only) ⚠️ |
 
-**Ready for use:** Yes! All core functionality works. Only export formats and sync are missing.
+**Ready for use:** Yes! All core functionality works. Report output is functional but formatting could be improved.
 
-**Next major milestone:** Complete report export formats (PDF, HTML, RST) to reach full feature parity with Python for reporting.
+**Next major milestone:** Polish stdout formatting to match Python output quality, then complete export formats (PDF, HTML, RST).
