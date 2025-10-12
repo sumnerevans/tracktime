@@ -28,7 +28,12 @@ func mostRecentWeekday(now time.Time, target time.Weekday) time.Time {
 	if now.Weekday() == target {
 		return now
 	}
-	return now.AddDate(0, 0, int(target-now.Weekday()))
+	diff := int(target - now.Weekday())
+	if diff > 0 {
+		// Target is later in the week, so go back to previous week
+		diff -= 7
+	}
+	return now.AddDate(0, 0, diff)
 }
 
 // UnmarshalText parses a date from text input, supporting multiple formats:

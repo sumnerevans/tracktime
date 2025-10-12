@@ -112,6 +112,71 @@ func TestDateUnmarshalText(t *testing.T) {
 	}
 }
 
+func TestDateUnmarshalTextWeekdays(t *testing.T) {
+	// Test all seven weekdays
+	weekdays := []struct {
+		input   string
+		weekday time.Weekday
+	}{
+		{"sunday", time.Sunday},
+		{"monday", time.Monday},
+		{"tuesday", time.Tuesday},
+		{"wednesday", time.Wednesday},
+		{"thursday", time.Thursday},
+		{"friday", time.Friday},
+		{"saturday", time.Saturday},
+	}
+
+	for _, tc := range weekdays {
+		t.Run(tc.input, func(t *testing.T) {
+			now := time.Now()
+
+			var date lib.Date
+			err := date.UnmarshalText([]byte(tc.input))
+			assert.NoError(t, err)
+
+			// The result should be the target weekday
+			assert.Equal(t, tc.weekday, date.Weekday(), "weekday mismatch")
+
+			// If today is the target weekday, result should be today's date
+			if now.Weekday() == tc.weekday {
+				assert.Equal(t, now.Year(), date.Year(), "should be today's year")
+				assert.Equal(t, now.Month(), date.Month(), "should be today's month")
+				assert.Equal(t, now.Day(), date.Day(), "should be today's day")
+			} else {
+				// Otherwise, should be in the past (within last 6 days)
+				// Use date-only comparison to avoid time-of-day issues
+				nowDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+				dateDate := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local)
+				daysDiff := int(nowDate.Sub(dateDate).Hours() / 24)
+				assert.True(t, daysDiff >= 1 && daysDiff <= 6,
+					"should be 1-6 days in the past, got %d", daysDiff)
+			}
+		})
+	}
+}
+
+func TestDateUnmarshalTextWeekdaysCaseInsensitive(t *testing.T) {
+	testCases := []struct {
+		name    string
+		input   string
+		weekday time.Weekday
+	}{
+		{"Monday uppercase", "MONDAY", time.Monday},
+		{"Tuesday mixed case", "TuEsDaY", time.Tuesday},
+		{"Wednesday lowercase", "wednesday", time.Wednesday},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var date lib.Date
+			err := date.UnmarshalText([]byte(tc.input))
+			assert.NoError(t, err)
+			assert.Equal(t, tc.weekday, date.Weekday(), "weekday mismatch")
+		})
+	}
+}
+
 func TestDateUnmarshalTextInvalid(t *testing.T) {
 	testCases := []struct {
 		name  string
