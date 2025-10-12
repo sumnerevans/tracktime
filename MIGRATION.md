@@ -3,8 +3,8 @@
 This document tracks the migration progress from the Python implementation of tracktime to Go.
 
 **Branch:** `golang`
-**Last Updated:** 2025-10-11
-**Overall Completion:** ~75%
+**Last Updated:** 2025-10-12
+**Overall Completion:** ~78%
 
 ---
 
@@ -22,6 +22,14 @@ The entire codebase was refactored from a flat structure into a proper Go projec
 - `synchroniser/` → `internal/synchroniser/`
 - New package: `internal/report/` (split from commands for better organization)
 
+**October 2025 - Markdown Export & Code Refactoring (commits 8fd8971, dcc742c):**
+Implemented markdown export and improved code organization:
+- Added complete markdown export functionality with proper table formatting
+- Used Go's `html.EscapeString()` for special character handling in markdown
+- Consolidated shared formatting functions from stdout.go into report.go
+- Made internal sorting functions private (unexported) for better encapsulation
+- Added Go visibility rules documentation to CLAUDE.md
+
 **September-October 2025 - Report Command Implementation:**
 The report command received extensive development (10+ commits) and now has production-ready stdout output:
 - Complete text report generation with all core features
@@ -30,7 +38,6 @@ The report command received extensive development (10+ commits) and now has prod
 - Color formatting (bold, cyan, yellow, green) with ANSI-aware width calculation
 - Ellipsization of long strings to prevent layout breaking
 - All sorting and grain options working
-- Export formats (PDF/HTML/RST) remain to be implemented
 
 ### Current Project Structure
 
@@ -118,21 +125,22 @@ tracktime/                  # Legacy Python implementation
 - ✅ Professional table formatting with proper padding
 
 **Implemented Files:**
-- `internal/report/report.go` - Core report logic and data aggregation
-- `internal/report/stdout.go` - Text report generation (complete)
-- `internal/report/markdown.go` - Markdown export (complete)
+- `internal/report/report.go` - Core report logic, data aggregation, and shared formatting functions
+- `internal/report/stdout.go` - Text report generation with colors (complete)
+- `internal/report/markdown.go` - Markdown export with HTML entity escaping (complete)
 - `internal/report/statistics.go` - Statistics calculations
-- `internal/report/sorting.go` - Sort logic for customers/projects/tasks
+- `internal/report/sorting.go` - Sort logic for customers/projects/tasks (all functions private)
 
 **✅ Implemented Export Formats:**
-- Markdown export (.md) - Complete!
+- Stdout (with colors and ANSI-aware formatting) - Complete!
+- Markdown export (.md with proper table formatting) - Complete!
 
 **❌ Export Formats - Not Implemented:**
 - HTML export
 - Typst export (potential intermediate format for PDF generation)
 - PDF export (likely via Typst→PDF, Python used pdfkit/wkhtmltopdf)
 
-**Note:** The report command stdout output is **100% complete** with full color formatting and proper table alignment. Markdown export is also complete. Only HTML, Typst, and PDF export formats remain to be implemented.
+**Note:** The report command stdout output and markdown export are **100% complete**. Recent refactoring work consolidated shared formatting functions into `report.go` and made internal sorting functions private for better encapsulation. Only HTML, Typst, and PDF export formats remain to be implemented.
 
 #### Sync Command Details
 
@@ -314,18 +322,23 @@ Current version: **v0.11.0** (as declared in `cmd/tt/main.go:28`)
 
 ## Summary
 
-The Go rewrite is **~75% complete** and production-ready for daily time tracking:
+The Go rewrite is **~78% complete** and production-ready for daily time tracking:
 
 | Component | Completion |
 |-----------|------------|
 | Core library (types, config, entry list) | **100%** ✅ |
 | Basic commands (start, stop, resume, list, edit) | **100%** ✅ |
 | Report command (stdout output) | **100%** ✅ |
-| Report export formats (PDF/HTML/RST) | **0%** ❌ |
+| Report command (markdown export) | **100%** ✅ |
+| Report export formats (HTML/Typst/PDF) | **0%** ❌ |
 | Sync command | **10%** ❌ |
 | Synchronizers | **5%** ❌ |
 | Test coverage | **20%** (types only) ⚠️ |
 
-**Ready for use:** Yes! All core functionality works perfectly. Report stdout output is complete with professional formatting and colors.
+**Ready for use:** Yes! All core functionality works perfectly. Report stdout output and markdown export are complete with professional formatting.
 
-**Next major milestone:** Implement export formats (PDF, HTML, RST) to reach full feature parity with Python for reporting.
+**Usage:**
+- Stdout report: `go run ./cmd/tt report --thisweek`
+- Markdown report: `go run ./cmd/tt report --thisweek -o report.md`
+
+**Next major milestone:** Implement remaining export formats (HTML, Typst, PDF) to reach full feature parity with Python for reporting.
