@@ -84,3 +84,8 @@ func (d Date) AddDays(numDays int) Date {
 func (d Date) AddMonths(numMonths int) Date {
 	return Date{Time: d.Time.AddDate(0, numMonths, 0)}
 }
+
+func (d Date) DaysInMonth() int {
+	year, month, _ := d.Date()
+	return time.Date(year, month+1, 0, 0, 0, 0, 0, time.Local).Day()
+}
