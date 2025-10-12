@@ -1,7 +1,6 @@
 package report
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -46,29 +45,18 @@ func (r *Report) GenerateTextReport() string {
 		buf.WriteString("**Statistics:**\n")
 		buf.WriteString("\n")
 		stats := r.CalculateStatistics()
-		statsMap := stats.StatisticsMap()
 
-		// Find max length for alignment
-		maxLen := 0
-		for key := range statsMap {
-			if len(key) > maxLen {
-				maxLen = len(key)
-			}
-		}
+		table.New("", "").
+			WithHeaderFormatter(func(_ string, _ ...any) string { return "" }).
+			AddRow("Days worked:", stats.DaysWorked).
+			AddRow("Average time per day worked:", formatDuration(stats.AvgTimePerDay)).
+			AddRow("Average time per weekday worked:", formatDuration(stats.AvgTimePerWeekday)).
+			AddRow("Weeks* worked:", fmt.Sprintf("%.2f", stats.WeeksWorked)).
+			AddRow("Average time per week* worked:", formatDuration(stats.AvgTimePerWeek)).
+			WithWriter(&buf).
+			Print()
 
-		// Output in specific order to match Python
-		order := []string{
-			"Days worked",
-			"Average time per day worked",
-			"Average time per weekday worked",
-			"Weeks* worked",
-			"Average time per week* worked",
-		}
-		for _, key := range order {
-			value := statsMap[key]
-			fmt.Fprintf(&buf, "    | %s %s\n", padRight(key+":", maxLen+2), value)
-		}
-		buf.WriteString("\n")
+		buf.WriteString("\n\n")
 		buf.WriteString("* a week is any set of five weekdays (not necessarily within the same calendar week)\n")
 		buf.WriteString("\n")
 	}
@@ -78,18 +66,17 @@ func (r *Report) GenerateTextReport() string {
 	buf.WriteString("\n")
 
 	// TOTAL row
-	reportTable := table.New("", "Hours", "Rate ($/h)", "Total ($)")
-	reportTable.AddRow("TOTAL", fmt.Sprintf("%.2f", r.totalMinutes()/60.0), "", fmt.Sprintf("%.2f", r.GrandTotal()))
+	reportTable := table.New("", "Hours", "Rate ($/h)", "Total ($)").
+		AddRow("TOTAL", fmt.Sprintf("%.2f", r.totalMinutes()/60.0), "", fmt.Sprintf("%.2f", r.GrandTotal()))
 
 	// Customer/Project rows
 	cps := r.SortedCustomerProjects()
 	for _, cp := range cps {
 		// Customer/project summary row
-		cpName := r.customerProjectStr(cp, false)
 		cpMinutes := r.TotalMinutesForCustomerProject(cp)
 		rt := r.RateTotals[cp]
 
-		reportTable.AddRow(cpName, fmt.Sprintf("%.2f", cpMinutes/60.0), fmt.Sprintf("%.2f", rt.Rate), fmt.Sprintf("%.2f", rt.Total))
+		reportTable.AddRow(r.customerProjectStr(cp, false), fmt.Sprintf("%.2f", cpMinutes/60.0), fmt.Sprintf("%.2f", rt.Rate), fmt.Sprintf("%.2f", rt.Total))
 
 		if !r.TaskGrain {
 			continue
@@ -98,9 +85,8 @@ func (r *Report) GenerateTextReport() string {
 		// Task level
 		taskIDs := r.SortedTaskIDs(cp)
 		for _, taskID := range taskIDs {
-			taskName := r.formatTaskName(cp, taskID)
 			taskMinutes := r.TotalMinutesForTask(cp, taskID)
-			reportTable.AddRow(" * "+taskName, fmt.Sprintf("%.2f", taskMinutes/60.0), "", "")
+			reportTable.AddRow(" * "+r.formatTaskName(cp, taskID), fmt.Sprintf("%.2f", taskMinutes/60.0), "", "")
 
 			if !r.DescriptionGrain {
 				continue
@@ -117,48 +103,44 @@ func (r *Report) GenerateTextReport() string {
 			// Description level
 			descs := r.SortedDescriptions(cp, taskID)
 			for _, desc := range descs {
-				displayDesc := desc
-				if displayDesc == "" {
-					displayDesc = "<NO DESCRIPTION>"
+				if desc == "" {
+					desc = "<NO DESCRIPTION>"
 				}
 				descMinutes := r.TotalMinutesForDescription(cp, taskID, desc)
-				reportTable.AddRow("    * "+displayDesc, fmt.Sprintf("%.2f", descMinutes/60.0), "", "")
+				reportTable.AddRow("    * "+desc, fmt.Sprintf("%.2f", descMinutes/60.0), "", "")
 			}
 		}
 	}
 
-	buf.WriteString(r.tableToString(reportTable))
+	reportTable.WithWriter(&buf).Print()
 	buf.WriteString("\n")
-
 	return buf.String()
 }
 
 // headerText returns the report header with smart date formatting
 func (r *Report) headerText() string {
-	start := r.StartDate
-	end := r.EndDate
-
 	// Check for whole year
-	if start.Year() == end.Year() &&
-		start.Month() == time.January && start.Day() == 1 &&
-		end.Month() == time.December && end.Day() == 31 {
-		return fmt.Sprintf("Time Report: %d", start.Year())
+	if r.StartDate.Year() == r.EndDate.Year() &&
+		r.StartDate.Month() == time.January && r.StartDate.Day() == 1 &&
+		r.EndDate.Month() == time.December && r.EndDate.Day() == 31 {
+		return fmt.Sprintf("Time Report: %d", r.StartDate.Year())
 	}
 
 	// Check for single month
-	if start.Year() == end.Year() && start.Month() == end.Month() {
-		daysInMonth := time.Date(start.Year(), start.Month()+1, 0, 0, 0, 0, 0, time.UTC).Day()
-		if start.Day() == 1 && end.Day() == daysInMonth {
-			return fmt.Sprintf("Time Report: %s", start.Format("January 2006"))
+	if r.StartDate.Year() == r.EndDate.Year() && r.StartDate.Month() == r.EndDate.Month() {
+		daysInMonth := time.Date(r.StartDate.Year(), r.StartDate.Month()+1, 0, 0, 0, 0, 0, time.UTC).Day()
+		if r.StartDate.Day() == 1 && r.EndDate.Day() == daysInMonth {
+			return fmt.Sprintf("Time Report: %s", r.StartDate.Format("January 2006"))
 		}
+
 		// Check for single day
-		if start.Day() == end.Day() {
-			return fmt.Sprintf("Time Report: %s", start.Format("2006-01-02"))
+		if r.StartDate.Day() == r.EndDate.Day() {
+			return fmt.Sprintf("Time Report: %s", r.StartDate.Format("2006-01-02"))
 		}
 	}
 
 	// Default: show range
-	return fmt.Sprintf("Time Report: %s - %s", start.Format("2006-01-02"), end.Format("2006-01-02"))
+	return fmt.Sprintf("Time Report: %s - %s", r.StartDate.Format("2006-01-02"), r.EndDate.Format("2006-01-02"))
 }
 
 // customerProjectStr formats customer/project string
@@ -251,22 +233,6 @@ func (r *Report) formatTaskName(cp CustomerProject, taskID lib.TaskID) string {
 	// TODO: Add synchronizer task description lookup
 	// For now, just return the formatted task ID
 	return taskName
-}
-
-// tableToString converts a table to its string representation
-func (r *Report) tableToString(tbl table.Table) string {
-	var buf bytes.Buffer
-	tbl.WithWriter(&buf).Print()
-	// Trim the leading/trailing newlines that Print() adds
-	return strings.TrimSpace(buf.String())
-}
-
-// padRight pads a string to the right with spaces
-func padRight(s string, width int) string {
-	if len(s) >= width {
-		return s
-	}
-	return s + strings.Repeat(" ", width-len(s))
 }
 
 // totalMinutes returns total minutes across all entries

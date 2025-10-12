@@ -17,7 +17,7 @@ type Statistics struct {
 
 // CalculateStatistics computes statistics from day stats
 func (r *Report) CalculateStatistics() *Statistics {
-	stats := &Statistics{}
+	var stats Statistics
 
 	// Count days where minutes >= threshold
 	for day, duration := range r.DayStats {
@@ -61,7 +61,7 @@ func (r *Report) CalculateStatistics() *Statistics {
 		stats.AvgTimePerWeek = time.Duration(avgMinutes) * time.Minute
 	}
 
-	return stats
+	return &stats
 }
 
 // formatDuration formats duration as H:MM
@@ -70,15 +70,4 @@ func formatDuration(d time.Duration) string {
 	hours := minutes / 60
 	mins := minutes % 60
 	return fmt.Sprintf("%d:%02d", hours, mins)
-}
-
-// StatisticsMap returns statistics as a map for display
-func (s *Statistics) StatisticsMap() map[string]string {
-	return map[string]string{
-		"Days worked":                     fmt.Sprintf("%d", s.DaysWorked),
-		"Average time per day worked":     formatDuration(s.AvgTimePerDay),
-		"Average time per weekday worked": formatDuration(s.AvgTimePerWeekday),
-		"Weeks* worked":                   fmt.Sprintf("%.1f", s.WeeksWorked),
-		"Average time per week* worked":   formatDuration(s.AvgTimePerWeek),
-	}
 }
