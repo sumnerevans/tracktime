@@ -41,6 +41,36 @@ func (d *Date) UnmarshalText(text []byte) error {
 		} else {
 			d.Time = now.AddDate(0, 0, int(time.Tuesday-now.Weekday()))
 		}
+	case "wednesday":
+		if now.Weekday() == time.Wednesday {
+			d.Time = now
+		} else {
+			d.Time = now.AddDate(0, 0, int(time.Wednesday-now.Weekday()))
+		}
+	case "thursday":
+		if now.Weekday() == time.Thursday {
+			d.Time = now
+		} else {
+			d.Time = now.AddDate(0, 0, int(time.Thursday-now.Weekday()))
+		}
+	case "friday":
+		if now.Weekday() == time.Friday {
+			d.Time = now
+		} else {
+			d.Time = now.AddDate(0, 0, int(time.Friday-now.Weekday()))
+		}
+	case "saturday":
+		if now.Weekday() == time.Saturday {
+			d.Time = now
+		} else {
+			d.Time = now.AddDate(0, 0, int(time.Saturday-now.Weekday()))
+		}
+	case "sunday":
+		if now.Weekday() == time.Sunday {
+			d.Time = now
+		} else {
+			d.Time = now.AddDate(0, 0, int(time.Sunday-now.Weekday()))
+		}
 	default:
 		// Try each format in priority order
 		formats := []struct {
