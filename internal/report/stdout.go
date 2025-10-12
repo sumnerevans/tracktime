@@ -62,7 +62,7 @@ func (r *Report) GenerateTextReport() string {
 		}
 		for _, key := range order {
 			value := statsMap[key]
-			lines = append(lines, fmt.Sprintf("    | %s: %s", padRight(key+":", maxLen+2), value))
+			lines = append(lines, fmt.Sprintf("    | %s %s", padRight(key+":", maxLen+2), value))
 		}
 		lines = append(lines, "")
 		lines = append(lines, "* a week is any set of five weekdays (not necessarily within the same")
@@ -256,14 +256,9 @@ func (r *Report) formatTaskName(cp CustomerProject, taskID lib.TaskID) string {
 
 	taskName := "<NO TASK>"
 	if taskID != "" {
-		// Format based on type (would use synchronizer in full implementation)
-		if firstEntry.Type == "github" || firstEntry.Type == "gh" {
-			taskName = fmt.Sprintf("#%s", taskID)
-		} else if firstEntry.Type == "gitlab" || firstEntry.Type == "gl" {
-			taskName = fmt.Sprintf("!%s", taskID)
-		} else {
-			taskName = string(taskID)
-		}
+		// Task IDs already include prefixes in the CSV data (#123, !456, etc.)
+		// so just use them directly
+		taskName = string(taskID)
 	}
 
 	// TODO: Add synchronizer task description lookup
