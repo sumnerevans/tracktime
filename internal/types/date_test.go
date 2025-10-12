@@ -1,4 +1,4 @@
-package lib_test
+package types_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 func TestDateUnmarshalText(t *testing.T) {
@@ -102,7 +102,7 @@ func TestDateUnmarshalText(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var date lib.Date
+			var date types.Date
 			err := date.UnmarshalText([]byte(tc.input))
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedYear, date.Year(), "year mismatch")
@@ -131,7 +131,7 @@ func TestDateUnmarshalTextWeekdays(t *testing.T) {
 		t.Run(tc.input, func(t *testing.T) {
 			now := time.Now()
 
-			var date lib.Date
+			var date types.Date
 			err := date.UnmarshalText([]byte(tc.input))
 			assert.NoError(t, err)
 
@@ -169,7 +169,7 @@ func TestDateUnmarshalTextWeekdaysCaseInsensitive(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var date lib.Date
+			var date types.Date
 			err := date.UnmarshalText([]byte(tc.input))
 			assert.NoError(t, err)
 			assert.Equal(t, tc.weekday, date.Weekday(), "weekday mismatch")
@@ -189,7 +189,7 @@ func TestDateUnmarshalTextInvalid(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var date lib.Date
+			var date types.Date
 			err := date.UnmarshalText([]byte(tc.input))
 			assert.Error(t, err)
 		})
@@ -197,7 +197,7 @@ func TestDateUnmarshalTextInvalid(t *testing.T) {
 }
 
 func TestDateAddDays(t *testing.T) {
-	date := lib.NewDate(2024, 3, 15)
+	date := types.NewDate(2024, 3, 15)
 
 	testCases := []struct {
 		name          string
@@ -223,7 +223,7 @@ func TestDateAddDays(t *testing.T) {
 }
 
 func TestDateAddMonths(t *testing.T) {
-	date := lib.NewDate(2024, 3, 15)
+	date := types.NewDate(2024, 3, 15)
 
 	testCases := []struct {
 		name          string

@@ -9,7 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/sumnerevans/tracktime/internal/commands"
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 type args struct {
@@ -20,7 +21,7 @@ type args struct {
 	Edit       *commands.Edit   `arg:"subcommand" help:"edit time entries for a date"`
 	Sync       *commands.Sync   `arg:"subcommand" help:"synchronize time spent on tasks for a month to external services"`
 	Report     *commands.Report `arg:"subcommand" help:"output a report about time spent in a time range"`
-	ConfigFile lib.Filename     `arg:"--config" help:"the configuration file to use" default:"$HOME/.config/tracktime/tracktimerc"`
+	ConfigFile types.Filename   `arg:"--config" help:"the configuration file to use" default:"$HOME/.config/tracktime/tracktimerc"`
 }
 
 func (args) Version() string {
@@ -35,29 +36,29 @@ func main() {
 	var args args
 	arg.MustParse(&args)
 
-	config, err := lib.ReadConfig(args.ConfigFile)
+	cfg, err := config.ReadConfig(args.ConfigFile)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Couldn't read config file")
 	}
 
 	switch {
 	case args.Start != nil:
-		err = args.Start.Run(config)
+		err = args.Start.Run(cfg)
 	case args.Stop != nil:
-		err = args.Stop.Run(config)
+		err = args.Stop.Run(cfg)
 	case args.Resume != nil:
-		err = args.Resume.Run(config)
+		err = args.Resume.Run(cfg)
 	case args.List != nil:
-		err = args.List.Run(config)
+		err = args.List.Run(cfg)
 	case args.Edit != nil:
-		err = args.Edit.Run(config)
+		err = args.Edit.Run(cfg)
 	case args.Sync != nil:
-		err = args.Sync.Run(config)
+		err = args.Sync.Run(cfg)
 	case args.Report != nil:
-		err = args.Report.Run(config)
+		err = args.Report.Run(cfg)
 	default:
-		args.List = &commands.List{Date: lib.Date{Time: time.Now()}}
-		err = args.List.Run(config)
+		args.List = &commands.List{Date: types.Date{Time: time.Now()}}
+		err = args.List.Run(cfg)
 	}
 
 	if err != nil {

@@ -5,28 +5,30 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/timeentry"
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 type GitHubSynchroniser struct {
-	Config lib.GitHubSyncConfig
+	Config config.GitHubSyncConfig
 }
 
 func (gh *GitHubSynchroniser) Name() string { return "GitHub" }
 
-func (gh *GitHubSynchroniser) Init(config lib.SyncConfig) {
-	gh.Config = config.GitHub
+func (gh *GitHubSynchroniser) Init(cfg config.SyncConfig) {
+	gh.Config = cfg.GitHub
 }
 
-func (gh *GitHubSynchroniser) Sync(ctx context.Context, aggregatedTime, syncedTime AggregatedTime, month lib.Month) (AggregatedTime, error) {
+func (gh *GitHubSynchroniser) Sync(ctx context.Context, aggregatedTime, syncedTime AggregatedTime, month types.Month) (AggregatedTime, error) {
 	return aggregatedTime, nil
 }
 
-func (gh *GitHubSynchroniser) cleanTaskID(taskID lib.TaskID) string {
+func (gh *GitHubSynchroniser) cleanTaskID(taskID timeentry.TaskID) string {
 	return strings.TrimPrefix(string(taskID), "#")
 }
 
-func (gh *GitHubSynchroniser) GetFormattedTaskID(entry *lib.TimeEntry) string {
+func (gh *GitHubSynchroniser) GetFormattedTaskID(entry *timeentry.TimeEntry) string {
 	if (entry.Type != "github" && entry.Type != "gh") || entry.TaskID == "" {
 		return ""
 	}
@@ -34,7 +36,7 @@ func (gh *GitHubSynchroniser) GetFormattedTaskID(entry *lib.TimeEntry) string {
 	return fmt.Sprintf("#%s", gh.cleanTaskID(entry.TaskID))
 }
 
-func (gh *GitHubSynchroniser) GetTaskLink(entry *lib.TimeEntry) string {
+func (gh *GitHubSynchroniser) GetTaskLink(entry *timeentry.TimeEntry) string {
 	var owner, project string
 	projectParts := strings.Split(string(entry.Project), "/")
 	if len(projectParts) == 1 {
@@ -53,7 +55,7 @@ func (gh *GitHubSynchroniser) GetTaskLink(entry *lib.TimeEntry) string {
 	return fmt.Sprintf("%s/%s/%s/issues/%s", gh.Config.RootURI, owner, project, gh.cleanTaskID(entry.TaskID))
 }
 
-func (gh *GitHubSynchroniser) GetTaskDescription(ctx context.Context, entry *lib.TimeEntry) string {
+func (gh *GitHubSynchroniser) GetTaskDescription(ctx context.Context, entry *timeentry.TimeEntry) string {
 	return ""
 }
 

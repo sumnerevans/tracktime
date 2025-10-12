@@ -1,9 +1,11 @@
-package lib
+package config
 
 import (
 	"os"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 type GitHubSyncConfig struct {
@@ -42,8 +44,8 @@ type ReportingConfig struct {
 }
 
 type Config struct {
-	Version   string   `yaml:"version"`
-	Directory Filename `yaml:"directory"`
+	Version   string         `yaml:"version"`
+	Directory types.Filename `yaml:"directory"`
 
 	Reporting ReportingConfig `yaml:"reporting"`
 	Sync      SyncConfig      `yaml:"sync"`
@@ -53,16 +55,16 @@ type Config struct {
 	EditorArgs []string `yaml:"editor_args"`
 }
 
-func ReadConfig(f Filename) (*Config, error) {
+func ReadConfig(f types.Filename) (*Config, error) {
 	config := Config{
 		Reporting: ReportingConfig{FullName: "<Not Specified>"},
-		Directory: Filename("$HOME/.tracktime"),
+		Directory: types.Filename("$HOME/.tracktime"),
 	}
 	configData, err := os.ReadFile(f.Expand())
 	if err != nil {
 		return nil, err
 	}
 	err = yaml.Unmarshal(configData, &config)
-	config.Directory = Filename(config.Directory.Expand())
+	config.Directory = types.Filename(config.Directory.Expand())
 	return &config, err
 }

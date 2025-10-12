@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/timeentry"
 )
 
 // SortedCustomerProjects returns CustomerProject keys sorted according to report settings
@@ -38,9 +38,9 @@ func (r *Report) SortedCustomerProjects() []CustomerProject {
 }
 
 // SortedTaskIDs returns TaskID keys for a customer/project sorted according to report settings
-func (r *Report) SortedTaskIDs(cp CustomerProject) []lib.TaskID {
+func (r *Report) SortedTaskIDs(cp CustomerProject) []timeentry.TaskID {
 	tasks := r.AggregatedTime[cp]
-	taskIDs := make([]lib.TaskID, 0, len(tasks))
+	taskIDs := make([]timeentry.TaskID, 0, len(tasks))
 	for taskID := range tasks {
 		taskIDs = append(taskIDs, taskID)
 	}
@@ -68,7 +68,7 @@ func (r *Report) SortedTaskIDs(cp CustomerProject) []lib.TaskID {
 }
 
 // SortedDescriptions returns description keys for a task sorted according to report settings
-func (r *Report) SortedDescriptions(cp CustomerProject, taskID lib.TaskID) []string {
+func (r *Report) SortedDescriptions(cp CustomerProject, taskID timeentry.TaskID) []string {
 	descriptions := r.AggregatedTime[cp][taskID]
 	descs := make([]string, 0, len(descriptions))
 	for desc := range descriptions {
@@ -98,7 +98,7 @@ func (r *Report) SortedDescriptions(cp CustomerProject, taskID lib.TaskID) []str
 }
 
 // TotalMinutesForTask returns total minutes for a specific task
-func (r *Report) TotalMinutesForTask(cp CustomerProject, taskID lib.TaskID) float64 {
+func (r *Report) TotalMinutesForTask(cp CustomerProject, taskID timeentry.TaskID) float64 {
 	var total time.Duration
 	for _, entries := range r.AggregatedTime[cp][taskID] {
 		for _, entry := range entries {
@@ -111,7 +111,7 @@ func (r *Report) TotalMinutesForTask(cp CustomerProject, taskID lib.TaskID) floa
 }
 
 // TotalMinutesForDescription returns total minutes for a specific description
-func (r *Report) TotalMinutesForDescription(cp CustomerProject, taskID lib.TaskID, description string) float64 {
+func (r *Report) TotalMinutesForDescription(cp CustomerProject, taskID timeentry.TaskID, description string) float64 {
 	var total time.Duration
 	for _, entry := range r.AggregatedTime[cp][taskID][description] {
 		if duration, err := entry.Duration(false); err == nil {

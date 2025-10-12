@@ -7,16 +7,18 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/timeentry"
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 type Edit struct {
-	Date lib.Date `arg:"-d,--date" help:"the date to list time entries for" default:"today"`
+	Date types.Date `arg:"-d,--date" help:"the date to list time entries for" default:"today"`
 }
 
-func (s *Edit) Run(config *lib.Config) error {
+func (s *Edit) Run(config *config.Config) error {
 	// Make sure the header exists
-	if entryList, err := lib.EntryListForDay(config, lib.Today()); err != nil {
+	if entryList, err := timeentry.EntryListForDay(config, types.Today()); err != nil {
 		return err
 	} else if err := entryList.Save(); err != nil {
 		return err
@@ -39,7 +41,7 @@ func (s *Edit) Run(config *lib.Config) error {
 	}
 
 	args := config.EditorArgs
-	args = append(args, lib.DayFilename(config, s.Date))
+	args = append(args, timeentry.DayFilename(config, s.Date))
 
 	cmd := exec.Command(editor, args...)
 	cmd.Stdin = os.Stdin

@@ -1,4 +1,4 @@
-package lib
+package timeentry
 
 import (
 	"encoding/csv"
@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 type TimeEntryType string
@@ -29,8 +32,8 @@ type TaskID string
 
 type TimeEntry struct {
 	Index       int
-	Start       *Time
-	Stop        *Time
+	Start       *types.Time
+	Stop        *types.Time
 	Type        TimeEntryType
 	Project     Project
 	Customer    Customer
@@ -40,11 +43,11 @@ type TimeEntry struct {
 
 func NewEntryFromRecord(idx int, record []string) (te *TimeEntry, err error) {
 	te = &TimeEntry{Index: idx}
-	te.Start, err = ParseTime(record[0])
+	te.Start, err = types.ParseTime(record[0])
 	if err != nil {
 		return
 	}
-	te.Stop, err = ParseTime(record[1])
+	te.Stop, err = types.ParseTime(record[1])
 	if err != nil {
 		return
 	}
@@ -60,7 +63,7 @@ func (te *TimeEntry) Duration(allowUnended bool) (time.Duration, error) {
 	stop := te.Stop
 	if stop == nil {
 		if allowUnended {
-			stop = CurrentTime()
+			stop = types.CurrentTime()
 		} else {
 			return time.Duration(0), fmt.Errorf("unended time entries cannot have a duration")
 		}
@@ -69,12 +72,12 @@ func (te *TimeEntry) Duration(allowUnended bool) (time.Duration, error) {
 }
 
 type EntryList struct {
-	Date    Date
-	Config  *Config
+	Date    types.Date
+	Config  *config.Config
 	entries []*TimeEntry
 }
 
-func DayFilename(config *Config, date Date) string {
+func DayFilename(config *config.Config, date types.Date) string {
 	return filepath.Join(
 		config.Directory.Expand(),
 		date.Format("2006"),
@@ -83,7 +86,7 @@ func DayFilename(config *Config, date Date) string {
 	)
 }
 
-func EntryListForDay(config *Config, date Date) (*EntryList, error) {
+func EntryListForDay(config *config.Config, date types.Date) (*EntryList, error) {
 	file, err := os.OpenFile(DayFilename(config, date), os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, err
@@ -223,7 +226,7 @@ func (el *EntryList) SaveAndSync() error {
 	return el.Sync()
 }
 
-func (el *EntryList) Start(start *Time, description string, taskType TimeEntryType, project Project, customer Customer, taskID TaskID) error {
+func (el *EntryList) Start(start *types.Time, description string, taskType TimeEntryType, project Project, customer Customer, taskID TaskID) error {
 	newEntry := &TimeEntry{
 		Start:       start,
 		Type:        taskType,
@@ -236,7 +239,7 @@ func (el *EntryList) Start(start *Time, description string, taskType TimeEntryTy
 	return el.SaveAndSync()
 }
 
-func (el *EntryList) Stop(stop *Time) error {
+func (el *EntryList) Stop(stop *types.Time) error {
 	if len(el.entries) == 0 || el.entries[len(el.entries)-1].Stop != nil {
 		return fmt.Errorf("no time entry to stop")
 	}
@@ -244,7 +247,7 @@ func (el *EntryList) Stop(stop *Time) error {
 	return el.SaveAndSync()
 }
 
-func (el *EntryList) Resume(resumeIndex int, description *string, start *Time) error {
+func (el *EntryList) Resume(resumeIndex int, description *string, start *types.Time) error {
 	var oldEntry *TimeEntry
 	if resumeIndex == -1 {
 		if len(el.entries) > 0 {

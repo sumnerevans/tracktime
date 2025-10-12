@@ -7,7 +7,7 @@ import (
 
 	"github.com/rodaine/table"
 
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/timeentry"
 )
 
 // GenerateTextReport generates a plain text report matching Python's output format
@@ -209,9 +209,9 @@ func (r *Report) addressLines() []string {
 }
 
 // formatTaskName formats a task name with ID and description
-func (r *Report) formatTaskName(cp CustomerProject, taskID lib.TaskID) string {
+func (r *Report) formatTaskName(cp CustomerProject, taskID timeentry.TaskID) string {
 	// Get first entry to check type
-	var firstEntry *lib.TimeEntry
+	var firstEntry *timeentry.TimeEntry
 	for _, entries := range r.AggregatedTime[cp][taskID] {
 		if len(entries) > 0 {
 			firstEntry = entries[0]

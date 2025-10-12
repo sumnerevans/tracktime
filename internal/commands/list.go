@@ -5,16 +5,18 @@ import (
 	"github.com/rodaine/table"
 	"github.com/rs/zerolog/log"
 
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/timeentry"
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 type List struct {
-	Date     lib.Date     `arg:"-d,--date" help:"the date to list time entries for" default:"today"`
-	Customer lib.Customer `arg:"-c,--customer" help:"list only time entries for the given customer"`
+	Date     types.Date         `arg:"-d,--date" help:"the date to list time entries for" default:"today"`
+	Customer timeentry.Customer `arg:"-c,--customer" help:"list only time entries for the given customer"`
 }
 
-func (l *List) Run(config *lib.Config) error {
-	entryList, err := lib.EntryListForDay(config, l.Date)
+func (l *List) Run(config *config.Config) error {
+	entryList, err := timeentry.EntryListForDay(config, l.Date)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to read entry list")
 	}

@@ -3,13 +3,15 @@ package report
 import (
 	"time"
 
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/timeentry"
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 // CustomerProject represents a unique customer/project combination
 type CustomerProject struct {
-	Customer lib.Customer
-	Project  lib.Project
+	Customer timeentry.Customer
+	Project  timeentry.Project
 }
 
 // RateTotal contains the hourly rate and total amount for a customer/project
@@ -20,18 +22,18 @@ type RateTotal struct {
 
 // Report holds aggregated time entry data and statistics
 type Report struct {
-	StartDate lib.Date
-	EndDate   lib.Date
-	Config    *lib.Config
+	StartDate types.Date
+	EndDate   types.Date
+	Config    *config.Config
 
 	// Aggregated data: Customer/Project -> TaskID -> Description -> []*TimeEntry
-	AggregatedTime map[CustomerProject]map[lib.TaskID]map[string][]*lib.TimeEntry
-	DayStats       map[lib.Date]time.Duration
+	AggregatedTime map[CustomerProject]map[timeentry.TaskID]map[string][]*timeentry.TimeEntry
+	DayStats       map[types.Date]time.Duration
 	RateTotals     map[CustomerProject]RateTotal
 
 	// Filter options
-	Customer lib.Customer
-	Project  lib.Project
+	Customer timeentry.Customer
+	Project  timeentry.Project
 
 	// Display options
 	Sort             Sort
@@ -49,7 +51,7 @@ const (
 )
 
 // New creates a new Report by aggregating time entries over the date range
-func New(config *lib.Config, start, end lib.Date, customer lib.Customer, project lib.Project, sort Sort, reverse, taskGrain, descriptionGrain bool) (*Report, error) {
+func New(config *config.Config, start, end types.Date, customer timeentry.Customer, project timeentry.Project, sort Sort, reverse, taskGrain, descriptionGrain bool) (*Report, error) {
 	r := &Report{
 		StartDate:        start,
 		EndDate:          end,
@@ -60,14 +62,14 @@ func New(config *lib.Config, start, end lib.Date, customer lib.Customer, project
 		Reverse:          reverse,
 		TaskGrain:        taskGrain || descriptionGrain, // Task grain implied by description grain
 		DescriptionGrain: descriptionGrain,
-		AggregatedTime:   make(map[CustomerProject]map[lib.TaskID]map[string][]*lib.TimeEntry),
-		DayStats:         make(map[lib.Date]time.Duration),
+		AggregatedTime:   make(map[CustomerProject]map[timeentry.TaskID]map[string][]*timeentry.TimeEntry),
+		DayStats:         make(map[types.Date]time.Duration),
 		RateTotals:       make(map[CustomerProject]RateTotal),
 	}
 
 	// Aggregate time entries across date range
 	for day := start; day.Before(end.Time) || day.Equal(end.Time); day = day.AddDays(1) {
-		entryList, err := lib.EntryListForDay(config, day)
+		entryList, err := timeentry.EntryListForDay(config, day)
 		if err != nil {
 			return nil, err
 		}
@@ -90,10 +92,10 @@ func New(config *lib.Config, start, end lib.Date, customer lib.Customer, project
 			// Add to aggregated time
 			cp := CustomerProject{Customer: entry.Customer, Project: entry.Project}
 			if r.AggregatedTime[cp] == nil {
-				r.AggregatedTime[cp] = make(map[lib.TaskID]map[string][]*lib.TimeEntry)
+				r.AggregatedTime[cp] = make(map[timeentry.TaskID]map[string][]*timeentry.TimeEntry)
 			}
 			if r.AggregatedTime[cp][entry.TaskID] == nil {
-				r.AggregatedTime[cp][entry.TaskID] = make(map[string][]*lib.TimeEntry)
+				r.AggregatedTime[cp][entry.TaskID] = make(map[string][]*timeentry.TimeEntry)
 			}
 			// Note: Python uppercases description (line 191 in report.py)
 			// We'll keep it as-is for now and can uppercase in formatter if needed

@@ -5,8 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sumnerevans/tracktime/internal/lib"
+	"github.com/sumnerevans/tracktime/internal/config"
 	"github.com/sumnerevans/tracktime/internal/report"
+	"github.com/sumnerevans/tracktime/internal/timeentry"
+	"github.com/sumnerevans/tracktime/internal/types"
 )
 
 type Sort int
@@ -37,20 +39,20 @@ func (s Sort) toReportSort() report.Sort {
 
 type Report struct {
 	// Specify the range positionally
-	Start *lib.Date `arg:"positional" help:"specify the start of the reporting range (defaults to the beginning of last month)"`
-	End   *lib.Date `arg:"positional" help:"specify the end of the reporting range (defaults to the end of last month)"`
+	Start *types.Date `arg:"positional" help:"specify the start of the reporting range (defaults to the beginning of last month)"`
+	End   *types.Date `arg:"positional" help:"specify the end of the reporting range (defaults to the end of last month)"`
 
 	// Specify the range using shorthand
-	Month     lib.Month `arg:"-m,--month" help:"shorthand for reporting over an entire month (can be combined with --year, accepted formats: 01, 1, Jan, January, 2019-01)"`
-	Year      int       `arg:"-y,--year" help:"shorthand for reporting over an entire year (can be combined with --month)"`
-	Today     bool      `arg:"--today" help:"shorthand for reporting on today"`
-	Yesterday bool      `arg:"--yesterday" help:"shorthand for reporting on yesterday"`
-	ThisWeek  bool      `arg:"--thisweek" help:"shorthand for reporting on the current week (Sunday-today)"`
-	LastWeek  bool      `arg:"--lastweek" help:"shorthand for reporting on last week (Sunday-Saturday)"`
-	ThisMonth bool      `arg:"--thismonth" help:"shorthand for reporting on the current month"`
-	LastMonth bool      `arg:"--lastmonth" help:"shorthand for reporting on last month"`
-	ThisYear  bool      `arg:"--thisyear" help:"shorthand for reporting on the current year"`
-	LastYear  bool      `arg:"--lastyear" help:"shorthand for reporting on last year"`
+	Month     types.Month `arg:"-m,--month" help:"shorthand for reporting over an entire month (can be combined with --year, accepted formats: 01, 1, Jan, January, 2019-01)"`
+	Year      int         `arg:"-y,--year" help:"shorthand for reporting over an entire year (can be combined with --month)"`
+	Today     bool        `arg:"--today" help:"shorthand for reporting on today"`
+	Yesterday bool        `arg:"--yesterday" help:"shorthand for reporting on yesterday"`
+	ThisWeek  bool        `arg:"--thisweek" help:"shorthand for reporting on the current week (Sunday-today)"`
+	LastWeek  bool        `arg:"--lastweek" help:"shorthand for reporting on last week (Sunday-Saturday)"`
+	ThisMonth bool        `arg:"--thismonth" help:"shorthand for reporting on the current month"`
+	LastMonth bool        `arg:"--lastmonth" help:"shorthand for reporting on last month"`
+	ThisYear  bool        `arg:"--thisyear" help:"shorthand for reporting on the current year"`
+	LastYear  bool        `arg:"--lastyear" help:"shorthand for reporting on last year"`
 
 	// Specify the grains to show
 	TaskGrain          bool `arg:"--taskgrain" help:"report on the task grain"`
@@ -59,8 +61,8 @@ type Report struct {
 	NoDescriptionGrain bool `arg:"--no-descriptiongrain" help:"do not report on the task grain"`
 
 	// Narrow the set of time entries to report on
-	Customer lib.Customer `arg:"-c,--customer" help:"customer ID to generate a report for"`
-	Project  lib.Project  `arg:"-p,--project" help:"project name to generate a report for"`
+	Customer timeentry.Customer `arg:"-c,--customer" help:"customer ID to generate a report for"`
+	Project  timeentry.Project  `arg:"-p,--project" help:"project name to generate a report for"`
 
 	// How to sort the report
 	Sort Sort `arg:"-s,--sort" help:"the grain to sort the report by (alphabetical,alpha,a or time-spent,time,t)" default:"time-spent"`
@@ -68,12 +70,12 @@ type Report struct {
 	Asc  bool `arg:"--asc" help:"sort ascending"`
 
 	// Output file
-	OutputFile lib.Filename `arg:"-o,--outfile" help:"specify the filename to export the report to (supports PDF, HTML, and RST files, if set to '-' then the report is printed to stdout)" default:"-"`
+	OutputFile types.Filename `arg:"-o,--outfile" help:"specify the filename to export the report to (supports PDF, HTML, and RST files, if set to '-' then the report is printed to stdout)" default:"-"`
 }
 
-func (r *Report) Run(config *lib.Config) error {
-	var start, end lib.Date
-	today := lib.Today()
+func (r *Report) Run(config *config.Config) error {
+	var start, end types.Date
+	today := types.Today()
 
 	// Handle positional range arguments first
 	if r.Start != nil && r.End != nil {
@@ -87,21 +89,21 @@ func (r *Report) Run(config *lib.Config) error {
 		} else if r.LastYear {
 			year--
 		}
-		start = lib.NewDate(year, 1, 1)
-		end = lib.NewDate(year, 12, 31)
+		start = types.NewDate(year, 1, 1)
+		end = types.NewDate(year, 12, 31)
 
 		// If month is also specified, narrow to that month
 		if !r.Month.IsZero() {
 			monthWithYear := r.Month
 			if r.Month.Year() == 0 {
 				// Month was specified without year, use the year from above
-				monthWithYear = lib.NewMonth(year, r.Month.Month())
+				monthWithYear = types.NewMonth(year, r.Month.Month())
 			}
 			if monthWithYear.Year() != year {
 				return fmt.Errorf("when specifying a year, the month must be in the same year")
 			}
-			start = lib.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), 1)
-			end = lib.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), monthWithYear.DaysInMonth())
+			start = types.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), 1)
+			end = types.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), monthWithYear.DaysInMonth())
 		}
 	} else if r.Today {
 		start = today
@@ -119,20 +121,20 @@ func (r *Report) Run(config *lib.Config) error {
 		// Monthly (default)
 		// Default to last month
 		lastMonth := today.AddMonths(-1)
-		start = lib.NewDate(lastMonth.Year(), int(lastMonth.Month()), 1)
+		start = types.NewDate(lastMonth.Year(), int(lastMonth.Month()), 1)
 
 		if !r.Month.IsZero() {
 			monthWithYear := r.Month
 			if r.Month.Year() == 0 {
 				// Month was specified without year, use current year
-				monthWithYear = lib.NewMonth(today.Year(), r.Month.Month())
+				monthWithYear = types.NewMonth(today.Year(), r.Month.Month())
 			}
-			start = lib.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), 1)
+			start = types.NewDate(monthWithYear.Year(), int(monthWithYear.Month()), 1)
 		} else if r.ThisMonth {
-			start = lib.NewDate(today.Year(), int(today.Month()), 1)
+			start = types.NewDate(today.Year(), int(today.Month()), 1)
 		}
 
-		end = lib.NewDate(start.Year(), int(start.Month()), start.DaysInMonth())
+		end = types.NewDate(start.Year(), int(start.Month()), start.DaysInMonth())
 	}
 
 	// Allow positional arguments to override
