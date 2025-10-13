@@ -125,9 +125,7 @@ func (r *Report) GenerateHTMLReport(w io.Writer) {
 
 	// Convert markdown to HTML
 	var htmlBody bytes.Buffer
-	if err := md.Convert(markdownBuf.Bytes(), &htmlBody); err != nil {
-		panic(fmt.Sprintf("markdown to HTML conversion failed: %v", err))
-	}
+	exerrors.PanicIfNotNil(md.Convert(markdownBuf.Bytes(), &htmlBody))
 
 	// Write wrapped HTML to writer
 	exerrors.Must(fmt.Fprintf(w, htmlTemplate, r.headerText(), htmlBody.String()))
