@@ -4,7 +4,7 @@ This document tracks the migration progress from the Python implementation of tr
 
 **Branch:** `golang`
 **Last Updated:** 2025-10-12
-**Overall Completion:** ~78%
+**Overall Completion:** ~80%
 
 ---
 
@@ -21,6 +21,13 @@ The entire codebase was refactored from a flat structure into a proper Go projec
 - `commands/` → `internal/commands/`
 - `synchroniser/` → `internal/synchroniser/`
 - New package: `internal/report/` (split from commands for better organization)
+
+**October 2025 - HTML Export (commit 74541ba):**
+Implemented HTML export by converting markdown to HTML using goldmark:
+- Added goldmark dependency (v1.7.13) with table extension support
+- Created `internal/report/html.go` with `GenerateHTMLReport()`
+- Wired up `.html` file extension in report command
+- Custom HTML template with professional styling (responsive layout, styled tables, embedded CSS)
 
 **October 2025 - Markdown Export & Code Refactoring (commits 8fd8971, dcc742c):**
 Implemented markdown export and improved code organization:
@@ -128,19 +135,20 @@ tracktime/                  # Legacy Python implementation
 - `internal/report/report.go` - Core report logic, data aggregation, and shared formatting functions
 - `internal/report/stdout.go` - Text report generation with colors (complete)
 - `internal/report/markdown.go` - Markdown export with HTML entity escaping (complete)
+- `internal/report/html.go` - HTML export via goldmark markdown conversion (complete)
 - `internal/report/statistics.go` - Statistics calculations
 - `internal/report/sorting.go` - Sort logic for customers/projects/tasks (all functions private)
 
 **✅ Implemented Export Formats:**
 - Stdout (with colors and ANSI-aware formatting) - Complete!
 - Markdown export (.md with proper table formatting) - Complete!
+- HTML export (.html via goldmark markdown conversion) - Complete!
 
 **❌ Export Formats - Not Implemented:**
-- HTML export
 - Typst export (potential intermediate format for PDF generation)
 - PDF export (likely via Typst→PDF, Python used pdfkit/wkhtmltopdf)
 
-**Note:** The report command stdout output and markdown export are **100% complete**. Recent refactoring work consolidated shared formatting functions into `report.go` and made internal sorting functions private for better encapsulation. Only HTML, Typst, and PDF export formats remain to be implemented.
+**Note:** The report command stdout output, markdown export, and HTML export are **100% complete**. HTML export uses goldmark to convert markdown to HTML, then wraps it with a styled template. Only Typst and PDF export formats remain to be implemented.
 
 #### Sync Command Details
 
@@ -195,7 +203,7 @@ tracktime/                  # Legacy Python implementation
 ### Report Functionality
 - ✅ Stdout output (complete with colors and formatting!)
 - ✅ Markdown export (.md files) - Complete!
-- ❌ HTML export
+- ✅ HTML export (.html via goldmark) - Complete!
 - ❌ Typst export (potential intermediate format for PDF generation)
 - ❌ PDF export (likely via Typst→PDF, Python used pdfkit/wkhtmltopdf)
 
@@ -231,10 +239,10 @@ Based on current state and user needs:
 1. **High Priority** - Complete report export formats:
    - ✅ ~~Stdout formatting~~ (DONE!)
    - ✅ ~~Implement Markdown export~~ (DONE!)
-   - ❌ Implement HTML export
+   - ✅ ~~Implement HTML export~~ (DONE!)
    - ❌ Implement Typst export (potential intermediate format for PDF)
    - ❌ Implement PDF export (likely Typst→PDF conversion, requires library selection)
-   - Note: Stdout output and Markdown export are complete and production-ready
+   - Note: Stdout output, Markdown export, and HTML export are complete and production-ready
    - Note: Export format decision: stdout (colors), markdown, html, typst (maybe), pdf (RST removed)
 
 2. **Medium Priority** - Testing:
@@ -322,7 +330,7 @@ Current version: **v0.11.0** (as declared in `cmd/tt/main.go:28`)
 
 ## Summary
 
-The Go rewrite is **~78% complete** and production-ready for daily time tracking:
+The Go rewrite is **~80% complete** and production-ready for daily time tracking:
 
 | Component | Completion |
 |-----------|------------|
@@ -330,15 +338,17 @@ The Go rewrite is **~78% complete** and production-ready for daily time tracking
 | Basic commands (start, stop, resume, list, edit) | **100%** ✅ |
 | Report command (stdout output) | **100%** ✅ |
 | Report command (markdown export) | **100%** ✅ |
-| Report export formats (HTML/Typst/PDF) | **0%** ❌ |
+| Report command (HTML export) | **100%** ✅ |
+| Report export formats (Typst/PDF) | **0%** ❌ |
 | Sync command | **10%** ❌ |
 | Synchronizers | **5%** ❌ |
 | Test coverage | **20%** (types only) ⚠️ |
 
-**Ready for use:** Yes! All core functionality works perfectly. Report stdout output and markdown export are complete with professional formatting.
+**Ready for use:** Yes! All core functionality works perfectly. Report stdout output, markdown export, and HTML export are complete with professional formatting.
 
 **Usage:**
 - Stdout report: `go run ./cmd/tt report --thisweek`
 - Markdown report: `go run ./cmd/tt report --thisweek -o report.md`
+- HTML report: `go run ./cmd/tt report --thisweek -o report.html`
 
-**Next major milestone:** Implement remaining export formats (HTML, Typst, PDF) to reach full feature parity with Python for reporting.
+**Next major milestone:** Implement remaining export formats (Typst, PDF) to reach full feature parity with Python for reporting.
