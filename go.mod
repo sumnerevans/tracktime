@@ -1,6 +1,6 @@
 module github.com/sumnerevans/tracktime
 
-go 1.19
+go 1.24
 
 require (
 	github.com/alexflint/go-arg v1.4.4-0.20221010154157-dbc2ba5d0c9a
@@ -17,5 +17,6 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/yuin/goldmark v1.7.13 // indirect
 	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
 )

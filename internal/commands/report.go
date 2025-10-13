@@ -212,8 +212,16 @@ func (r *Report) Run(config *config.Config) error {
 			return fmt.Errorf("failed to write markdown report: %w", err)
 		}
 		fmt.Printf("Markdown report exported to %s\n", expandedPath)
+	} else if strings.HasSuffix(strings.ToLower(outputPath), ".html") {
+		// HTML export
+		output := rep.GenerateHTMLReport()
+		expandedPath := r.OutputFile.Expand()
+		if err := os.WriteFile(expandedPath, []byte(output), 0644); err != nil {
+			return fmt.Errorf("failed to write HTML report: %w", err)
+		}
+		fmt.Printf("HTML report exported to %s\n", expandedPath)
 	} else {
-		return fmt.Errorf("unsupported output format for file %s (supported: .md, or use '-' for stdout)", outputPath)
+		return fmt.Errorf("unsupported output format for file %s (supported: .md, .html, or use '-' for stdout)", outputPath)
 	}
 
 	return nil
