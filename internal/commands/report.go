@@ -71,7 +71,7 @@ type Report struct {
 	Asc  bool `arg:"--asc" help:"sort ascending"`
 
 	// Output file
-	OutputFile types.Filename `arg:"-o,--outfile" help:"specify the filename to export the report to (supports PDF, HTML, and RST files, if set to '-' then the report is printed to stdout)" default:"-"`
+	OutputFile types.Filename `arg:"-o,--outfile" help:"specify the filename to export the report to (supports .md, .html, .typ, .pdf files, if set to '-' then the report is printed to stdout)" default:"-"`
 }
 
 func (r *Report) Run(config *config.Config) error {
@@ -228,8 +228,15 @@ func (r *Report) Run(config *config.Config) error {
 			return fmt.Errorf("failed to write Typst report: %w", err)
 		}
 		fmt.Printf("Typst report exported to %s\n", expandedPath)
+	} else if strings.HasSuffix(strings.ToLower(outputPath), ".pdf") {
+		// PDF export
+		expandedPath := r.OutputFile.Expand()
+		if err := rep.GeneratePDFReport(expandedPath); err != nil {
+			return fmt.Errorf("failed to generate PDF report: %w", err)
+		}
+		fmt.Printf("PDF report exported to %s\n", expandedPath)
 	} else {
-		return fmt.Errorf("unsupported output format for file %s (supported: .md, .html, .typ, or use '-' for stdout)", outputPath)
+		return fmt.Errorf("unsupported output format for file %s (supported: .md, .html, .typ, .pdf, or use '-' for stdout)", outputPath)
 	}
 
 	return nil
