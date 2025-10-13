@@ -202,42 +202,36 @@ func (r *Report) Run(config *config.Config) error {
 	outputPath := string(r.OutputFile)
 
 	if outputPath == "-" {
-		// stdout - use text report with colors
 		fmt.Println(rep.GenerateTextReport())
-	} else if strings.HasSuffix(strings.ToLower(outputPath), ".md") {
-		// Markdown export
-		output := rep.GenerateMarkdownReport()
+		return nil
+	}
+
+	// Helper to write string-based reports
+	writeReport := func(content, formatName string) error {
 		expandedPath := r.OutputFile.Expand()
-		if err := os.WriteFile(expandedPath, []byte(output), 0644); err != nil {
-			return fmt.Errorf("failed to write markdown report: %w", err)
+		if err := os.WriteFile(expandedPath, []byte(content), 0644); err != nil {
+			return fmt.Errorf("failed to write %s report: %w", formatName, err)
 		}
-		fmt.Printf("Markdown report exported to %s\n", expandedPath)
-	} else if strings.HasSuffix(strings.ToLower(outputPath), ".html") {
-		// HTML export
-		output := rep.GenerateHTMLReport()
-		expandedPath := r.OutputFile.Expand()
-		if err := os.WriteFile(expandedPath, []byte(output), 0644); err != nil {
-			return fmt.Errorf("failed to write HTML report: %w", err)
-		}
-		fmt.Printf("HTML report exported to %s\n", expandedPath)
-	} else if strings.HasSuffix(strings.ToLower(outputPath), ".typ") {
-		// Typst export
-		output := rep.GenerateTypstReport()
-		expandedPath := r.OutputFile.Expand()
-		if err := os.WriteFile(expandedPath, []byte(output), 0644); err != nil {
-			return fmt.Errorf("failed to write Typst report: %w", err)
-		}
-		fmt.Printf("Typst report exported to %s\n", expandedPath)
-	} else if strings.HasSuffix(strings.ToLower(outputPath), ".pdf") {
-		// PDF export
+		fmt.Printf("%s report exported to %s\n", formatName, expandedPath)
+		return nil
+	}
+
+	lowerPath := strings.ToLower(outputPath)
+	switch {
+	case strings.HasSuffix(lowerPath, ".md"):
+		return writeReport(rep.GenerateMarkdownReport(), "Markdown")
+	case strings.HasSuffix(lowerPath, ".html"):
+		return writeReport(rep.GenerateHTMLReport(), "HTML")
+	case strings.HasSuffix(lowerPath, ".typ"):
+		return writeReport(rep.GenerateTypstReport(), "Typst")
+	case strings.HasSuffix(lowerPath, ".pdf"):
 		expandedPath := r.OutputFile.Expand()
 		if err := rep.GeneratePDFReport(expandedPath); err != nil {
 			return fmt.Errorf("failed to generate PDF report: %w", err)
 		}
 		fmt.Printf("PDF report exported to %s\n", expandedPath)
-	} else {
+		return nil
+	default:
 		return fmt.Errorf("unsupported output format for file %s (supported: .md, .html, .typ, .pdf, or use '-' for stdout)", outputPath)
 	}
-
-	return nil
 }
