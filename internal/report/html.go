@@ -3,6 +3,7 @@ package report
 import (
 	"bytes"
 	"fmt"
+	"io"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -113,15 +114,23 @@ const htmlTemplate = `<!DOCTYPE html>
 </html>`
 
 // GenerateHTMLReport generates an HTML report by converting markdown to HTML
-func (r *Report) GenerateHTMLReport() string {
+func (r *Report) GenerateHTMLReport(w io.Writer) error {
+	// Generate markdown to buffer
+	var markdownBuf bytes.Buffer
+	if err := r.GenerateMarkdownReport(&markdownBuf); err != nil {
+		return fmt.Errorf("error generating markdown: %w", err)
+	}
+
 	// Configure goldmark with table extension
 	md := goldmark.New(goldmark.WithExtensions(extension.Table))
 
 	// Convert markdown to HTML
 	var htmlBody bytes.Buffer
-	if err := md.Convert([]byte(r.GenerateMarkdownReport()), &htmlBody); err != nil {
-		return fmt.Sprintf("<html><body>Error generating HTML: %v</body></html>", err)
-	} else {
-		return fmt.Sprintf(htmlTemplate, r.headerText(), htmlBody.String())
+	if err := md.Convert(markdownBuf.Bytes(), &htmlBody); err != nil {
+		return fmt.Errorf("error converting markdown to HTML: %w", err)
 	}
+
+	// Write wrapped HTML to writer
+	_, err := fmt.Fprintf(w, htmlTemplate, r.headerText(), htmlBody.String())
+	return err
 }

@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -25,49 +26,87 @@ func escapeTypst(s string) string {
 }
 
 // GenerateTypstReport generates a Typst-formatted report
-func (r *Report) GenerateTypstReport() string {
-	var buf strings.Builder
-
+func (r *Report) GenerateTypstReport(w io.Writer) error {
 	// Header
 	header := r.headerText()
-	buf.WriteString(fmt.Sprintf("= %s\n\n", escapeTypst(header)))
+	if _, err := fmt.Fprintf(w, "= %s\n\n", escapeTypst(header)); err != nil {
+		return err
+	}
 
 	// User
-	buf.WriteString(fmt.Sprintf("*User:* %s\n\n", escapeTypst(r.Config.Reporting.FullName)))
+	if _, err := fmt.Fprintf(w, "*User:* %s\n\n", escapeTypst(r.Config.Reporting.FullName)); err != nil {
+		return err
+	}
 
 	// Customer address (if single customer report)
 	if r.Customer != "" {
-		buf.WriteString("*Customer:*\n\n")
-		for _, line := range r.addressLines() {
-			buf.WriteString(fmt.Sprintf("- %s\n", escapeTypst(line)))
+		if _, err := fmt.Fprint(w, "*Customer:*\n\n"); err != nil {
+			return err
 		}
-		buf.WriteString("\n")
+		for _, line := range r.addressLines() {
+			if _, err := fmt.Fprintf(w, "- %s\n", escapeTypst(line)); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, "\n"); err != nil {
+			return err
+		}
 	}
 
 	// Grand Total
-	buf.WriteString(fmt.Sprintf("*Grand Total:* \\$%.2f\n\n", r.grandTotal()))
+	if _, err := fmt.Fprintf(w, "*Grand Total:* \\$%.2f\n\n", r.grandTotal()); err != nil {
+		return err
+	}
 
 	// Statistics (if enabled)
 	if r.Config.Reporting.ReportStatistics {
-		buf.WriteString("== Statistics\n\n")
+		if _, err := fmt.Fprint(w, "== Statistics\n\n"); err != nil {
+			return err
+		}
 		stats := r.CalculateStatistics()
 
-		buf.WriteString("#table(\n")
-		buf.WriteString("  columns: 2,\n")
-		buf.WriteString("  stroke: 0.5pt,\n")
-		buf.WriteString("  align: (left, right),\n")
-		buf.WriteString("  table.header([*Metric*], [*Value*]),\n")
-		buf.WriteString(fmt.Sprintf("  [Days worked], [%d],\n", stats.DaysWorked))
-		buf.WriteString(fmt.Sprintf("  [Average time per day worked], [%s],\n", formatDuration(stats.AvgTimePerDay)))
-		buf.WriteString(fmt.Sprintf("  [Average time per weekday worked], [%s],\n", formatDuration(stats.AvgTimePerWeekday)))
-		buf.WriteString(fmt.Sprintf("  [Weeks\\* worked], [%.2f],\n", stats.WeeksWorked))
-		buf.WriteString(fmt.Sprintf("  [Average time per week\\* worked], [%s],\n", formatDuration(stats.AvgTimePerWeek)))
-		buf.WriteString(")\n\n")
-		buf.WriteString("\\* a week is any set of five weekdays (not necessarily within the same calendar week)\n\n")
+		if _, err := fmt.Fprint(w, "#table(\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "  columns: 2,\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "  stroke: 0.5pt,\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "  align: (left, right),\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "  table.header([*Metric*], [*Value*]),\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "  [Days worked], [%d],\n", stats.DaysWorked); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "  [Average time per day worked], [%s],\n", formatDuration(stats.AvgTimePerDay)); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "  [Average time per weekday worked], [%s],\n", formatDuration(stats.AvgTimePerWeekday)); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "  [Weeks\\* worked], [%.2f],\n", stats.WeeksWorked); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "  [Average time per week\\* worked], [%s],\n", formatDuration(stats.AvgTimePerWeek)); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, ")\n\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "\\* a week is any set of five weekdays (not necessarily within the same calendar week)\n\n"); err != nil {
+			return err
+		}
 	}
 
 	// Detailed Time Report
-	buf.WriteString("== Detailed Time Report\n\n")
+	if _, err := fmt.Fprint(w, "== Detailed Time Report\n\n"); err != nil {
+		return err
+	}
 
 	// Build table rows
 	var rows []string
@@ -131,13 +170,27 @@ func (r *Report) GenerateTypstReport() string {
 	}
 
 	// Create table
-	buf.WriteString("#table(\n")
-	buf.WriteString("  columns: 4,\n")
-	buf.WriteString("  stroke: 0.5pt,\n")
-	buf.WriteString("  align: (left, right, right, right),\n")
-	buf.WriteString("  table.header([], [*Hours*], [*Rate (\\$\\/h)*], [*Total (\\$)*]),\n")
-	buf.WriteString(strings.Join(rows, "\n"))
-	buf.WriteString("\n)\n")
+	if _, err := fmt.Fprint(w, "#table(\n"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(w, "  columns: 4,\n"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(w, "  stroke: 0.5pt,\n"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(w, "  align: (left, right, right, right),\n"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(w, "  table.header([], [*Hours*], [*Rate (\\$\\/h)*], [*Total (\\$)*]),\n"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(w, strings.Join(rows, "\n")); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(w, "\n)\n"); err != nil {
+		return err
+	}
 
-	return buf.String()
+	return nil
 }

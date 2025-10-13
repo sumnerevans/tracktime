@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -206,10 +207,16 @@ func (r *Report) Run(config *config.Config) error {
 		return nil
 	}
 
-	// Helper to write string-based reports
-	writeReport := func(content, formatName string) error {
+	// Helper to write reports that use io.Writer
+	writeReport := func(generator func(io.Writer) error, formatName string) error {
 		expandedPath := r.OutputFile.Expand()
-		if err := os.WriteFile(expandedPath, []byte(content), 0644); err != nil {
+		file, err := os.Create(expandedPath)
+		if err != nil {
+			return fmt.Errorf("failed to create %s report: %w", formatName, err)
+		}
+		defer file.Close()
+
+		if err := generator(file); err != nil {
 			return fmt.Errorf("failed to write %s report: %w", formatName, err)
 		}
 		fmt.Printf("%s report exported to %s\n", formatName, expandedPath)
@@ -219,11 +226,11 @@ func (r *Report) Run(config *config.Config) error {
 	lowerPath := strings.ToLower(outputPath)
 	switch {
 	case strings.HasSuffix(lowerPath, ".md"):
-		return writeReport(rep.GenerateMarkdownReport(), "Markdown")
+		return writeReport(rep.GenerateMarkdownReport, "Markdown")
 	case strings.HasSuffix(lowerPath, ".html"):
-		return writeReport(rep.GenerateHTMLReport(), "HTML")
+		return writeReport(rep.GenerateHTMLReport, "HTML")
 	case strings.HasSuffix(lowerPath, ".typ"):
-		return writeReport(rep.GenerateTypstReport(), "Typst")
+		return writeReport(rep.GenerateTypstReport, "Typst")
 	case strings.HasSuffix(lowerPath, ".pdf"):
 		expandedPath := r.OutputFile.Expand()
 		if err := rep.GeneratePDFReport(expandedPath); err != nil {

@@ -3,59 +3,97 @@ package report
 import (
 	"fmt"
 	"html"
-	"strings"
+	"io"
 )
 
 // GenerateMarkdownReport generates a markdown-formatted report
-func (r *Report) GenerateMarkdownReport() string {
-	var buf strings.Builder
-
+func (r *Report) GenerateMarkdownReport(w io.Writer) error {
 	// Header
 	header := r.headerText()
-	buf.WriteString(fmt.Sprintf("# %s\n\n", header))
+	if _, err := fmt.Fprintf(w, "# %s\n\n", header); err != nil {
+		return err
+	}
 
 	// User
-	buf.WriteString(fmt.Sprintf("**User:** %s\n\n", r.Config.Reporting.FullName))
+	if _, err := fmt.Fprintf(w, "**User:** %s\n\n", r.Config.Reporting.FullName); err != nil {
+		return err
+	}
 
 	// Customer address (if single customer report)
 	if r.Customer != "" {
-		buf.WriteString("**Customer:**\n\n")
-		for _, line := range r.addressLines() {
-			buf.WriteString(fmt.Sprintf("- %s\n", line))
+		if _, err := fmt.Fprint(w, "**Customer:**\n\n"); err != nil {
+			return err
 		}
-		buf.WriteString("\n")
+		for _, line := range r.addressLines() {
+			if _, err := fmt.Fprintf(w, "- %s\n", line); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, "\n"); err != nil {
+			return err
+		}
 	}
 
 	// Grand Total
-	buf.WriteString(fmt.Sprintf("**Grand Total:** $%.2f\n\n", r.grandTotal()))
+	if _, err := fmt.Fprintf(w, "**Grand Total:** $%.2f\n\n", r.grandTotal()); err != nil {
+		return err
+	}
 
 	// Statistics (if enabled)
 	if r.Config.Reporting.ReportStatistics {
-		buf.WriteString("## Statistics\n\n")
+		if _, err := fmt.Fprint(w, "## Statistics\n\n"); err != nil {
+			return err
+		}
 		stats := r.CalculateStatistics()
 
-		buf.WriteString("| Metric | Value |\n")
-		buf.WriteString("|--------|-------|\n")
-		buf.WriteString(fmt.Sprintf("| Days worked | %d |\n", stats.DaysWorked))
-		buf.WriteString(fmt.Sprintf("| Average time per day worked | %s |\n", formatDuration(stats.AvgTimePerDay)))
-		buf.WriteString(fmt.Sprintf("| Average time per weekday worked | %s |\n", formatDuration(stats.AvgTimePerWeekday)))
-		buf.WriteString(fmt.Sprintf("| Weeks* worked | %.2f |\n", stats.WeeksWorked))
-		buf.WriteString(fmt.Sprintf("| Average time per week* worked | %s |\n", formatDuration(stats.AvgTimePerWeek)))
-		buf.WriteString("\n")
-		buf.WriteString("\\* a week is any set of five weekdays (not necessarily within the same calendar week)\n\n")
+		if _, err := fmt.Fprint(w, "| Metric | Value |\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "|--------|-------|\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "| Days worked | %d |\n", stats.DaysWorked); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "| Average time per day worked | %s |\n", formatDuration(stats.AvgTimePerDay)); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "| Average time per weekday worked | %s |\n", formatDuration(stats.AvgTimePerWeekday)); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "| Weeks* worked | %.2f |\n", stats.WeeksWorked); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "| Average time per week* worked | %s |\n", formatDuration(stats.AvgTimePerWeek)); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "\n"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "\\* a week is any set of five weekdays (not necessarily within the same calendar week)\n\n"); err != nil {
+			return err
+		}
 	}
 
 	// Detailed Time Report
-	buf.WriteString("## Detailed Time Report\n\n")
+	if _, err := fmt.Fprint(w, "## Detailed Time Report\n\n"); err != nil {
+		return err
+	}
 
 	// Create table header
-	buf.WriteString("|  | Hours | Rate ($/h) | Total ($) |\n")
-	buf.WriteString("|--|------:|-----------:|----------:|\n")
+	if _, err := fmt.Fprint(w, "|  | Hours | Rate ($/h) | Total ($) |\n"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(w, "|--|------:|-----------:|----------:|\n"); err != nil {
+		return err
+	}
 
 	// TOTAL row
-	buf.WriteString(fmt.Sprintf("| **TOTAL** | **%.2f** | | **$%.2f** |\n",
+	if _, err := fmt.Fprintf(w, "| **TOTAL** | **%.2f** | | **$%.2f** |\n",
 		r.totalMinutes()/60.0,
-		r.grandTotal()))
+		r.grandTotal()); err != nil {
+		return err
+	}
 
 	// Customer/Project rows
 	for _, cp := range r.sortedCustomerProjects() {
@@ -68,11 +106,13 @@ func (r *Report) GenerateMarkdownReport() string {
 			total = fmt.Sprintf("%.2f", rt.Total)
 		}
 
-		buf.WriteString(fmt.Sprintf("| **%s** | %.2f | %s | %s |\n",
+		if _, err := fmt.Fprintf(w, "| **%s** | %.2f | %s | %s |\n",
 			html.EscapeString(r.customerProjectStr(cp, false)),
 			r.totalMinutesForCustomerProject(cp)/60.0,
 			rate,
-			total))
+			total); err != nil {
+			return err
+		}
 
 		if !r.TaskGrain {
 			continue
@@ -82,9 +122,11 @@ func (r *Report) GenerateMarkdownReport() string {
 		for _, taskID := range r.sortedTaskIDs(cp) {
 			taskName := r.formatTaskName(cp, taskID)
 			// Use &nbsp; for indentation in markdown tables
-			buf.WriteString(fmt.Sprintf("| &nbsp;&nbsp;• %s | %.2f | | |\n",
+			if _, err := fmt.Fprintf(w, "| &nbsp;&nbsp;• %s | %.2f | | |\n",
 				html.EscapeString(taskName),
-				r.totalMinutesForTask(cp, taskID)/60.0))
+				r.totalMinutesForTask(cp, taskID)/60.0); err != nil {
+				return err
+			}
 
 			if !r.DescriptionGrain {
 				continue
@@ -105,12 +147,14 @@ func (r *Report) GenerateMarkdownReport() string {
 					displayDesc = "(no description)"
 				}
 				// Use more &nbsp; for deeper indentation
-				buf.WriteString(fmt.Sprintf("| &nbsp;&nbsp;&nbsp;&nbsp;◦ %s | %.2f | | |\n",
+				if _, err := fmt.Fprintf(w, "| &nbsp;&nbsp;&nbsp;&nbsp;◦ %s | %.2f | | |\n",
 					html.EscapeString(displayDesc),
-					r.totalMinutesForDescription(cp, taskID, desc)/60.0))
+					r.totalMinutesForDescription(cp, taskID, desc)/60.0); err != nil {
+					return err
+				}
 			}
 		}
 	}
 
-	return buf.String()
+	return nil
 }
