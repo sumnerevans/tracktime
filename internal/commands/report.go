@@ -208,7 +208,7 @@ func (r *Report) Run(config *config.Config) error {
 	}
 
 	// Helper to write reports that use io.Writer
-	writeReport := func(generator func(io.Writer) error, formatName string) error {
+	writeReport := func(generator func(io.Writer), formatName string) error {
 		expandedPath := r.OutputFile.Expand()
 		file, err := os.Create(expandedPath)
 		if err != nil {
@@ -216,9 +216,7 @@ func (r *Report) Run(config *config.Config) error {
 		}
 		defer file.Close()
 
-		if err := generator(file); err != nil {
-			return fmt.Errorf("failed to write %s report: %w", formatName, err)
-		}
+		generator(file)
 		fmt.Printf("%s report exported to %s\n", formatName, expandedPath)
 		return nil
 	}

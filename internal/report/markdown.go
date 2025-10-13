@@ -9,7 +9,7 @@ import (
 )
 
 // GenerateMarkdownReport generates a markdown-formatted report
-func (r *Report) GenerateMarkdownReport(w io.Writer) error {
+func (r *Report) GenerateMarkdownReport(w io.Writer) {
 	// Header
 	header := r.headerText()
 	exerrors.Must(fmt.Fprintf(w, "# %s\n\n", header))
@@ -111,6 +111,4 @@ func (r *Report) GenerateMarkdownReport(w io.Writer) error {
 			}
 		}
 	}
-
-	return nil
 }

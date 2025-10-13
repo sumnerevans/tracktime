@@ -28,7 +28,7 @@ func escapeTypst(s string) string {
 }
 
 // GenerateTypstReport generates a Typst-formatted report
-func (r *Report) GenerateTypstReport(w io.Writer) error {
+func (r *Report) GenerateTypstReport(w io.Writer) {
 	// Header
 	header := r.headerText()
 	exerrors.Must(fmt.Fprintf(w, "= %s\n\n", escapeTypst(header)))
@@ -139,6 +139,4 @@ func (r *Report) GenerateTypstReport(w io.Writer) error {
 	exerrors.Must(fmt.Fprint(w, "  table.header([], [*Hours*], [*Rate (\\$\\/h)*], [*Total (\\$)*]),\n"))
 	exerrors.Must(fmt.Fprint(w, strings.Join(rows, "\n")))
 	exerrors.Must(fmt.Fprint(w, "\n)\n"))
-
-	return nil
 }

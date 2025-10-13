@@ -13,9 +13,7 @@ import (
 func (r *Report) GeneratePDFReport(outputPath string) error {
 	// Generate Typst content to buffer
 	var typstBuf bytes.Buffer
-	if err := r.GenerateTypstReport(&typstBuf); err != nil {
-		return fmt.Errorf("failed to generate Typst content: %w", err)
-	}
+	r.GenerateTypstReport(&typstBuf)
 
 	// Create output file
 	outFile, err := os.Create(outputPath)

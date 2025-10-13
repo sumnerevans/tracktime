@@ -115,12 +115,10 @@ const htmlTemplate = `<!DOCTYPE html>
 </html>`
 
 // GenerateHTMLReport generates an HTML report by converting markdown to HTML
-func (r *Report) GenerateHTMLReport(w io.Writer) error {
+func (r *Report) GenerateHTMLReport(w io.Writer) {
 	// Generate markdown to buffer
 	var markdownBuf bytes.Buffer
-	if err := r.GenerateMarkdownReport(&markdownBuf); err != nil {
-		return fmt.Errorf("error generating markdown: %w", err)
-	}
+	r.GenerateMarkdownReport(&markdownBuf)
 
 	// Configure goldmark with table extension
 	md := goldmark.New(goldmark.WithExtensions(extension.Table))
@@ -128,10 +126,9 @@ func (r *Report) GenerateHTMLReport(w io.Writer) error {
 	// Convert markdown to HTML
 	var htmlBody bytes.Buffer
 	if err := md.Convert(markdownBuf.Bytes(), &htmlBody); err != nil {
-		return fmt.Errorf("error converting markdown to HTML: %w", err)
+		panic(fmt.Sprintf("markdown to HTML conversion failed: %v", err))
 	}
 
 	// Write wrapped HTML to writer
 	exerrors.Must(fmt.Fprintf(w, htmlTemplate, r.headerText(), htmlBody.String()))
-	return nil
 }
