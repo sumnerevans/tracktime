@@ -4,7 +4,7 @@ This document tracks the migration progress from the Python implementation of tr
 
 **Branch:** `golang`
 **Last Updated:** 2025-10-12
-**Overall Completion:** ~80%
+**Overall Completion:** ~82%
 
 ---
 
@@ -21,6 +21,14 @@ The entire codebase was refactored from a flat structure into a proper Go projec
 - `commands/` → `internal/commands/`
 - `synchroniser/` → `internal/synchroniser/`
 - New package: `internal/report/` (split from commands for better organization)
+
+**October 2025 - Typst Export (commit 4e51710):**
+Implemented Typst export for PDF generation:
+- Created `internal/report/typst.go` with `GenerateTypstReport()`
+- Proper escaping of Typst special characters ($, /, <, >, #, *, _, [, ], @, `)
+- Used Typst `#table()` functions with headers, strokes, and alignment
+- Wired up `.typ` file extension in report command
+- Enables PDF generation via `typst compile report.typ`
 
 **October 2025 - HTML Export (commit 74541ba):**
 Implemented HTML export by converting markdown to HTML using goldmark:
@@ -136,6 +144,7 @@ tracktime/                  # Legacy Python implementation
 - `internal/report/stdout.go` - Text report generation with colors (complete)
 - `internal/report/markdown.go` - Markdown export with HTML entity escaping (complete)
 - `internal/report/html.go` - HTML export via goldmark markdown conversion (complete)
+- `internal/report/typst.go` - Typst export for PDF generation (complete)
 - `internal/report/statistics.go` - Statistics calculations
 - `internal/report/sorting.go` - Sort logic for customers/projects/tasks (all functions private)
 
@@ -143,12 +152,12 @@ tracktime/                  # Legacy Python implementation
 - Stdout (with colors and ANSI-aware formatting) - Complete!
 - Markdown export (.md with proper table formatting) - Complete!
 - HTML export (.html via goldmark markdown conversion) - Complete!
+- Typst export (.typ for PDF generation via `typst compile`) - Complete!
 
 **❌ Export Formats - Not Implemented:**
-- Typst export (potential intermediate format for PDF generation)
-- PDF export (likely via Typst→PDF, Python used pdfkit/wkhtmltopdf)
+- PDF export (requires integrating Typst compiler or finding a Go PDF library)
 
-**Note:** The report command stdout output, markdown export, and HTML export are **100% complete**. HTML export uses goldmark to convert markdown to HTML, then wraps it with a styled template. Only Typst and PDF export formats remain to be implemented.
+**Note:** The report command stdout output, markdown export, HTML export, and Typst export are **100% complete**. Typst files can be compiled to PDF using `typst compile report.typ report.pdf`. Only direct PDF export integration remains to be implemented.
 
 #### Sync Command Details
 
@@ -204,8 +213,8 @@ tracktime/                  # Legacy Python implementation
 - ✅ Stdout output (complete with colors and formatting!)
 - ✅ Markdown export (.md files) - Complete!
 - ✅ HTML export (.html via goldmark) - Complete!
-- ❌ Typst export (potential intermediate format for PDF generation)
-- ❌ PDF export (likely via Typst→PDF, Python used pdfkit/wkhtmltopdf)
+- ✅ Typst export (.typ files for PDF generation) - Complete!
+- ❌ PDF export (requires integrating Typst compiler, Python used pdfkit/wkhtmltopdf)
 
 ### Sync Functionality
 - ❌ `.synced` file reading/writing
@@ -240,10 +249,10 @@ Based on current state and user needs:
    - ✅ ~~Stdout formatting~~ (DONE!)
    - ✅ ~~Implement Markdown export~~ (DONE!)
    - ✅ ~~Implement HTML export~~ (DONE!)
-   - ❌ Implement Typst export (potential intermediate format for PDF)
-   - ❌ Implement PDF export (likely Typst→PDF conversion, requires library selection)
-   - Note: Stdout output, Markdown export, and HTML export are complete and production-ready
-   - Note: Export format decision: stdout (colors), markdown, html, typst (maybe), pdf (RST removed)
+   - ✅ ~~Implement Typst export~~ (DONE!)
+   - ❌ Implement PDF export (requires Typst compiler integration or Go PDF library)
+   - Note: Stdout, Markdown, HTML, and Typst exports are complete and production-ready
+   - Note: Typst files can be manually compiled to PDF with `typst compile report.typ`
 
 2. **Medium Priority** - Testing:
    - Add unit tests for commands (start, stop, resume, list, edit, sync, report)
@@ -330,7 +339,7 @@ Current version: **v0.11.0** (as declared in `cmd/tt/main.go:28`)
 
 ## Summary
 
-The Go rewrite is **~80% complete** and production-ready for daily time tracking:
+The Go rewrite is **~82% complete** and production-ready for daily time tracking:
 
 | Component | Completion |
 |-----------|------------|
@@ -339,16 +348,18 @@ The Go rewrite is **~80% complete** and production-ready for daily time tracking
 | Report command (stdout output) | **100%** ✅ |
 | Report command (markdown export) | **100%** ✅ |
 | Report command (HTML export) | **100%** ✅ |
-| Report export formats (Typst/PDF) | **0%** ❌ |
+| Report command (Typst export) | **100%** ✅ |
+| Report export formats (PDF) | **0%** ❌ |
 | Sync command | **10%** ❌ |
 | Synchronizers | **5%** ❌ |
 | Test coverage | **20%** (types only) ⚠️ |
 
-**Ready for use:** Yes! All core functionality works perfectly. Report stdout output, markdown export, and HTML export are complete with professional formatting.
+**Ready for use:** Yes! All core functionality works perfectly. Report stdout output, markdown export, HTML export, and Typst export are complete with professional formatting.
 
 **Usage:**
 - Stdout report: `go run ./cmd/tt report --thisweek`
 - Markdown report: `go run ./cmd/tt report --thisweek -o report.md`
 - HTML report: `go run ./cmd/tt report --thisweek -o report.html`
+- Typst report: `go run ./cmd/tt report --thisweek -o report.typ` (then `typst compile report.typ` for PDF)
 
-**Next major milestone:** Implement remaining export formats (Typst, PDF) to reach full feature parity with Python for reporting.
+**Next major milestone:** Implement direct PDF export integration (currently requires manual Typst compilation).
