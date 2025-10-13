@@ -19,6 +19,7 @@
             pre-commit
             python3Packages.selenium
             poetry
+            typst
           ];
 
           # Run this command, only after creating the virtual environment

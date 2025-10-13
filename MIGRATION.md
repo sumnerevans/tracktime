@@ -4,7 +4,7 @@ This document tracks the migration progress from the Python implementation of tr
 
 **Branch:** `golang`
 **Last Updated:** 2025-10-12
-**Overall Completion:** ~82%
+**Overall Completion:** ~85%
 
 ---
 
@@ -21,6 +21,15 @@ The entire codebase was refactored from a flat structure into a proper Go projec
 - `commands/` → `internal/commands/`
 - `synchroniser/` → `internal/synchroniser/`
 - New package: `internal/report/` (split from commands for better organization)
+
+**October 2025 - PDF Export (commit d05bb3a):**
+Implemented PDF export using go-typst library:
+- Added `github.com/Dadido3/go-typst v0.3.0` dependency
+- Created `internal/report/pdf.go` with `GeneratePDFReport()`
+- Uses go-typst CLI wrapper with stdio (no temp files needed)
+- Helpful error message when typst binary is not installed
+- Wired up `.pdf` file extension in report command
+- Direct PDF generation: `report --thisweek -o report.pdf`
 
 **October 2025 - Typst Export (commit 4e51710):**
 Implemented Typst export for PDF generation:
@@ -145,6 +154,7 @@ tracktime/                  # Legacy Python implementation
 - `internal/report/markdown.go` - Markdown export with HTML entity escaping (complete)
 - `internal/report/html.go` - HTML export via goldmark markdown conversion (complete)
 - `internal/report/typst.go` - Typst export for PDF generation (complete)
+- `internal/report/pdf.go` - PDF export via go-typst library (complete)
 - `internal/report/statistics.go` - Statistics calculations
 - `internal/report/sorting.go` - Sort logic for customers/projects/tasks (all functions private)
 
@@ -153,11 +163,9 @@ tracktime/                  # Legacy Python implementation
 - Markdown export (.md with proper table formatting) - Complete!
 - HTML export (.html via goldmark markdown conversion) - Complete!
 - Typst export (.typ for PDF generation via `typst compile`) - Complete!
+- PDF export (.pdf via go-typst library) - Complete!
 
-**❌ Export Formats - Not Implemented:**
-- PDF export (requires integrating Typst compiler or finding a Go PDF library)
-
-**Note:** The report command stdout output, markdown export, HTML export, and Typst export are **100% complete**. Typst files can be compiled to PDF using `typst compile report.typ report.pdf`. Only direct PDF export integration remains to be implemented.
+**Note:** All report export formats are **100% complete**. PDF export requires the `typst` binary to be installed on the system. The go-typst library provides a clean Go-native API for compiling Typst documents to PDF without temporary files.
 
 #### Sync Command Details
 
@@ -214,7 +222,7 @@ tracktime/                  # Legacy Python implementation
 - ✅ Markdown export (.md files) - Complete!
 - ✅ HTML export (.html via goldmark) - Complete!
 - ✅ Typst export (.typ files for PDF generation) - Complete!
-- ❌ PDF export (requires integrating Typst compiler, Python used pdfkit/wkhtmltopdf)
+- ✅ PDF export (.pdf via go-typst library) - Complete!
 
 ### Sync Functionality
 - ❌ `.synced` file reading/writing
@@ -245,14 +253,14 @@ tracktime/                  # Legacy Python implementation
 
 Based on current state and user needs:
 
-1. **High Priority** - Complete report export formats:
+1. **~~High Priority~~ - Complete report export formats:** ✅ **COMPLETE!**
    - ✅ ~~Stdout formatting~~ (DONE!)
    - ✅ ~~Implement Markdown export~~ (DONE!)
    - ✅ ~~Implement HTML export~~ (DONE!)
    - ✅ ~~Implement Typst export~~ (DONE!)
-   - ❌ Implement PDF export (requires Typst compiler integration or Go PDF library)
-   - Note: Stdout, Markdown, HTML, and Typst exports are complete and production-ready
-   - Note: Typst files can be manually compiled to PDF with `typst compile report.typ`
+   - ✅ ~~Implement PDF export~~ (DONE!)
+   - Note: All export formats are complete and production-ready
+   - Note: PDF export requires `typst` binary installed on the system
 
 2. **Medium Priority** - Testing:
    - Add unit tests for commands (start, stop, resume, list, edit, sync, report)
@@ -339,7 +347,7 @@ Current version: **v0.11.0** (as declared in `cmd/tt/main.go:28`)
 
 ## Summary
 
-The Go rewrite is **~82% complete** and production-ready for daily time tracking:
+The Go rewrite is **~85% complete** and production-ready for daily time tracking:
 
 | Component | Completion |
 |-----------|------------|
@@ -349,17 +357,18 @@ The Go rewrite is **~82% complete** and production-ready for daily time tracking
 | Report command (markdown export) | **100%** ✅ |
 | Report command (HTML export) | **100%** ✅ |
 | Report command (Typst export) | **100%** ✅ |
-| Report export formats (PDF) | **0%** ❌ |
+| Report command (PDF export) | **100%** ✅ |
 | Sync command | **10%** ❌ |
 | Synchronizers | **5%** ❌ |
 | Test coverage | **20%** (types only) ⚠️ |
 
-**Ready for use:** Yes! All core functionality works perfectly. Report stdout output, markdown export, HTML export, and Typst export are complete with professional formatting.
+**Ready for use:** Yes! All core functionality works perfectly. All report export formats are complete with professional formatting.
 
 **Usage:**
 - Stdout report: `go run ./cmd/tt report --thisweek`
 - Markdown report: `go run ./cmd/tt report --thisweek -o report.md`
 - HTML report: `go run ./cmd/tt report --thisweek -o report.html`
-- Typst report: `go run ./cmd/tt report --thisweek -o report.typ` (then `typst compile report.typ` for PDF)
+- Typst report: `go run ./cmd/tt report --thisweek -o report.typ`
+- PDF report: `go run ./cmd/tt report --thisweek -o report.pdf` (requires `typst` binary)
 
-**Next major milestone:** Implement direct PDF export integration (currently requires manual Typst compilation).
+**Next major milestone:** Complete sync command and synchronizers implementation.
