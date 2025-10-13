@@ -37,7 +37,7 @@ func (r *Report) GeneratePDFReport(outputPath string) error {
 	if err := typstCLI.Compile(&typstBuf, outFile, options); err != nil {
 		// Check if typst is not installed
 		if strings.Contains(err.Error(), "executable file not found") {
-			return fmt.Errorf("typst compiler not found in PATH. Please install Typst:\n  - Arch Linux: pacman -S typst\n  - macOS: brew install typst\n  - Cargo: cargo install typst-cli\n  - Or download from: https://github.com/typst/typst/releases")
+			return fmt.Errorf("typst compiler not found in PATH")
 		}
 		return fmt.Errorf("PDF compilation failed: %w", err)
 	}

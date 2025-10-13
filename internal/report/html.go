@@ -7,6 +7,7 @@ import (
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
+	"go.mau.fi/util/exerrors"
 )
 
 // htmlTemplate wraps the markdown-generated HTML with proper HTML structure and CSS
@@ -131,6 +132,6 @@ func (r *Report) GenerateHTMLReport(w io.Writer) error {
 	}
 
 	// Write wrapped HTML to writer
-	_, err := fmt.Fprintf(w, htmlTemplate, r.headerText(), htmlBody.String())
-	return err
+	exerrors.Must(fmt.Fprintf(w, htmlTemplate, r.headerText(), htmlBody.String()))
+	return nil
 }

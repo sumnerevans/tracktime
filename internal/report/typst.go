@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"go.mau.fi/util/exerrors"
 )
 
 // escapeTypst escapes special characters for Typst
@@ -29,84 +31,44 @@ func escapeTypst(s string) string {
 func (r *Report) GenerateTypstReport(w io.Writer) error {
 	// Header
 	header := r.headerText()
-	if _, err := fmt.Fprintf(w, "= %s\n\n", escapeTypst(header)); err != nil {
-		return err
-	}
+	exerrors.Must(fmt.Fprintf(w, "= %s\n\n", escapeTypst(header)))
 
 	// User
-	if _, err := fmt.Fprintf(w, "*User:* %s\n\n", escapeTypst(r.Config.Reporting.FullName)); err != nil {
-		return err
-	}
+	exerrors.Must(fmt.Fprintf(w, "*User:* %s\n\n", escapeTypst(r.Config.Reporting.FullName)))
 
 	// Customer address (if single customer report)
 	if r.Customer != "" {
-		if _, err := fmt.Fprint(w, "*Customer:*\n\n"); err != nil {
-			return err
-		}
+		exerrors.Must(fmt.Fprint(w, "*Customer:*\n\n"))
 		for _, line := range r.addressLines() {
-			if _, err := fmt.Fprintf(w, "- %s\n", escapeTypst(line)); err != nil {
-				return err
-			}
+			exerrors.Must(fmt.Fprintf(w, "- %s\n", escapeTypst(line)))
 		}
-		if _, err := fmt.Fprint(w, "\n"); err != nil {
-			return err
-		}
+		exerrors.Must(fmt.Fprint(w, "\n"))
 	}
 
 	// Grand Total
-	if _, err := fmt.Fprintf(w, "*Grand Total:* \\$%.2f\n\n", r.grandTotal()); err != nil {
-		return err
-	}
+	exerrors.Must(fmt.Fprintf(w, "*Grand Total:* \\$%.2f\n\n", r.grandTotal()))
 
 	// Statistics (if enabled)
 	if r.Config.Reporting.ReportStatistics {
-		if _, err := fmt.Fprint(w, "== Statistics\n\n"); err != nil {
-			return err
-		}
+		exerrors.Must(fmt.Fprint(w, "== Statistics\n\n"))
 		stats := r.CalculateStatistics()
 
-		if _, err := fmt.Fprint(w, "#table(\n"); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprint(w, "  columns: 2,\n"); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprint(w, "  stroke: 0.5pt,\n"); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprint(w, "  align: (left, right),\n"); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprint(w, "  table.header([*Metric*], [*Value*]),\n"); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintf(w, "  [Days worked], [%d],\n", stats.DaysWorked); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintf(w, "  [Average time per day worked], [%s],\n", formatDuration(stats.AvgTimePerDay)); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintf(w, "  [Average time per weekday worked], [%s],\n", formatDuration(stats.AvgTimePerWeekday)); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintf(w, "  [Weeks\\* worked], [%.2f],\n", stats.WeeksWorked); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintf(w, "  [Average time per week\\* worked], [%s],\n", formatDuration(stats.AvgTimePerWeek)); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprint(w, ")\n\n"); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprint(w, "\\* a week is any set of five weekdays (not necessarily within the same calendar week)\n\n"); err != nil {
-			return err
-		}
+		exerrors.Must(fmt.Fprint(w, "#table(\n"))
+		exerrors.Must(fmt.Fprint(w, "  columns: 2,\n"))
+		exerrors.Must(fmt.Fprint(w, "  stroke: 0.5pt,\n"))
+		exerrors.Must(fmt.Fprint(w, "  align: (left, right),\n"))
+		exerrors.Must(fmt.Fprint(w, "  table.header([*Metric*], [*Value*]),\n"))
+		exerrors.Must(fmt.Fprintf(w, "  [Days worked], [%d],\n", stats.DaysWorked))
+		exerrors.Must(fmt.Fprintf(w, "  [Average time per day worked], [%s],\n", formatDuration(stats.AvgTimePerDay)))
+		exerrors.Must(fmt.Fprintf(w, "  [Average time per weekday worked], [%s],\n", formatDuration(stats.AvgTimePerWeekday)))
+		exerrors.Must(fmt.Fprintf(w, "  [Weeks\\* worked], [%.2f],\n", stats.WeeksWorked))
+		exerrors.Must(fmt.Fprintf(w, "  [Average time per week\\* worked], [%s],\n", formatDuration(stats.AvgTimePerWeek)))
+		exerrors.Must(fmt.Fprint(w, ")\n\n"))
+		exerrors.Must(fmt.Fprint(w, "\\* a week is any set of five weekdays (not necessarily within the same calendar week)\n\n"))
 	}
 
 	// Detailed Time Report
-	if _, err := fmt.Fprint(w, "== Detailed Time Report\n\n"); err != nil {
-		return err
-	}
+	exerrors.Must(fmt.Fprint(w, "== Detailed Time Report\n\n"))
 
 	// Build table rows
 	var rows []string
@@ -170,27 +132,13 @@ func (r *Report) GenerateTypstReport(w io.Writer) error {
 	}
 
 	// Create table
-	if _, err := fmt.Fprint(w, "#table(\n"); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprint(w, "  columns: 4,\n"); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprint(w, "  stroke: 0.5pt,\n"); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprint(w, "  align: (left, right, right, right),\n"); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprint(w, "  table.header([], [*Hours*], [*Rate (\\$\\/h)*], [*Total (\\$)*]),\n"); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprint(w, strings.Join(rows, "\n")); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprint(w, "\n)\n"); err != nil {
-		return err
-	}
+	exerrors.Must(fmt.Fprint(w, "#table(\n"))
+	exerrors.Must(fmt.Fprint(w, "  columns: 4,\n"))
+	exerrors.Must(fmt.Fprint(w, "  stroke: 0.5pt,\n"))
+	exerrors.Must(fmt.Fprint(w, "  align: (left, right, right, right),\n"))
+	exerrors.Must(fmt.Fprint(w, "  table.header([], [*Hours*], [*Rate (\\$\\/h)*], [*Total (\\$)*]),\n"))
+	exerrors.Must(fmt.Fprint(w, strings.Join(rows, "\n")))
+	exerrors.Must(fmt.Fprint(w, "\n)\n"))
 
 	return nil
 }
