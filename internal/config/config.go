@@ -53,6 +53,9 @@ type Config struct {
 	// Editor
 	Editor     string   `yaml:"editor"`
 	EditorArgs []string `yaml:"editor_args"`
+
+	// Typst compiler path (for PDF generation)
+	TypstPath string `yaml:"typst_path"`
 }
 
 func ReadConfig(f types.Filename) (*Config, error) {

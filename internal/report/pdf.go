@@ -24,8 +24,10 @@ func (r *Report) GeneratePDFReport(outputPath string) error {
 	}
 	defer outFile.Close()
 
-	// Create Typst CLI compiler
-	typstCLI := typst.CLI{}
+	// Create Typst CLI compiler with configured path
+	typstCLI := typst.CLI{
+		ExecutablePath: r.Config.TypstPath,
+	}
 
 	// Compile Typst to PDF
 	options := &typst.CLIOptions{
