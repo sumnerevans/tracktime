@@ -87,10 +87,15 @@ func DayFilename(config *config.Config, date types.Date) string {
 }
 
 func EntryListForDay(config *config.Config, date types.Date) (*EntryList, error) {
-	file, err := os.OpenFile(DayFilename(config, date), os.O_RDONLY|os.O_CREATE, 0644)
+	dayFile := DayFilename(config, date)
+	if err := os.MkdirAll(filepath.Dir(dayFile), 0755); err != nil {
+		return nil, err
+	}
+	file, err := os.OpenFile(dayFile, os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
 	el := EntryList{Date: date, Config: config}
 	reader := csv.NewReader(file)
@@ -184,10 +189,15 @@ func (el *EntryList) AddEntry(entry *TimeEntry) {
 }
 
 func (el *EntryList) Save() error {
-	file, err := os.OpenFile(DayFilename(el.Config, el.Date), os.O_WRONLY|os.O_CREATE, 0644)
+	dayFile := DayFilename(el.Config, el.Date)
+	if err := os.MkdirAll(filepath.Dir(dayFile), 0755); err != nil {
+		return err
+	}
+	file, err := os.OpenFile(dayFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	writer := csv.NewWriter(file)
 	err = writer.Write([]string{"start", "stop", "type", "project", "taskid", "customer", "description"})
