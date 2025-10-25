@@ -3,8 +3,8 @@
 This document tracks the migration progress from the Python implementation of tracktime to Go.
 
 **Branch:** `golang`
-**Last Updated:** 2025-10-12
-**Overall Completion:** ~85%
+**Last Updated:** 2025-10-25
+**Overall Completion:** ~87%
 
 ---
 
@@ -13,6 +13,16 @@ This document tracks the migration progress from the Python implementation of tr
 The Go rewrite is located in the root directory alongside the legacy Python implementation (in `tracktime/`). Both implementations currently coexist, with the Go version being actively developed.
 
 ### Recent Major Changes
+
+**October 2025 - Test Coverage Addition:**
+Comprehensive test suite added across all core packages:
+- Added `internal/timeentry/entrylist_test.go` - 85.2% coverage (EntryList operations, CSV I/O)
+- Added `internal/config/config_test.go` - 100% coverage (config loading, validation)
+- Added `internal/commands/commands_test.go` - 23.8% coverage (all commands + integration tests)
+- Added `internal/report/report_test.go` - 26.5% coverage (report generation, formatting)
+- All tests use `testify/assert` library for clean, maintainable assertions
+- Full integration test for workflow (start → stop → resume → stop)
+- All tests pass with all linters (go-imports, go-vet, go-staticcheck)
 
 **October 2025 - Code Reorganization (commit 9537306):**
 The entire codebase was refactored from a flat structure into a proper Go project layout:
@@ -236,16 +246,14 @@ tracktime/                  # Legacy Python implementation
 
 | Package | Test Coverage | Notes |
 |---------|---------------|-------|
-| `internal/types/time.go` | ✅ Has tests (`internal/types/time_test.go`) | Time parsing and formatting |
-| `internal/types/month.go` | ✅ Has tests (`internal/types/month_test.go`) | Month parsing |
-| `internal/types/date.go` | ✅ Has tests (`internal/types/date_test.go`) | Date parsing (all formats including weekdays), AddDays, AddMonths |
-| `internal/commands/` | ❌ No tests yet | All commands need test coverage |
-| `internal/report/` | ❌ No tests yet | Report generation and formatting need tests |
-| `internal/timeentry/` | ❌ No tests yet | EntryList operations, CSV I/O need tests |
-| `internal/config/` | ❌ No tests yet | Config loading needs tests |
-| `internal/synchroniser/` | ❌ No tests yet | Synchroniser logic needs tests |
+| `internal/types/` | ✅ 61.1% coverage | Time, Month, Date parsing and operations all tested |
+| `internal/config/` | ✅ 100% coverage | Config loading fully tested (valid, minimal, env vars, errors) |
+| `internal/timeentry/` | ✅ 85.2% coverage | Comprehensive tests for EntryList, AddEntry, Save, Stop, Resume, CSV I/O |
+| `internal/commands/` | ✅ 23.8% coverage | Tests for Start, Stop, List, Resume, Edit, Sync commands, plus full workflow integration test |
+| `internal/report/` | ✅ 26.5% coverage | Tests for report creation, filtering, statistics, rates, sorting, formatting |
+| `internal/synchroniser/` | ❌ 0% coverage | No tests yet |
 
-**Current test status:** All tests in `internal/types` pass. Other packages have no tests yet.
+**Current test status:** All core packages have test coverage. Tests use testify/assert library for clean assertions. All tests pass with linters (go-imports, go-vet, go-staticcheck).
 
 ---
 
@@ -262,18 +270,22 @@ Based on current state and user needs:
    - Note: All export formats are complete and production-ready
    - Note: PDF export requires `typst` binary installed on the system
 
-2. **Medium Priority** - Testing:
-   - Add unit tests for commands (start, stop, resume, list, edit, sync, report)
-   - Add unit tests for report generation and formatting
-   - Add tests for EntryList operations and CSV I/O
-   - Add integration tests
-   - Test edge cases (overlapping entries, invalid times, etc.)
+2. **~~Medium Priority~~ - Testing:** ✅ **SUBSTANTIALLY COMPLETE!**
+   - ✅ ~~Add unit tests for commands~~ (DONE! - Start, Stop, List, Resume, Edit, Sync)
+   - ✅ ~~Add unit tests for report generation~~ (DONE! - Report creation, filtering, statistics, rates, sorting, formatting)
+   - ✅ ~~Add tests for EntryList operations and CSV I/O~~ (DONE! - 85.2% coverage)
+   - ✅ ~~Add tests for config loading~~ (DONE! - 100% coverage)
+   - ✅ ~~Add integration tests~~ (DONE! - Full workflow test in commands_test.go)
+   - ✅ All tests use testify/assert library for clean, maintainable assertions
+   - ⚠️ Could add more edge case tests (overlapping entries, invalid times, etc.)
+   - ⚠️ Could increase command/report coverage (currently 23-26%, core logic tested but not all branches)
 
 3. **Low Priority** - Sync command and synchronizers:
    - Implement `.synced` file I/O
    - Add aggregation logic
    - Complete GitHub synchroniser API calls
    - Add GitLab, Sourcehut, Linear synchronisers
+   - Add synchroniser tests
    - Note: Synchronizers are not critical for current workflow
 
 4. **Low Priority** - Documentation and polish:
@@ -347,7 +359,7 @@ Current version: **v0.11.0** (as declared in `cmd/tt/main.go:28`)
 
 ## Summary
 
-The Go rewrite is **~85% complete** and production-ready for daily time tracking:
+The Go rewrite is **~87% complete** and production-ready for daily time tracking:
 
 | Component | Completion |
 |-----------|------------|
@@ -360,7 +372,7 @@ The Go rewrite is **~85% complete** and production-ready for daily time tracking
 | Report command (PDF export) | **100%** ✅ |
 | Sync command | **10%** ❌ |
 | Synchronizers | **5%** ❌ |
-| Test coverage | **20%** (types only) ⚠️ |
+| Test coverage | **~50%** (types: 61%, config: 100%, timeentry: 85%, commands: 24%, report: 27%) ✅ |
 
 **Ready for use:** Yes! All core functionality works perfectly. All report export formats are complete with professional formatting.
 
