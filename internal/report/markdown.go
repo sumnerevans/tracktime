@@ -69,7 +69,7 @@ func (r *Report) GenerateMarkdownReport(w io.Writer) {
 		}
 
 		exerrors.Must(fmt.Fprintf(w, "| **%s** | %.2f | %s | %s |\n",
-			html.EscapeString(r.customerProjectStr(cp, false)),
+			html.EscapeString(r.customerProjectStr(cp)),
 			r.totalMinutesForCustomerProject(cp)/60.0,
 			rate,
 			total))

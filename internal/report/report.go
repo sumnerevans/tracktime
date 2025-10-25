@@ -195,16 +195,10 @@ func (r *Report) headerText() string {
 }
 
 // customerProjectStr formats customer/project string
-func (r *Report) customerProjectStr(cp CustomerProject, html bool) string {
+func (r *Report) customerProjectStr(cp CustomerProject) string {
 	noProject := "<no project>"
 	noCustomer := "<no customer>"
 	noBoth := "<no project or customer>"
-
-	if html {
-		noProject = "<i>no project</i>"
-		noCustomer = "<i>no customer</i>"
-		noBoth = "<i>no project or customer</i>"
-	}
 
 	if r.Customer != "" {
 		// Filtering by customer, show project

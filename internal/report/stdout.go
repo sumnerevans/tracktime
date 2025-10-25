@@ -126,7 +126,7 @@ func (r *Report) GenerateTextReport() string {
 		}
 
 		reportTable.AddRow(
-			boldYellow.Sprint(ellipsize(r.customerProjectStr(cp, false), 40)),
+			boldYellow.Sprint(ellipsize(r.customerProjectStr(cp), 40)),
 			fmt.Sprintf("%.2f", r.totalMinutesForCustomerProject(cp)/60.0),
 			rate,
 			total,

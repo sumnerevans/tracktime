@@ -90,7 +90,7 @@ func (r *Report) GenerateTypstReport(w io.Writer) {
 		}
 
 		rows = append(rows, fmt.Sprintf("  [*%s*], [%.2f], [%s], [%s],",
-			escapeTypst(r.customerProjectStr(cp, false)),
+			escapeTypst(r.customerProjectStr(cp)),
 			r.totalMinutesForCustomerProject(cp)/60.0,
 			rate,
 			total))
