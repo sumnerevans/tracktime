@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/synchroniser"
 	"github.com/sumnerevans/tracktime/internal/timeentry"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
@@ -88,6 +89,13 @@ func TestReportCreation(t *testing.T) {
 	report, err := New(cfg, date, date, "", "", SortAlphabetical, false, false, false)
 	require.NoError(t, err)
 
+	// Build expected synchronisers list
+	expectedSyncs := make([]synchroniser.Synchroniser, len(synchroniser.Synchronisers))
+	for i, sync := range synchroniser.Synchronisers {
+		expectedSyncs[i] = sync
+		expectedSyncs[i].Init(cfg.Sync)
+	}
+
 	assert.EqualValues(t, &Report{
 		StartDate: date,
 		EndDate:   date,
@@ -114,6 +122,7 @@ func TestReportCreation(t *testing.T) {
 		Reverse:          false,
 		TaskGrain:        false,
 		DescriptionGrain: false,
+		Synchronisers:    expectedSyncs,
 	}, report)
 }
 
@@ -351,6 +360,58 @@ func TestHeaderText(t *testing.T) {
 			assert.Equal(t, tt.expected, report.headerText())
 		})
 	}
+}
+
+func TestSynchroniserIntegration(t *testing.T) {
+	cfg := createTestConfig(t)
+	// Configure GitHub synchroniser
+	cfg.Sync.Enable = true
+	cfg.Sync.GitHub.Username = "testuser"
+	cfg.Sync.GitHub.RootURI = "https://github.com"
+
+	date := types.Today()
+
+	// Create GitHub entries
+	createTestEntries(t, cfg, date, []struct {
+		start, stop                                       string
+		entryType, project, customer, taskID, description string
+	}{
+		{"09:00", "10:00", "github", "testuser/myproject", "ACME Corp", "123", "Fix bug"},
+		{"10:00", "11:00", "gh", "anotherorg/repo", "ACME Corp", "456", "Add feature"},
+	})
+
+	report, err := New(cfg, date, date, "", "", SortAlphabetical, false, false, false)
+	require.NoError(t, err)
+
+	t.Run("formatTaskName returns formatted GitHub task IDs", func(t *testing.T) {
+		cp := CustomerProject{Customer: "ACME Corp", Project: "testuser/myproject"}
+		taskName := report.formatTaskName(cp, "123")
+		assert.Equal(t, "#123", taskName)
+	})
+
+	t.Run("getTaskLink returns GitHub URLs", func(t *testing.T) {
+		cp := CustomerProject{Customer: "ACME Corp", Project: "testuser/myproject"}
+		link := report.getTaskLink(cp, "123")
+		assert.Equal(t, "https://github.com/testuser/myproject/issues/123", link)
+	})
+
+	t.Run("formatTaskName returns fallback for non-GitHub entries", func(t *testing.T) {
+		// Create a non-GitHub entry
+		createTestEntries(t, cfg, date, []struct {
+			start, stop                                       string
+			entryType, project, customer, taskID, description string
+		}{
+			{"11:00", "12:00", "jira", "jiraproject", "Client B", "JIRA-789", "Some work"},
+		})
+
+		report2, err := New(cfg, date, date, "", "", SortAlphabetical, false, false, false)
+		require.NoError(t, err)
+
+		cp := CustomerProject{Customer: "Client B", Project: "jiraproject"}
+		taskName := report2.formatTaskName(cp, "JIRA-789")
+		// Should fall back to raw task ID since no synchroniser handles "jira" type
+		assert.Equal(t, "JIRA-789", taskName)
+	})
 }
 
 func TestCustomerProjectStr(t *testing.T) {

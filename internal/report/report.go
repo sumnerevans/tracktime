@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/synchroniser"
 	"github.com/sumnerevans/tracktime/internal/timeentry"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
@@ -42,6 +43,9 @@ type Report struct {
 	Reverse          bool
 	TaskGrain        bool
 	DescriptionGrain bool
+
+	// Synchronisers for formatting task IDs and getting links
+	Synchronisers []synchroniser.Synchroniser
 }
 
 // Sort represents how to sort report entries
@@ -67,6 +71,13 @@ func New(config *config.Config, start, end types.Date, customer timeentry.Custom
 		AggregatedTime:   make(map[CustomerProject]map[timeentry.TaskID]map[string][]*timeentry.TimeEntry),
 		DayStats:         make(map[types.Date]time.Duration),
 		RateTotals:       make(map[CustomerProject]RateTotal),
+		Synchronisers:    make([]synchroniser.Synchroniser, len(synchroniser.Synchronisers)),
+	}
+
+	// Initialize synchronisers with config
+	for i, sync := range synchroniser.Synchronisers {
+		r.Synchronisers[i] = sync
+		r.Synchronisers[i].Init(config.Sync)
 	}
 
 	// Aggregate time entries across date range
@@ -268,16 +279,44 @@ func (r *Report) formatTaskName(cp CustomerProject, taskID timeentry.TaskID) str
 		return "<NO TASK>"
 	}
 
-	taskName := "<NO TASK>"
-	if taskID != "" {
-		// Task IDs already include prefixes in the CSV data (#123, !456, etc.)
-		// so just use them directly
-		taskName = string(taskID)
+	// Try to get formatted task ID from synchronisers
+	for _, sync := range r.Synchronisers {
+		if formattedID := sync.GetFormattedTaskID(firstEntry); formattedID != "" {
+			return formattedID
+		}
 	}
 
-	// TODO: Add synchronizer task description lookup
-	// For now, just return the formatted task ID
-	return taskName
+	// Fallback: if no synchroniser handles this entry, use raw task ID
+	if taskID != "" {
+		return string(taskID)
+	}
+
+	return "<NO TASK>"
+}
+
+// getTaskLink returns a link to the task from any applicable synchroniser
+func (r *Report) getTaskLink(cp CustomerProject, taskID timeentry.TaskID) string {
+	// Get first entry to check type
+	var firstEntry *timeentry.TimeEntry
+	for _, entries := range r.AggregatedTime[cp][taskID] {
+		if len(entries) > 0 {
+			firstEntry = entries[0]
+			break
+		}
+	}
+
+	if firstEntry == nil {
+		return ""
+	}
+
+	// Try to get task link from synchronisers
+	for _, sync := range r.Synchronisers {
+		if link := sync.GetTaskLink(firstEntry); link != "" {
+			return link
+		}
+	}
+
+	return ""
 }
 
 // totalMinutes returns total minutes across all entries

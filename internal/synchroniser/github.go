@@ -14,6 +14,8 @@ type GitHubSynchroniser struct {
 	Config config.GitHubSyncConfig
 }
 
+var _ Synchroniser = (*GitHubSynchroniser)(nil)
+
 func (gh *GitHubSynchroniser) Name() string { return "GitHub" }
 
 func (gh *GitHubSynchroniser) Init(cfg config.SyncConfig) {
