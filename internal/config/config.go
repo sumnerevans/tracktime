@@ -25,11 +25,17 @@ type SourceHutSyncConfig struct {
 	Username    string `yaml:"username"`
 }
 
+type LinearSyncConfig struct {
+	DefaultOrg string `yaml:"default_org"`
+	APIKey     string `yaml:"api_key"`
+}
+
 type SyncConfig struct {
 	Enable    bool                `yaml:"enable"`
 	GitHub    GitHubSyncConfig    `yaml:"github"`
 	GitLab    GitLabSyncConfig    `yaml:"gitlab"`
 	SourceHut SourceHutSyncConfig `yaml:"sourcehut"`
+	Linear    LinearSyncConfig    `yaml:"linear"`
 }
 
 type ReportingConfig struct {

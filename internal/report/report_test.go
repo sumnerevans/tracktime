@@ -412,6 +412,46 @@ func TestSynchroniserIntegration(t *testing.T) {
 		// Should fall back to raw task ID since no synchroniser handles "jira" type
 		assert.Equal(t, "JIRA-789", taskName)
 	})
+
+	t.Run("Linear formatTaskName returns formatted task IDs", func(t *testing.T) {
+		cfg2 := createTestConfig(t)
+		cfg2.Sync.Linear.DefaultOrg = "myorg"
+		date2 := types.Today()
+
+		createTestEntries(t, cfg2, date2, []struct {
+			start, stop                                       string
+			entryType, project, customer, taskID, description string
+		}{
+			{"09:00", "10:00", "linear", "ENG", "Tech Corp", "123", "Linear task"},
+		})
+
+		report3, err := New(cfg2, date2, date2, "", "", SortAlphabetical, false, false, false)
+		require.NoError(t, err)
+
+		cp := CustomerProject{Customer: "Tech Corp", Project: "ENG"}
+		taskName := report3.formatTaskName(cp, "123")
+		assert.Equal(t, "ENG-123", taskName)
+	})
+
+	t.Run("Linear getTaskLink returns Linear URLs", func(t *testing.T) {
+		cfg2 := createTestConfig(t)
+		cfg2.Sync.Linear.DefaultOrg = "myorg"
+		date2 := types.Today()
+
+		createTestEntries(t, cfg2, date2, []struct {
+			start, stop                                       string
+			entryType, project, customer, taskID, description string
+		}{
+			{"09:00", "10:00", "linear", "PROD", "Tech Corp", "456", "Linear task"},
+		})
+
+		report3, err := New(cfg2, date2, date2, "", "", SortAlphabetical, false, false, false)
+		require.NoError(t, err)
+
+		cp := CustomerProject{Customer: "Tech Corp", Project: "PROD"}
+		link := report3.getTaskLink(cp, "456")
+		assert.Equal(t, "https://linear.app/myorg/issue/PROD-456", link)
+	})
 }
 
 func TestCustomerProjectStr(t *testing.T) {
