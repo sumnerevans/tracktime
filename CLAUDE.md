@@ -139,32 +139,6 @@ Customer → Project → TaskID → Description → []*TimeEntry
 
 Supports multiple grains (task-level, description-level) and sorting options. Currently outputs debug format; full report generation is a TODO.
 
-## Development Workflow
-
-- **Commit early and often**: Create git commits after completing logical units of work (individual features, bug fixes, or refactors). Don't wait to batch multiple changes together.
-- **Document analyses**: When performing complex analysis (code architecture, migration planning, debugging), write the findings to a markdown file in `.claude/` for reference. This helps maintain context and provides documentation for the user.
-- **Git workflow**:
-  - Always use separate `git add` and `git commit` commands (never combine them with `&&`).
-  - Include Claude as co-author in commit messages:
-    ```
-    <commit message>
-
-    Co-Authored-By: Claude <noreply@anthropic.com>
-    ```
-- **Commit message format**: Use `<component>: <short description>` format. Keep it concise and don't reference the branch name.
-  - Example: `lib/date: add flexible date parsing`
-  - Example: `pre-commit: remove Python linters`
-- **Run linters before committing**: Always run pre-commit hooks before creating commits to catch formatting issues early. Use:
-  ```bash
-  pre-commit run -av go-imports-repo
-  pre-commit run -av go-vet-repo-mod
-  pre-commit run -av go-staticcheck-repo-mod
-  ```
-  Or run all hooks at once:
-  ```bash
-  pre-commit run --all-files
-  ```
-
 ## Coding Style
 
 - **Go Visibility Rules**: In Go, identifiers (functions, types, variables, etc.) are exported (public) if they start with an uppercase letter, and unexported (private to the package) if they start with a lowercase letter.
