@@ -145,16 +145,12 @@ Supports multiple grains (task-level, description-level) and sorting options. Cu
 - **Document analyses**: When performing complex analysis (code architecture, migration planning, debugging), write the findings to a markdown file in `.claude/` for reference. This helps maintain context and provides documentation for the user.
 - **Git workflow**:
   - Always use separate `git add` and `git commit` commands (never combine them with `&&`).
-  - Write suggested commit message to `.claude/commit_msg.txt`
   - Include Claude as co-author in commit messages:
     ```
     <commit message>
 
     Co-Authored-By: Claude <noreply@anthropic.com>
     ```
-  - Show the suggested message to the user
-  - Ask user to approve or edit: "Commit message written to `.claude/commit_msg.txt`. Reply 'commit' to proceed, or edit the file and let me know when ready."
-  - Wait for user confirmation before running `git commit -F .claude/commit_msg.txt`
 - **Commit message format**: Use `<component>: <short description>` format. Keep it concise and don't reference the branch name.
   - Example: `lib/date: add flexible date parsing`
   - Example: `pre-commit: remove Python linters`
