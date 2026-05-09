@@ -6,7 +6,6 @@ reporting:
   fullname: Sumner Evans
   day_worked_min_threshold: 120
   report_statistics: true  # Default in Python, must be explicit in Go
-  table_format: fancy_grid  # Was "tableformat" in Python
   project_rates:
     teaching/tutoring: 50
   customer_rates: {}

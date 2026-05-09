@@ -48,7 +48,6 @@ type ReportingConfig struct {
 	CustomerAddresses     map[string]string  `yaml:"customer_addresses"`
 	DayWorkedMinThreshold int                `yaml:"day_worked_min_threshold"`
 	ReportStatistics      bool               `yaml:"report_statistics"`
-	TableFormat           string             `yaml:"table_format"`
 }
 
 type Config struct {
