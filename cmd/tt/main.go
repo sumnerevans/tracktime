@@ -21,7 +21,7 @@ type args struct {
 	Resume     *commands.Resume `arg:"subcommand" help:"resume a time entry from today"`
 	List       *commands.List   `arg:"subcommand" help:"list the time entries for a date"`
 	Edit       *commands.Edit   `arg:"subcommand" help:"edit time entries for a date"`
-	Sync       *commands.Sync   `arg:"subcommand" help:"synchronize time spent on tasks for a month to external services"`
+	Sync       *commands.Sync   `arg:"subcommand" help:"pull task metadata from external services for a month"`
 	Report     *commands.Report `arg:"subcommand" help:"output a report about time spent in a time range"`
 	ConfigFile types.Filename   `arg:"--config" help:"the configuration file to use" default:"$HOME/.config/tracktime/tracktimerc"`
 }
@@ -31,7 +31,7 @@ var _ arg.Epilogued = (*args)(nil)
 var _ arg.Described = (*args)(nil)
 
 func (args) Version() string {
-	return "tracktime v0.11.0"
+	return "tracktime v1.0.0"
 }
 
 func (a *args) Description() string {

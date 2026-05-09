@@ -27,7 +27,7 @@
             default = tt;
             tt = pkgs.buildGoModule {
               pname = "tt";
-              version = "unstable-2026-05-09";
+              version = "1.0.0";
               src = self;
               subPackages = [ "cmd/tt" ];
               vendorHash = "sha256-dQbkpgdt9ajzj1GodSpTHF/M3VcgaGwebT9xJgAIaFQ=";
@@ -36,13 +36,10 @@
 
           devShells.default = pkgs.mkShell {
             buildInputs = with pkgs; [
-              chromedriver
               go
               go-tools
               gotools
               pre-commit
-              python3Packages.selenium
-              poetry
               typst
             ];
           };

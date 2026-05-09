@@ -1,29 +1,37 @@
-# vim:ft=yaml
-fullname: Sumner Evans
-sync_time: true
-editor: C:\Users\sumner.evans\AppData\Local\Programs\Microsoft VS Code\Code.exe
-editor_args: --wait
+directory: $HOME/.tracktime
+reporting:
+    fullname: Sumner Evans
+    day_worked_min_threshold: 120
+    report_statistics: true # Default in Python, must be explicit in Go
+    project_rates:
+        teaching/tutoring: 50
+    customer_rates: {}
+    customer_aliases: {}
+    customer_addresses: {}
+sync:
+    enable: true # Based on sync_time: true from original
+github:
+    access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/github-tracktime-access-token|
+    username: sumnerevans
 gitlab:
-  api_root: https://gitlab.com/api/v4/
-  api_key: pass show VCS/GitLab-API-Key|
+    api_key: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/gitlab-api-key|
+    api_root: https://gitlab.com/api/v4/
 sourcehut:
-  api_root: https://todo.sr.ht/api/
-  access_token: pass VCS/Sourcehut-Access-Token|
-  username: ~sumner
-tableformat: fancy_grid
-project_rates:
-  sumner/tracktime: 50
-  sumner/offlinemsmtp: 50
-customer_aliases:
-  John: John Doe
-  James: James Smith
-customer_addresses:
-  Google: |
-    1600 Amphitheatre Parkway
-    Mountain View, CA 94043
-    USA
-  Microsoft: |
-    One Microsoft Way
-    Redmond, WA 98052
-external_synchroniser_files:
-  jira: C:\projects\tracktime\examples\jira.py
+    access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/sourcehut-access-token|
+    api_root: https://todo.sr.ht/api/
+    username: ~sumner
+linear:
+    default_org: ""
+    api_key: ""
+item_cache_ttl_days: 30
+editor: ""
+editor_args: []
+typst_path: ""
+logging:
+    min_level: info
+    writers:
+        - type: file
+          format: json
+          filename: $XDG_STATE_HOME/tracktime/tracktime.log
+          max_size: 10 # megabytes
+          max_age: 90 # days

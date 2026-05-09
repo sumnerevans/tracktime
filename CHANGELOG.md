@@ -1,3 +1,34 @@
+# v1.0.0
+
+tracktime has been rewritten in Go. Your existing data files and config work as
+before; the config is upgraded automatically on first run.
+
+## New features
+
+* **Markdown, Typst, and PDF reports**: export with `-f md`, `-f typst`, or
+  `-f pdf` (PDF requires `typst` in your PATH)
+* **Clickable task links**: terminal output uses OSC 8 hyperlinks; Markdown
+  and HTML use inline links; Typst/PDF use `#link`
+* **Color terminal output**: `tt list` and `tt report` use ANSI colors
+* **`tt resume -2`**: negative indexing resumes any past entry, not just the last
+* **Abbreviated weekday dates**: `mon`, `tue`, `wed`, etc. work everywhere a
+  date is accepted
+* **`--lastmonth` flag**: report for the previous calendar month
+* **GitHub Enterprise**: set `github.root_uri` to use a self-hosted instance
+* **Pipe notation for secrets**: suffix any config value with `|` to run it as
+  a shell command: `access_token: cat /run/secrets/gh-token|`
+* **Faster task metadata**: a single shared cache file replaces per-service
+  files; stale data is used when the API is unavailable
+
+## Breaking changes
+
+* Push sync to GitLab and Sourcehut has been removed. The `tt sync` command now
+  only pulls task metadata (titles and links) for display in reports. If you
+  relied on time sync to GitLab/Sourcehut, stay on v0.10.0.
+* The `tableformat` config key is ignored. Terminal output now uses a fixed
+  colour table style.
+* The `external_synchroniser_files` plugin system has been removed.
+
 # v0.10.0
 
 * Add Linear Synchroniser for making rich reports for Linear issues.
