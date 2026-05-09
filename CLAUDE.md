@@ -4,21 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-tracktime is a filesystem-backed time tracking solution that stores time tracking data in CSV files organized by date. The project is **transitioning from Python to Go** - both implementations coexist, with the Go version on the `golang` branch being actively developed.
+tracktime is a filesystem-backed time tracking solution. The project is **transitioning from Python to Go** — both implementations coexist, with the Go version on the `golang` branch being actively developed. The README describes the Python version; this file focuses on the Go implementation.
 
 ### Key Architecture Principles
 
-- Filesystem-based: Uses Git-friendly CSV files in `YEAR/MONTH/DAY` directory structure (e.g., `2023/01/15`)
-- Offline-first: Must work without internet connectivity
+- Filesystem-based: Git-friendly CSV files in `YEAR/MONTH/DAY` directory structure
+- Offline-first: must work without internet connectivity
 - Manual editing support: CSV format allows direct file editing
-- External sync: One-way push to GitLab, GitHub, Sourcehut (tracktime pushes, does not poll)
+- External sync: importers only (pull from external services); push sync is intentionally not ported
 
 ## Commands
 
 ### Go Development (current branch: golang)
 
 **Configuration:**
-When running the Go version of tracktime, use the example config at `examples/tracktimerc.go-example`. Either:
+Use the example config at `examples/tracktimerc.go-example`. Either:
 - Copy it to `~/.config/tracktime/tracktimerc`, or
 - Use the `--config` flag: `go run ./cmd/tt --config examples/tracktimerc.go-example`
 
@@ -30,99 +30,58 @@ go run ./cmd/tt --config examples/tracktimerc.go-example report --thisweek
 
 **Run tests:**
 ```bash
-go test ./...                    # Run all tests
-go test ./lib                    # Run tests in lib package
-go test -v ./lib/... -run TestName  # Run specific test with verbose output
+go test ./...
+go test -v ./internal/... -run TestName
 ```
 
 **Linting (via pre-commit):**
 ```bash
-pre-commit run -av go-imports-repo    # Format imports
-pre-commit run -av go-vet-repo-mod    # Run go vet
-pre-commit run -av go-staticcheck-repo-mod  # Static analysis
+pre-commit run -av go-imports-repo
+pre-commit run -av go-vet-repo-mod
+pre-commit run -av go-staticcheck-repo-mod
 ```
 
-### Python Development (legacy)
-
-The Python version is still in `tracktime/` directory and uses Poetry for dependency management.
-
-**Setup:**
-```bash
-poetry install                   # Install dependencies
-poetry shell                     # Activate virtualenv
-```
-
-**Testing:**
-```bash
-poetry run pytest                # Run all tests (with coverage)
-```
-
-**Linting:**
-```bash
-poetry check                     # Validate pyproject.toml
-poetry run flake8               # Lint
-poetry run mypy tracktime       # Type checking
-poetry run black --check .      # Format checking
-./cicd/custom_style_check.py    # Custom style checks
-```
-
-## Code Architecture
+## Go Code Architecture
 
 ### Directory Structure
 
 ```
-tracktime.go           # Main entry point, CLI argument parsing
-commands/              # Command implementations (start, stop, resume, list, edit, sync, report)
-lib/                   # Core library code
-  ├── config.go        # Configuration parsing (~/.config/tracktime/tracktimerc YAML)
-  ├── entrylist.go     # Time entry list operations, CSV I/O
-  ├── date.go          # Date type and operations
-  ├── time.go          # Time type (HH:MM format)
-  └── month.go         # Month type and operations
-synchroniser/          # External service synchronizers
-  ├── github.go
-  └── syncroniser.go
-tracktime/             # Legacy Python implementation
+cmd/tt/                # CLI entry point
+internal/
+  ├── commands/        # Subcommand implementations (start, stop, resume, list, edit, sync, report)
+  ├── config/          # Config parsing + auto-migration (go.mau.fi/util/configupgrade)
+  ├── importer/        # Importer interface; concrete importers registered here
+  ├── report/          # Report aggregation and rendering (stdout, markdown, html, typst, pdf)
+  ├── resolver/        # Work item metadata cache (formatted ID, description, hyperlink)
+  └── types/           # Date, Time, Month, Filename types
 ```
 
 ### Key Types and Concepts
 
-**TimeEntry** (`lib/entrylist.go:30-39`)
-- Core data structure representing a time tracking entry
-- Fields: `Start`, `Stop`, `Project`, `Customer`, `TaskID`, `Type`, `Description`
+**TimeEntry** (`internal/timeentry/entrylist.go`)
+- Fields: `Start`, `Stop`, `Type`, `Project`, `TaskID`, `Customer`, `Description`
 - CSV header: `start,stop,type,project,taskid,customer,description`
 
-**EntryList** (`lib/entrylist.go:71-75`)
-- Manages all time entries for a single day
+**EntryList** (`internal/timeentry/entrylist.go`)
+- All time entries for a single day
 - Handles insertion logic (auto-stops overlapping entries)
-- CSV I/O operations
+- `Save()` writes CSV atomically; `SaveAndSync()` also triggers `syncMonth`
 
-**Config** (`lib/config.go:45-55`)
+**Config** (`internal/config/config.go`)
 - Loaded from `~/.config/tracktime/tracktimerc` (YAML)
-- Contains: reporting config, sync settings, editor preferences, data directory path
+- Auto-migrated from Python flat format on first read via `configupgrade`
+- Secrets support pipe notation: `cat /path/to/secret|` runs the command and uses stdout
+
+**Resolver / ItemDetailCache** (`internal/resolver/`)
+- Fetches formatted task IDs, descriptions, and hyperlinks from GitHub/GitLab/Linear/Sourcehut
+- Caches results in `item-cache.csv` with configurable TTL (`item_cache_ttl_days`, default 30 days)
 
 ### Command Flow
 
-1. `tracktime.go` parses arguments using `go-arg`
-2. Loads config from `tracktimerc`
-3. Dispatches to appropriate command in `commands/`
-4. Commands use `lib.EntryListForDay()` to load/save day files
-5. `EntryList.Save()` writes CSV atomically
-
-### Data File Formats
-
-**Day file** (e.g., `~/.tracktime/2023/01/15`):
-```csv
-start,stop,type,project,taskid,customer,description
-09:00,12:30,gitlab,acme-web,123,ACME Corp,Implementing feature X
-13:30,17:00,github,internal-tool,456,Internal,Bug fix
-```
-
-**Synced file** (e.g., `~/.tracktime/2023/01/.synced`):
-```csv
-type,project,taskid,synced
-gitlab,acme-web,123,3.5h
-```
+1. `cmd/tt/` parses arguments using `go-arg`
+2. Loads and auto-migrates config from `tracktimerc`
+3. Dispatches to appropriate command in `internal/commands/`
+4. Mutation commands (`start`, `stop`, `resume`, `edit`) call `syncMonth` after saving
 
 ### Time Entry Type Shortcuts
 
@@ -130,44 +89,17 @@ gitlab,acme-web,123,3.5h
 - `gl` → `gitlab`
 - Otherwise preserved as-is
 
-### Report Command Architecture
-
-The report command (`commands/report.go`) aggregates time entries across date ranges with nested maps:
-```
-Customer → Project → TaskID → Description → []*TimeEntry
-```
-
-Supports multiple grains (task-level, description-level) and sorting options. Currently outputs debug format; full report generation is a TODO.
-
 ## Coding Style
 
-- **Go Visibility Rules**: In Go, identifiers (functions, types, variables, etc.) are exported (public) if they start with an uppercase letter, and unexported (private to the package) if they start with a lowercase letter.
-  - **Exported (public)**: `SortedCustomerProjects()`, `CustomerProject`, `Report`
-  - **Unexported (private)**: `sortedCustomerProjects()`, `customerProject`, `report`
-  - **Best practice**: Only export identifiers that need to be used outside the package. Keep internal implementation details private.
+- **Go Visibility Rules**: export only identifiers that need to be used outside the package.
 
-- **Avoid single-use variables**: Don't create variables to hold the result of a function call if the variable is only used once immediately after. Inline the function call instead.
-  - **Exception**: Long or complex function invocations that hurt readability can use a variable for clarity.
-  - **Bad**:
-    ```go
-    header := r.headerText()
-    buf.WriteString(header)
-    ```
-  - **Good**:
-    ```go
-    buf.WriteString(r.headerText())
-    ```
-  - **Exception (acceptable)**:
-    ```go
-    // Complex invocation with multiple chained calls
-    formattedResult := someObj.VeryLongMethodName().WithMultipleChainedCalls().AndMoreChaining()
-    buf.WriteString(formattedResult)
-    ```
+- **Avoid single-use variables**: inline function calls unless the invocation is complex enough to hurt readability.
+  - Bad: `header := r.headerText(); buf.WriteString(header)`
+  - Good: `buf.WriteString(r.headerText())`
 
 ## Important Notes
 
-- **Unsupported edge cases**: Daylight saving time, multi-day entries, timezone switches within a day
+- **Unsupported edge cases**: daylight saving time, multi-day entries, timezone switches within a day
 - Time format is always `HH:MM` in 24-hour format
-- Default action (no subcommand): Lists today's entries
-- Sync is one-way: tracktime → external services (never pulls)
-- `.synced` files track what's been pushed to avoid duplicate syncing
+- Default action (no subcommand): lists today's entries
+- No `.synced` files — the Go version does not push to external services
