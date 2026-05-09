@@ -75,17 +75,7 @@ output, which is a deliberate improvement and not configurable by format name. T
 
 ---
 
-## 3. Minor Behavioural Differences
-
-### 3.1 `list` total time formatting
-
-Python formats total as `H:MM` with `int` minutes. Go formats the same way but uses
-`int(duration.Minutes())%60` which can differ slightly due to floating-point rounding on very long
-sessions. Edge case, not a practical problem.
-
----
-
-## 4. New in Go (not in Python)
+## 3. New in Go (not in Python)
 
 These features exist in Go but have no Python equivalent.
 
@@ -104,7 +94,7 @@ These features exist in Go but have no Python equivalent.
 
 ---
 
-## 5. Summary Table
+## 4. Summary Table
 
 | Area | Python | Go | Status |
 |------|--------|----|--------|
