@@ -75,63 +75,15 @@ output, which is a deliberate improvement and not configurable by format name. T
 
 ---
 
-## 3. Configuration Migration
-
-The config file format changed significantly between Python and Go. The plan is to use
-`go.mau.fi/util/configupgrade` (already in `go.mod` as part of `go.mau.fi/util v0.9.1`) to
-automatically migrate existing Python `tracktimerc` files on first run, rewriting the file in-place
-so users do not need to manually edit it.
-
-### How configupgrade works
-
-`configupgrade.Do(path, save=true, upgrader)` reads the existing YAML as a raw node tree, runs
-`upgrader.DoUpgrade(helper)` to copy/rename/transform fields, marshals the result from a "base"
-template (the new example config), and atomically replaces the file. Fields absent from the old
-config fall back to defaults from the base template.
-
-### Required migrations
-
-| Python key (old path)        | Go key (new path)                    | Migration |
-|------------------------------|--------------------------------------|-----------|
-| `fullname`                   | `reporting.fullname`                 | `Get` + `Set` |
-| `project_rates`              | `reporting.project_rates`            | `Get` + `Set` (map) |
-| `customer_rates`             | `reporting.customer_rates`           | `Get` + `Set` (map) |
-| `customer_aliases`           | `reporting.customer_aliases`         | `Get` + `Set` (map) |
-| `customer_addresses`         | `reporting.customer_addresses`       | `Get` + `Set` (map) |
-| `day_worked_min_threshold`   | `reporting.day_worked_min_threshold` | `Get` + `Set` |
-| `report_statistics`          | `reporting.report_statistics`        | `Get` + `Set` |
-| `tableformat`                | *(drop — intentionally not ported)*  | ignore |
-| `sync_time`                  | `sync.enable`                        | `Get` + `Set` |
-| `editor_args` (comma string) | `editor_args` (YAML sequence)        | read string, split, `SetMap` |
-| `github`, `gitlab`, `sourcehut`, `linear` | *(same paths)* | `Copy` |
-| `directory`                  | `directory`                          | `Copy` |
-| `editor`                     | `editor`                             | `Copy` |
-| `external_synchroniser_files`| *(drop — intentionally not ported)*  | ignore |
-
-### Integration point
-
-`config.ReadConfig` in `internal/config/config.go` should call `configupgrade.Do` before
-unmarshalling. A `version` field in the config (already in the Go `Config` struct) can gate the
-migration so it only runs once and is a no-op thereafter.
-
----
-
 ## 3. Minor Behavioural Differences
 
-### 3.1 Date parsing: abbreviated weekday names not supported in Go
-
-Python `parse_date()` accepts abbreviated weekday names (`Mon`, `Tue`, etc.). Go's
-`Date.UnmarshalText()` only accepts full names (`monday`, `tuesday`, etc.).
-
-**Files affected:** `internal/types/date.go:70-82`
-
-### 3.2 `list` total time formatting
+### 3.1 `list` total time formatting
 
 Python formats total as `H:MM` with `int` minutes. Go formats the same way but uses
 `int(duration.Minutes())%60` which can differ slightly due to floating-point rounding on very long
 sessions. Edge case, not a practical problem.
 
-### 3.3 Report description uppercasing
+### 3.2 Report description uppercasing
 
 Python uppercases descriptions when building the report map (`entry.description.upper()`). Go
 stores descriptions as-is. This means the same description with different cases is counted as
@@ -139,12 +91,12 @@ distinct entries in Go but merged in Python.
 
 **Files affected:** `internal/report/report.go:113`
 
-### 3.4 `resume` entry numbering
+### 3.3 `resume` entry numbering
 
 Python uses Python-style indexing (negative allowed, default `-1` = last). Go takes a positional
 integer with default `-1`. The semantics match for the common case.
 
-### 3.5 `edit` opens today, not the specified date
+### 3.4 `edit` opens today, not the specified date
 
 Python `edit` opens `args.date`. Go `edit` creates the entry list for `Today()` (hardcoded) but
 opens `s.Date` in the editor — inconsistent; the ensure-header step uses today regardless of
@@ -154,7 +106,7 @@ opens `s.Date` in the editor — inconsistent; the ensure-header step uses today
 
 ---
 
-## 5. New in Go (not in Python)
+## 4. New in Go (not in Python)
 
 These features exist in Go but have no Python equivalent.
 
@@ -173,7 +125,7 @@ These features exist in Go but have no Python equivalent.
 
 ---
 
-## 6. Summary Table
+## 5. Summary Table
 
 | Area | Python | Go | Status |
 |------|--------|----|--------|
@@ -182,9 +134,9 @@ These features exist in Go but have no Python equivalent.
 | Sync push to GitLab | ✓ | ✗ | **Gap — high** |
 | Sync push to Sourcehut | ✓ | ✗ | **Gap — high** |
 | Task hyperlinks in reports | ✓ | ✗ | **Gap — medium** |
-| Config auto-migration (configupgrade) | — | ✗ (planned) | **Gap — high** |
+| Config auto-migration (configupgrade) | — | ✓ | Done |
 | Description case-folding in report | ✓ | ✗ | **Gap — low** |
-| Abbreviated weekday date parsing | ✓ | ✗ | **Gap — low** |
+| Abbreviated weekday date parsing | ✓ | ✓ | Done |
 | External synchroniser plugins | ✓ | n/a | Intentionally not ported |
 | Internet check before sync | ✓ | n/a | Replaced by context timeouts |
 | RST export | ✓ | n/a | Intentionally not ported |

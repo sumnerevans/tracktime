@@ -43,8 +43,8 @@ func mostRecentWeekday(now time.Time, target time.Weekday) time.Time {
 //   - "today": Current date
 //   - "yesterday": Previous day
 //
-// Weekday names (case-insensitive):
-//   - "monday", "tuesday", etc.: Most recent occurrence of that weekday
+// Weekday names (case-insensitive, full or 3-letter abbreviation):
+//   - "monday"/"mon", "tuesday"/"tue", etc.: Most recent occurrence of that weekday
 //     (includes today if today is that weekday, otherwise goes backwards)
 //
 // Date formats:
@@ -66,15 +66,15 @@ func (d *Date) UnmarshalText(text []byte) error {
 		return nil
 	}
 
-	// Handle weekday names
+	// Handle weekday names (full and abbreviated, case-insensitive)
 	weekdays := map[string]time.Weekday{
-		"sunday":    time.Sunday,
-		"monday":    time.Monday,
-		"tuesday":   time.Tuesday,
-		"wednesday": time.Wednesday,
-		"thursday":  time.Thursday,
-		"friday":    time.Friday,
-		"saturday":  time.Saturday,
+		"sun": time.Sunday, "sunday": time.Sunday,
+		"mon": time.Monday, "monday": time.Monday,
+		"tue": time.Tuesday, "tuesday": time.Tuesday,
+		"wed": time.Wednesday, "wednesday": time.Wednesday,
+		"thu": time.Thursday, "thursday": time.Thursday,
+		"fri": time.Friday, "friday": time.Friday,
+		"sat": time.Saturday, "saturday": time.Saturday,
 	}
 	if weekday, ok := weekdays[input]; ok {
 		d.Time = mostRecentWeekday(now, weekday)

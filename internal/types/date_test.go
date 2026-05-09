@@ -156,6 +156,32 @@ func TestDateUnmarshalTextWeekdays(t *testing.T) {
 	}
 }
 
+func TestDateUnmarshalTextWeekdaysAbbreviated(t *testing.T) {
+	testCases := []struct {
+		input   string
+		weekday time.Weekday
+	}{
+		{"sun", time.Sunday},
+		{"mon", time.Monday},
+		{"tue", time.Tuesday},
+		{"wed", time.Wednesday},
+		{"thu", time.Thursday},
+		{"fri", time.Friday},
+		{"sat", time.Saturday},
+		{"MON", time.Monday},
+		{"Fri", time.Friday},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			var date types.Date
+			err := date.UnmarshalText([]byte(tc.input))
+			assert.NoError(t, err)
+			assert.Equal(t, tc.weekday, date.Weekday())
+		})
+	}
+}
+
 func TestDateUnmarshalTextWeekdaysCaseInsensitive(t *testing.T) {
 	testCases := []struct {
 		name    string
