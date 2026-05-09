@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"context"
+
 	"github.com/sumnerevans/tracktime/internal/config"
 	"github.com/sumnerevans/tracktime/internal/timeentry"
 	"github.com/sumnerevans/tracktime/internal/types"
@@ -12,7 +14,7 @@ type Resume struct {
 	Start       *types.Time `arg:"-s,--start" help:"the start time of the resumed time entry" default:"now"`
 }
 
-func (s *Resume) Run(config *config.Config) error {
+func (s *Resume) Run(_ context.Context, config *config.Config) error {
 	entryList, err := timeentry.EntryListForDay(config, types.Today())
 	if err != nil {
 		return err

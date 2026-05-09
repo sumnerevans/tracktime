@@ -1,6 +1,7 @@
 package report
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/sumnerevans/tracktime/internal/config"
-	"github.com/sumnerevans/tracktime/internal/synchroniser"
+	"github.com/sumnerevans/tracktime/internal/resolver"
 	"github.com/sumnerevans/tracktime/internal/timeentry"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
@@ -86,17 +87,13 @@ func TestReportCreation(t *testing.T) {
 	entries := el.EntriesForCustomer("")
 	require.Len(t, entries, 3, "Should have 3 entries")
 
-	report, err := New(cfg, date, date, "", "", SortAlphabetical, false, false, false)
+	report, err := New(context.Background(), cfg, date, date, "", "", SortAlphabetical, false, false, false)
 	require.NoError(t, err)
 
-	// Build expected synchronisers list
-	expectedSyncs := make([]synchroniser.Synchroniser, len(synchroniser.Synchronisers))
-	for i, sync := range synchroniser.Synchronisers {
-		expectedSyncs[i] = sync
-		expectedSyncs[i].Init(cfg.Sync)
-	}
+	expectedCache := resolver.NewItemDetailCache(string(cfg.Directory), cfg, resolver.Resolvers)
 
 	assert.EqualValues(t, &Report{
+		ctx:       context.Background(),
 		StartDate: date,
 		EndDate:   date,
 		Config:    cfg,
@@ -122,7 +119,7 @@ func TestReportCreation(t *testing.T) {
 		Reverse:          false,
 		TaskGrain:        false,
 		DescriptionGrain: false,
-		Synchronisers:    expectedSyncs,
+		Cache:            expectedCache,
 	}, report)
 }
 
@@ -140,7 +137,7 @@ func TestReportFiltering(t *testing.T) {
 	})
 
 	t.Run("filter by customer", func(t *testing.T) {
-		report, err := New(cfg, date, date, "ACME Corp", "", SortAlphabetical, false, false, false)
+		report, err := New(context.Background(), cfg, date, date, "ACME Corp", "", SortAlphabetical, false, false, false)
 		require.NoError(t, err)
 
 		assert.Len(t, report.AggregatedTime, 1)
@@ -150,7 +147,7 @@ func TestReportFiltering(t *testing.T) {
 	})
 
 	t.Run("filter by project", func(t *testing.T) {
-		report, err := New(cfg, date, date, "", "project1", SortAlphabetical, false, false, false)
+		report, err := New(context.Background(), cfg, date, date, "", "project1", SortAlphabetical, false, false, false)
 		require.NoError(t, err)
 
 		// Should only have project1 entries
@@ -207,7 +204,7 @@ func TestStatisticsCalculation(t *testing.T) {
 		{"10:00", "12:00", "github", "project1", "ACME Corp", "123", "Saturday work"}, // 2 hours
 	})
 
-	report, err := New(cfg, monday, saturday, "", "", SortAlphabetical, false, false, false)
+	report, err := New(context.Background(), cfg, monday, saturday, "", "", SortAlphabetical, false, false, false)
 	require.NoError(t, err)
 
 	stats := report.CalculateStatistics()
@@ -242,7 +239,7 @@ func TestRateCalculation(t *testing.T) {
 		{"11:00", "13:00", "github", "project2", "Client B", "456", "Task 2"},  // 2 hours on project2 (rate: 150)
 	})
 
-	report, err := New(cfg, date, date, "", "", SortAlphabetical, false, false, false)
+	report, err := New(context.Background(), cfg, date, date, "", "", SortAlphabetical, false, false, false)
 	require.NoError(t, err)
 
 	// Check project1 rate (customer rate should be overridden by project rate)
@@ -279,7 +276,7 @@ func TestSorting(t *testing.T) {
 	})
 
 	t.Run("sort alphabetically", func(t *testing.T) {
-		report, err := New(cfg, date, date, "", "", SortAlphabetical, false, false, false)
+		report, err := New(context.Background(), cfg, date, date, "", "", SortAlphabetical, false, false, false)
 		require.NoError(t, err)
 
 		sorted := report.sortedCustomerProjects()
@@ -292,7 +289,7 @@ func TestSorting(t *testing.T) {
 	})
 
 	t.Run("sort by time spent", func(t *testing.T) {
-		report, err := New(cfg, date, date, "", "", SortTimeSpent, false, false, false)
+		report, err := New(context.Background(), cfg, date, date, "", "", SortTimeSpent, false, false, false)
 		require.NoError(t, err)
 
 		sorted := report.sortedCustomerProjects()
@@ -303,7 +300,7 @@ func TestSorting(t *testing.T) {
 	})
 
 	t.Run("sort alphabetically reversed", func(t *testing.T) {
-		report, err := New(cfg, date, date, "", "", SortAlphabetical, true, false, false)
+		report, err := New(context.Background(), cfg, date, date, "", "", SortAlphabetical, true, false, false)
 		require.NoError(t, err)
 
 		sorted := report.sortedCustomerProjects()
@@ -366,8 +363,8 @@ func TestSynchroniserIntegration(t *testing.T) {
 	cfg := createTestConfig(t)
 	// Configure GitHub synchroniser
 	cfg.Sync.Enable = true
-	cfg.Sync.GitHub.Username = "testuser"
-	cfg.Sync.GitHub.RootURI = "https://github.com"
+	cfg.GitHub.Username = "testuser"
+	cfg.GitHub.RootURI = "https://github.com"
 
 	date := types.Today()
 
@@ -380,7 +377,7 @@ func TestSynchroniserIntegration(t *testing.T) {
 		{"10:00", "11:00", "gh", "anotherorg/repo", "ACME Corp", "456", "Add feature"},
 	})
 
-	report, err := New(cfg, date, date, "", "", SortAlphabetical, false, false, false)
+	report, err := New(context.Background(), cfg, date, date, "", "", SortAlphabetical, false, false, false)
 	require.NoError(t, err)
 
 	t.Run("formatTaskName returns formatted GitHub task IDs", func(t *testing.T) {
@@ -404,7 +401,7 @@ func TestSynchroniserIntegration(t *testing.T) {
 			{"11:00", "12:00", "jira", "jiraproject", "Client B", "JIRA-789", "Some work"},
 		})
 
-		report2, err := New(cfg, date, date, "", "", SortAlphabetical, false, false, false)
+		report2, err := New(context.Background(), cfg, date, date, "", "", SortAlphabetical, false, false, false)
 		require.NoError(t, err)
 
 		cp := CustomerProject{Customer: "Client B", Project: "jiraproject"}
@@ -415,7 +412,7 @@ func TestSynchroniserIntegration(t *testing.T) {
 
 	t.Run("Linear formatTaskName returns formatted task IDs", func(t *testing.T) {
 		cfg2 := createTestConfig(t)
-		cfg2.Sync.Linear.DefaultOrg = "myorg"
+		cfg2.Linear.DefaultOrg = "myorg"
 		date2 := types.Today()
 
 		createTestEntries(t, cfg2, date2, []struct {
@@ -425,7 +422,7 @@ func TestSynchroniserIntegration(t *testing.T) {
 			{"09:00", "10:00", "linear", "ENG", "Tech Corp", "123", "Linear task"},
 		})
 
-		report3, err := New(cfg2, date2, date2, "", "", SortAlphabetical, false, false, false)
+		report3, err := New(context.Background(), cfg2, date2, date2, "", "", SortAlphabetical, false, false, false)
 		require.NoError(t, err)
 
 		cp := CustomerProject{Customer: "Tech Corp", Project: "ENG"}
@@ -435,7 +432,7 @@ func TestSynchroniserIntegration(t *testing.T) {
 
 	t.Run("Linear getTaskLink returns Linear URLs", func(t *testing.T) {
 		cfg2 := createTestConfig(t)
-		cfg2.Sync.Linear.DefaultOrg = "myorg"
+		cfg2.Linear.DefaultOrg = "myorg"
 		date2 := types.Today()
 
 		createTestEntries(t, cfg2, date2, []struct {
@@ -445,7 +442,7 @@ func TestSynchroniserIntegration(t *testing.T) {
 			{"09:00", "10:00", "linear", "PROD", "Tech Corp", "456", "Linear task"},
 		})
 
-		report3, err := New(cfg2, date2, date2, "", "", SortAlphabetical, false, false, false)
+		report3, err := New(context.Background(), cfg2, date2, date2, "", "", SortAlphabetical, false, false, false)
 		require.NoError(t, err)
 
 		cp := CustomerProject{Customer: "Tech Corp", Project: "PROD"}

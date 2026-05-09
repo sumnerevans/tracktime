@@ -6,75 +6,16 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/sumnerevans/tracktime/internal/config"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
 
-type TimeEntryType string
-
-func ParseTimeEntryType(typeStr string) TimeEntryType {
-	switch strings.ToLower(typeStr) {
-	case "gh":
-		return "github"
-	case "gl":
-		return "gitlab"
-	default:
-		return TimeEntryType(typeStr)
-	}
-}
-
-type Customer string
-type Project string
-type TaskID string
-
-type TimeEntry struct {
-	Index       int
-	Start       *types.Time
-	Stop        *types.Time
-	Type        TimeEntryType
-	Project     Project
-	Customer    Customer
-	TaskID      TaskID
-	Description string
-}
-
-func NewEntryFromRecord(idx int, record []string) (te *TimeEntry, err error) {
-	te = &TimeEntry{Index: idx}
-	te.Start, err = types.ParseTime(record[0])
-	if err != nil {
-		return
-	}
-	te.Stop, err = types.ParseTime(record[1])
-	if err != nil {
-		return
-	}
-	te.Type = ParseTimeEntryType(record[2])
-	te.Project = Project(record[3])
-	te.TaskID = TaskID(record[4])
-	te.Customer = Customer(record[5])
-	te.Description = record[6]
-	return
-}
-
-func (te *TimeEntry) Duration(allowUnended bool) (time.Duration, error) {
-	stop := te.Stop
-	if stop == nil {
-		if allowUnended {
-			stop = types.CurrentTime()
-		} else {
-			return time.Duration(0), fmt.Errorf("unended time entries cannot have a duration")
-		}
-	}
-	return stop.Sub(te.Start), nil
-}
-
 type EntryList struct {
 	Date    types.Date
 	Config  *config.Config
-	entries []*TimeEntry
+	Entries []*TimeEntry
 }
 
 func DayFilename(config *config.Config, date types.Date) string {
@@ -117,7 +58,7 @@ func EntryListForDay(config *config.Config, date types.Date) (*EntryList, error)
 		if err != nil {
 			return nil, err
 		}
-		el.entries = append(el.entries, entry)
+		el.Entries = append(el.Entries, entry)
 		i++
 	}
 
@@ -126,11 +67,11 @@ func EntryListForDay(config *config.Config, date types.Date) (*EntryList, error)
 
 func (el *EntryList) EntriesForCustomer(customer Customer) []*TimeEntry {
 	if len(customer) == 0 {
-		return el.entries
+		return el.Entries
 	}
 
 	entries := []*TimeEntry{}
-	for _, e := range el.entries {
+	for _, e := range el.Entries {
 		if e.Customer == customer {
 			entries = append(entries, e)
 		}
@@ -140,7 +81,7 @@ func (el *EntryList) EntriesForCustomer(customer Customer) []*TimeEntry {
 
 func (el *EntryList) TotalTimeForCustomer(customer Customer) time.Duration {
 	minutes := time.Duration(0)
-	for _, e := range el.entries {
+	for _, e := range el.Entries {
 		if len(customer) == 0 || e.Customer == customer {
 			duration, _ := e.Duration(true)
 			minutes += duration
@@ -150,8 +91,8 @@ func (el *EntryList) TotalTimeForCustomer(customer Customer) time.Duration {
 }
 
 func (el *EntryList) AddEntry(entry *TimeEntry) {
-	insertIdx := len(el.entries)
-	for i, e := range el.entries {
+	insertIdx := len(el.Entries)
+	for i, e := range el.Entries {
 		if e.Stop != nil && entry.Start.Between(e.Start, e.Stop) {
 			// The entry is being started in the middle of this one
 			entry.Stop = e.Stop
@@ -175,17 +116,17 @@ func (el *EntryList) AddEntry(entry *TimeEntry) {
 		}
 	}
 
-	newEntries := make([]*TimeEntry, len(el.entries)+1)
-	for i := 0; i < len(newEntries); i++ {
+	newEntries := make([]*TimeEntry, len(el.Entries)+1)
+	for i := range newEntries {
 		if i < insertIdx {
-			newEntries[i] = el.entries[i]
+			newEntries[i] = el.Entries[i]
 		} else if i == insertIdx {
 			newEntries[i] = entry
 		} else {
-			newEntries[i] = el.entries[i-1]
+			newEntries[i] = el.Entries[i-1]
 		}
 	}
-	el.entries = newEntries
+	el.Entries = newEntries
 }
 
 func (el *EntryList) Save() error {
@@ -205,7 +146,7 @@ func (el *EntryList) Save() error {
 		return err
 	}
 
-	for _, e := range el.entries {
+	for _, e := range el.Entries {
 		err = writer.Write([]string{
 			e.Start.String(),
 			e.Stop.String(),
@@ -250,30 +191,30 @@ func (el *EntryList) Start(start *types.Time, description string, taskType TimeE
 }
 
 func (el *EntryList) Stop(stop *types.Time) error {
-	if len(el.entries) == 0 || el.entries[len(el.entries)-1].Stop != nil {
+	if len(el.Entries) == 0 || el.Entries[len(el.Entries)-1].Stop != nil {
 		return fmt.Errorf("no time entry to stop")
 	}
-	el.entries[len(el.entries)-1].Stop = stop
+	el.Entries[len(el.Entries)-1].Stop = stop
 	return el.SaveAndSync()
 }
 
 func (el *EntryList) Resume(resumeIndex int, description *string, start *types.Time) error {
 	var oldEntry *TimeEntry
 	if resumeIndex == -1 {
-		if len(el.entries) > 0 {
-			oldEntry = el.entries[len(el.entries)-1]
+		if len(el.Entries) > 0 {
+			oldEntry = el.Entries[len(el.Entries)-1]
 		} else {
 			yesterdayEntries, err := EntryListForDay(el.Config, el.Date.AddDays(-1))
 			if err != nil {
 				return err
 			}
-			if len(yesterdayEntries.entries) == 0 {
+			if len(yesterdayEntries.Entries) == 0 {
 				return fmt.Errorf("no time entry to resume")
 			}
-			oldEntry = yesterdayEntries.entries[len(yesterdayEntries.entries)-1]
+			oldEntry = yesterdayEntries.Entries[len(yesterdayEntries.Entries)-1]
 		}
 	} else {
-		oldEntry = el.entries[resumeIndex-1]
+		oldEntry = el.Entries[resumeIndex-1]
 	}
 
 	if description == nil {

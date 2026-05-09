@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -75,7 +76,7 @@ type Report struct {
 	OutputFile types.Filename `arg:"-o,--outfile" help:"specify the filename to export the report to (supports .md, .html, .typ, .pdf files, if set to '-' then the report is printed to stdout)" default:"-"`
 }
 
-func (r *Report) Run(config *config.Config) error {
+func (r *Report) Run(ctx context.Context, config *config.Config) error {
 	var start, end types.Date
 	today := types.Today()
 
@@ -185,6 +186,7 @@ func (r *Report) Run(config *config.Config) error {
 
 	// Create report
 	rep, err := report.New(
+		ctx,
 		config,
 		start,
 		end,

@@ -1,4 +1,4 @@
-package timeentry
+package timeentry_test
 
 import (
 	"os"
@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/sumnerevans/tracktime/internal/config"
+	"github.com/sumnerevans/tracktime/internal/timeentry"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
 
@@ -18,7 +19,7 @@ func TestTimeEntryDuration(t *testing.T) {
 	stop := mustParseTime(t, "12:30")
 
 	t.Run("with stop time", func(t *testing.T) {
-		entry := &TimeEntry{
+		entry := &timeentry.TimeEntry{
 			Start: start,
 			Stop:  stop,
 		}
@@ -28,7 +29,7 @@ func TestTimeEntryDuration(t *testing.T) {
 	})
 
 	t.Run("without stop time, not allowed", func(t *testing.T) {
-		entry := &TimeEntry{
+		entry := &timeentry.TimeEntry{
 			Start: start,
 			Stop:  nil,
 		}
@@ -37,7 +38,7 @@ func TestTimeEntryDuration(t *testing.T) {
 	})
 
 	t.Run("without stop time, allowed", func(t *testing.T) {
-		entry := &TimeEntry{
+		entry := &timeentry.TimeEntry{
 			Start: start,
 			Stop:  nil,
 		}
@@ -55,14 +56,14 @@ func TestEntryListForDay(t *testing.T) {
 	date := types.NewDate(2023, 1, 15)
 
 	t.Run("empty file", func(t *testing.T) {
-		el, err := EntryListForDay(cfg, date)
+		el, err := timeentry.EntryListForDay(cfg, date)
 		require.NoError(t, err)
-		assert.Empty(t, el.entries)
+		assert.Empty(t, el.Entries)
 	})
 
 	t.Run("file with entries", func(t *testing.T) {
 		// Create a day file with test data
-		dayFile := DayFilename(cfg, date)
+		dayFile := timeentry.DayFilename(cfg, date)
 		os.MkdirAll(filepath.Dir(dayFile), 0755)
 		csvContent := `start,stop,type,project,taskid,customer,description
 09:00,12:30,github,myproject,123,ACME Corp,Fixing bug
@@ -70,10 +71,10 @@ func TestEntryListForDay(t *testing.T) {
 `
 		require.NoError(t, os.WriteFile(dayFile, []byte(csvContent), 0644))
 
-		el, err := EntryListForDay(cfg, date)
+		el, err := timeentry.EntryListForDay(cfg, date)
 		require.NoError(t, err)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Index:       1,
 				Start:       mustParseTime(t, "09:00"),
@@ -95,13 +96,13 @@ func TestEntryListForDay(t *testing.T) {
 				Description: "Feature work",
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 }
 
 func TestEntriesForCustomer(t *testing.T) {
-	el := &EntryList{
-		entries: []*TimeEntry{
+	el := &timeentry.EntryList{
+		Entries: []*timeentry.TimeEntry{
 			{Customer: "ACME Corp", Description: "Task 1"},
 			{Customer: "Client B", Description: "Task 2"},
 			{Customer: "ACME Corp", Description: "Task 3"},
@@ -110,7 +111,7 @@ func TestEntriesForCustomer(t *testing.T) {
 
 	t.Run("filter by customer", func(t *testing.T) {
 		filtered := el.EntriesForCustomer("ACME Corp")
-		assert.EqualValues(t, []*TimeEntry{
+		assert.EqualValues(t, []*timeentry.TimeEntry{
 			{Customer: "ACME Corp", Description: "Task 1"},
 			{Customer: "ACME Corp", Description: "Task 3"},
 		}, filtered)
@@ -118,13 +119,13 @@ func TestEntriesForCustomer(t *testing.T) {
 
 	t.Run("empty customer returns all", func(t *testing.T) {
 		filtered := el.EntriesForCustomer("")
-		assert.EqualValues(t, el.entries, filtered)
+		assert.EqualValues(t, el.Entries, filtered)
 	})
 }
 
 func TestTotalTimeForCustomer(t *testing.T) {
-	el := &EntryList{
-		entries: []*TimeEntry{
+	el := &timeentry.EntryList{
+		Entries: []*timeentry.TimeEntry{
 			{Customer: "ACME Corp", Start: mustParseTime(t, "09:00"), Stop: mustParseTime(t, "10:00")}, // 1 hour
 			{Customer: "Client B", Start: mustParseTime(t, "11:00"), Stop: mustParseTime(t, "12:30")},  // 1.5 hours
 			{Customer: "ACME Corp", Start: mustParseTime(t, "13:00"), Stop: mustParseTime(t, "14:00")}, // 1 hour
@@ -144,36 +145,36 @@ func TestTotalTimeForCustomer(t *testing.T) {
 
 func TestAddEntry(t *testing.T) {
 	t.Run("add to empty list", func(t *testing.T) {
-		el := &EntryList{entries: []*TimeEntry{}}
-		newEntry := &TimeEntry{
+		el := &timeentry.EntryList{Entries: []*timeentry.TimeEntry{}}
+		newEntry := &timeentry.TimeEntry{
 			Start:       mustParseTime(t, "09:00"),
 			Description: "New task",
 		}
 		el.AddEntry(newEntry)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Start:       mustParseTime(t, "09:00"),
 				Stop:        nil,
 				Description: "New task",
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 
 	t.Run("add after existing entry", func(t *testing.T) {
-		el := &EntryList{
-			entries: []*TimeEntry{
+		el := &timeentry.EntryList{
+			Entries: []*timeentry.TimeEntry{
 				{Start: mustParseTime(t, "09:00"), Stop: mustParseTime(t, "10:00")},
 			},
 		}
-		newEntry := &TimeEntry{
+		newEntry := &timeentry.TimeEntry{
 			Start:       mustParseTime(t, "11:00"),
 			Description: "New task",
 		}
 		el.AddEntry(newEntry)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Start: mustParseTime(t, "09:00"),
 				Stop:  mustParseTime(t, "10:00"),
@@ -184,22 +185,22 @@ func TestAddEntry(t *testing.T) {
 				Description: "New task",
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 
 	t.Run("auto-stop unended entry", func(t *testing.T) {
-		el := &EntryList{
-			entries: []*TimeEntry{
+		el := &timeentry.EntryList{
+			Entries: []*timeentry.TimeEntry{
 				{Start: mustParseTime(t, "09:00"), Stop: nil},
 			},
 		}
-		newEntry := &TimeEntry{
+		newEntry := &timeentry.TimeEntry{
 			Start:       mustParseTime(t, "11:00"),
 			Description: "New task",
 		}
 		el.AddEntry(newEntry)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Start: mustParseTime(t, "09:00"),
 				Stop:  mustParseTime(t, "11:00"),
@@ -210,22 +211,22 @@ func TestAddEntry(t *testing.T) {
 				Description: "New task",
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 
 	t.Run("insert in middle splits existing entry", func(t *testing.T) {
-		el := &EntryList{
-			entries: []*TimeEntry{
+		el := &timeentry.EntryList{
+			Entries: []*timeentry.TimeEntry{
 				{Start: mustParseTime(t, "09:00"), Stop: mustParseTime(t, "12:00")},
 			},
 		}
-		newEntry := &TimeEntry{
+		newEntry := &timeentry.TimeEntry{
 			Start:       mustParseTime(t, "10:00"),
 			Description: "Inserted task",
 		}
 		el.AddEntry(newEntry)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Start: mustParseTime(t, "09:00"),
 				Stop:  mustParseTime(t, "10:00"),
@@ -236,22 +237,22 @@ func TestAddEntry(t *testing.T) {
 				Description: "Inserted task",
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 
 	t.Run("insert before existing entry", func(t *testing.T) {
-		el := &EntryList{
-			entries: []*TimeEntry{
+		el := &timeentry.EntryList{
+			Entries: []*timeentry.TimeEntry{
 				{Start: mustParseTime(t, "11:00"), Stop: mustParseTime(t, "12:00")},
 			},
 		}
-		newEntry := &TimeEntry{
+		newEntry := &timeentry.TimeEntry{
 			Start:       mustParseTime(t, "09:00"),
 			Description: "Earlier task",
 		}
 		el.AddEntry(newEntry)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Start:       mustParseTime(t, "09:00"),
 				Stop:        mustParseTime(t, "11:00"),
@@ -262,7 +263,7 @@ func TestAddEntry(t *testing.T) {
 				Stop:  mustParseTime(t, "12:00"),
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 }
 
@@ -273,10 +274,10 @@ func TestSave(t *testing.T) {
 	}
 	date := types.NewDate(2023, 1, 15)
 
-	el := &EntryList{
+	el := &timeentry.EntryList{
 		Date:   date,
 		Config: cfg,
-		entries: []*TimeEntry{
+		Entries: []*timeentry.TimeEntry{
 			{
 				Start:       mustParseTime(t, "09:00"),
 				Stop:        mustParseTime(t, "12:30"),
@@ -302,17 +303,17 @@ func TestSave(t *testing.T) {
 	require.NoError(t, err)
 
 	// Read back the file and verify
-	el2, err := EntryListForDay(cfg, date)
+	el2, err := timeentry.EntryListForDay(cfg, date)
 	require.NoError(t, err)
-	assert.Len(t, el2.entries, 2)
+	assert.Len(t, el2.Entries, 2)
 
 	// Verify first entry
-	assert.Equal(t, "09:00", el2.entries[0].Start.String())
-	assert.Equal(t, "12:30", el2.entries[0].Stop.String())
-	assert.Equal(t, "Fixing bug", el2.entries[0].Description)
+	assert.Equal(t, "09:00", el2.Entries[0].Start.String())
+	assert.Equal(t, "12:30", el2.Entries[0].Stop.String())
+	assert.Equal(t, "Fixing bug", el2.Entries[0].Description)
 
 	// Verify second entry (with nil stop)
-	assert.Nil(t, el2.entries[1].Stop)
+	assert.Nil(t, el2.Entries[1].Stop)
 }
 
 func TestStop(t *testing.T) {
@@ -323,25 +324,25 @@ func TestStop(t *testing.T) {
 	date := types.NewDate(2023, 1, 15)
 
 	t.Run("stop running entry", func(t *testing.T) {
-		el := &EntryList{
+		el := &timeentry.EntryList{
 			Date:   date,
 			Config: cfg,
-			entries: []*TimeEntry{
+			Entries: []*timeentry.TimeEntry{
 				{Start: mustParseTime(t, "09:00"), Stop: nil},
 			},
 		}
 
 		err := el.Stop(mustParseTime(t, "12:00"))
 		assert.NoError(t, err)
-		assert.NotNil(t, el.entries[0].Stop)
-		assert.Equal(t, "12:00", el.entries[0].Stop.String())
+		assert.NotNil(t, el.Entries[0].Stop)
+		assert.Equal(t, "12:00", el.Entries[0].Stop.String())
 	})
 
 	t.Run("no entry to stop", func(t *testing.T) {
-		el := &EntryList{
+		el := &timeentry.EntryList{
 			Date:    date,
 			Config:  cfg,
-			entries: []*TimeEntry{},
+			Entries: []*timeentry.TimeEntry{},
 		}
 
 		err := el.Stop(mustParseTime(t, "12:00"))
@@ -349,10 +350,10 @@ func TestStop(t *testing.T) {
 	})
 
 	t.Run("last entry already stopped", func(t *testing.T) {
-		el := &EntryList{
+		el := &timeentry.EntryList{
 			Date:   date,
 			Config: cfg,
-			entries: []*TimeEntry{
+			Entries: []*timeentry.TimeEntry{
 				{Start: mustParseTime(t, "09:00"), Stop: mustParseTime(t, "10:00")},
 			},
 		}
@@ -370,10 +371,10 @@ func TestResume(t *testing.T) {
 	date := types.NewDate(2023, 1, 15)
 
 	t.Run("resume last entry from same day", func(t *testing.T) {
-		el := &EntryList{
+		el := &timeentry.EntryList{
 			Date:   date,
 			Config: cfg,
-			entries: []*TimeEntry{
+			Entries: []*timeentry.TimeEntry{
 				{
 					Start:       mustParseTime(t, "09:00"),
 					Stop:        mustParseTime(t, "10:00"),
@@ -389,7 +390,7 @@ func TestResume(t *testing.T) {
 		err := el.Resume(-1, nil, mustParseTime(t, "11:00"))
 		assert.NoError(t, err)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Start:       mustParseTime(t, "09:00"),
 				Stop:        mustParseTime(t, "10:00"),
@@ -409,14 +410,14 @@ func TestResume(t *testing.T) {
 				Description: "Original task",
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 
 	t.Run("resume specific entry by index", func(t *testing.T) {
-		el := &EntryList{
+		el := &timeentry.EntryList{
 			Date:   date,
 			Config: cfg,
-			entries: []*TimeEntry{
+			Entries: []*timeentry.TimeEntry{
 				{
 					Start:       mustParseTime(t, "09:00"),
 					Stop:        mustParseTime(t, "10:00"),
@@ -442,7 +443,7 @@ func TestResume(t *testing.T) {
 		err := el.Resume(1, nil, mustParseTime(t, "13:00"))
 		assert.NoError(t, err)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Start:       mustParseTime(t, "09:00"),
 				Stop:        mustParseTime(t, "10:00"),
@@ -471,14 +472,14 @@ func TestResume(t *testing.T) {
 				Description: "First task",
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 
 	t.Run("resume with custom description", func(t *testing.T) {
-		el := &EntryList{
+		el := &timeentry.EntryList{
 			Date:   date,
 			Config: cfg,
-			entries: []*TimeEntry{
+			Entries: []*timeentry.TimeEntry{
 				{
 					Start:       mustParseTime(t, "09:00"),
 					Stop:        mustParseTime(t, "10:00"),
@@ -495,7 +496,7 @@ func TestResume(t *testing.T) {
 		err := el.Resume(-1, &customDesc, mustParseTime(t, "11:00"))
 		assert.NoError(t, err)
 
-		expected := []*TimeEntry{
+		expected := []*timeentry.TimeEntry{
 			{
 				Start:       mustParseTime(t, "09:00"),
 				Stop:        mustParseTime(t, "10:00"),
@@ -515,7 +516,7 @@ func TestResume(t *testing.T) {
 				Description: "Custom description",
 			},
 		}
-		assert.EqualValues(t, expected, el.entries)
+		assert.EqualValues(t, expected, el.Entries)
 	})
 }
 

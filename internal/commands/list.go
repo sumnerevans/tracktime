@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/fatih/color"
@@ -16,7 +17,7 @@ type List struct {
 	Customer timeentry.Customer `arg:"-c,--customer" help:"list only time entries for the given customer"`
 }
 
-func (l *List) Run(config *config.Config) error {
+func (l *List) Run(_ context.Context, config *config.Config) error {
 	entryList, err := timeentry.EntryListForDay(config, l.Date)
 	if err != nil {
 		return fmt.Errorf("failed to read entry list: %w", err)

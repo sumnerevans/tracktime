@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"context"
+
 	"github.com/sumnerevans/tracktime/internal/config"
 	"github.com/sumnerevans/tracktime/internal/timeentry"
 	"github.com/sumnerevans/tracktime/internal/types"
@@ -15,7 +17,7 @@ type Start struct {
 	TaskID      timeentry.TaskID        `arg:"-i,--taskid" help:"the task ID of the time entry"`
 }
 
-func (s *Start) Run(config *config.Config) error {
+func (s *Start) Run(_ context.Context, config *config.Config) error {
 	entryList, err := timeentry.EntryListForDay(config, types.Today())
 	if err != nil {
 		return err

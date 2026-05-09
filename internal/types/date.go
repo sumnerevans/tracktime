@@ -1,3 +1,4 @@
+// Package types provides date, time, month, and filename types used throughout tracktime.
 package types
 
 import (

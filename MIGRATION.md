@@ -3,75 +3,14 @@
 This document tracks the migration progress from the Python implementation of tracktime to Go.
 
 **Branch:** `golang`
-**Last Updated:** 2025-10-25
-**Overall Completion:** ~87%
+**Last Updated:** 2026-05-09
+**Overall Completion:** ~90%
 
 ---
 
 ## Overview
 
 The Go rewrite is located in the root directory alongside the legacy Python implementation (in `tracktime/`). Both implementations currently coexist, with the Go version being actively developed.
-
-### Recent Major Changes
-
-**October 2025 - Test Coverage Addition:**
-Comprehensive test suite added across all core packages:
-- Added `internal/timeentry/entrylist_test.go` - 85.2% coverage (EntryList operations, CSV I/O)
-- Added `internal/config/config_test.go` - 100% coverage (config loading, validation)
-- Added `internal/commands/commands_test.go` - 23.8% coverage (all commands + integration tests)
-- Added `internal/report/report_test.go` - 26.5% coverage (report generation, formatting)
-- All tests use `testify/assert` library for clean, maintainable assertions
-- Full integration test for workflow (start → stop → resume → stop)
-- All tests pass with all linters (go-imports, go-vet, go-staticcheck)
-
-**October 2025 - Code Reorganization (commit 9537306):**
-The entire codebase was refactored from a flat structure into a proper Go project layout:
-- `tracktime.go` → `cmd/tt/main.go`
-- `lib/` → `internal/types/`, `internal/config/`, `internal/timeentry/`
-- `commands/` → `internal/commands/`
-- `synchroniser/` → `internal/synchroniser/`
-- New package: `internal/report/` (split from commands for better organization)
-
-**October 2025 - PDF Export (commit d05bb3a):**
-Implemented PDF export using go-typst library:
-- Added `github.com/Dadido3/go-typst v0.3.0` dependency
-- Created `internal/report/pdf.go` with `GeneratePDFReport()`
-- Uses go-typst CLI wrapper with stdio (no temp files needed)
-- Helpful error message when typst binary is not installed
-- Wired up `.pdf` file extension in report command
-- Direct PDF generation: `report --thisweek -o report.pdf`
-
-**October 2025 - Typst Export (commit 4e51710):**
-Implemented Typst export for PDF generation:
-- Created `internal/report/typst.go` with `GenerateTypstReport()`
-- Proper escaping of Typst special characters ($, /, <, >, #, *, _, [, ], @, `)
-- Used Typst `#table()` functions with headers, strokes, and alignment
-- Wired up `.typ` file extension in report command
-- Enables PDF generation via `typst compile report.typ`
-
-**October 2025 - HTML Export (commit 74541ba):**
-Implemented HTML export by converting markdown to HTML using goldmark:
-- Added goldmark dependency (v1.7.13) with table extension support
-- Created `internal/report/html.go` with `GenerateHTMLReport()`
-- Wired up `.html` file extension in report command
-- Custom HTML template with professional styling (responsive layout, styled tables, embedded CSS)
-
-**October 2025 - Markdown Export & Code Refactoring (commits 8fd8971, dcc742c):**
-Implemented markdown export and improved code organization:
-- Added complete markdown export functionality with proper table formatting
-- Used Go's `html.EscapeString()` for special character handling in markdown
-- Consolidated shared formatting functions from stdout.go into report.go
-- Made internal sorting functions private (unexported) for better encapsulation
-- Added Go visibility rules documentation to CLAUDE.md
-
-**September-October 2025 - Report Command Implementation:**
-The report command received extensive development (10+ commits) and now has production-ready stdout output:
-- Complete text report generation with all core features
-- Statistics calculation and formatting
-- Professional table formatting using rodaine/table library
-- Color formatting (bold, cyan, yellow, green) with ANSI-aware width calculation
-- Ellipsization of long strings to prevent layout breaking
-- All sorting and grain options working
 
 ### Current Project Structure
 
@@ -80,8 +19,11 @@ cmd/tt/                     # Main entry point
 internal/
   ├── commands/             # Command implementations
   ├── config/               # Configuration loading
-  ├── report/               # Report generation (separate from commands)
-  ├── synchroniser/         # External service sync
+  ├── exporter/             # Push time to external services (Exporter interface + .synced I/O)
+  ├── importer/             # Pull time from external services (Importer interface)
+  ├── report/               # Report generation
+  ├── resolver/             # Work item metadata (ItemResolver interface + ItemCache)
+  ├── synchroniser/         # Retained for package compatibility (empty)
   ├── timeentry/            # Time entry and entry list logic
   └── types/                # Core types (Date, Time, Month, Filename)
 tracktime/                  # Legacy Python implementation
@@ -93,8 +35,6 @@ tracktime/                  # Legacy Python implementation
 
 ### ✅ Fully Implemented
 
-**Note:** As of commit `9537306`, the codebase was refactored from flat `lib/` and `commands/` directories into a proper `internal/` package structure.
-
 | Component | Location | Description | Status |
 |-----------|----------|-------------|--------|
 | **Configuration** | `internal/config/config.go` | YAML config parser for `~/.config/tracktime/tracktimerc` | ✅ Complete |
@@ -103,6 +43,7 @@ tracktime/                  # Legacy Python implementation
 | **Month Type** | `internal/types/month.go` | Month operations and parsing | ✅ Complete with tests |
 | **TimeEntry** | `internal/timeentry/entrylist.go` | Core time entry data structure | ✅ Complete |
 | **EntryList** | `internal/timeentry/entrylist.go` | Day file management and CSV I/O | ✅ Complete |
+| **AggregatedTime** | `internal/timeentry/aggregated.go` | Time aggregation types | ✅ Complete |
 | **Filename** | `internal/types/filename.go` | Path expansion and file handling | ✅ Complete |
 
 **Key Features:**
@@ -129,116 +70,106 @@ tracktime/                  # Legacy Python implementation
 | **resume** | `internal/commands/resume.go` | Resume previous entry by index (defaults to last entry) | ✅ Complete |
 | **list** | `internal/commands/list.go` | List entries for a date with customer filtering, formatted table output, total time | ✅ Complete |
 | **edit** | `internal/commands/edit.go` | Open day file in editor (respects config, `$EDITOR`, `$VISUAL`) | ✅ Complete |
+| **report** | `internal/commands/report.go` + `internal/report/*.go` | Full stdout + all export formats | ✅ Complete |
 
 **Default behavior:** Running `tt` without subcommand lists today's entries ✅
-
-| **report** | `internal/commands/report.go` + `internal/report/*.go` | Full stdout output with colors, formatting, all options | ✅ Complete (stdout) |
 
 ### 🚧 Partially Implemented
 
 | Command | File | What Works | What's Missing |
 |---------|------|------------|----------------|
-| **report (export)** | `internal/commands/report.go` + `internal/report/*.go` | N/A | PDF/HTML/RST export formats, file output |
-| **sync** | `internal/commands/sync.go` | Command structure, argument parsing | Full implementation (currently just spawns goroutines) |
+| **sync** | `internal/commands/sync.go` | Month aggregation, `.synced` read/write, exporter/importer dispatch skeleton | Concrete exporter/importer implementations |
 
-#### Report Command Details
+#### Report Command
 
-**✅ Stdout Output - Complete:**
-- ✅ All date range shortcuts (`--today`, `--yesterday`, `--thisweek`, `--lastweek`, `--thismonth`, `--lastmonth`, `--thisyear`, `--lastyear`)
+All output formats complete:
+- ✅ Stdout (colors, ANSI-aware formatting)
+- ✅ Markdown (`.md`)
+- ✅ HTML (`.html` via goldmark)
+- ✅ Typst (`.typ`)
+- ✅ PDF (`.pdf` via go-typst — requires `typst` binary)
+
+All options complete:
+- ✅ Date range shortcuts (`--today`, `--yesterday`, `--thisweek`, `--lastweek`, `--thismonth`, `--lastmonth`, `--thisyear`, `--lastyear`)
 - ✅ Month/year shorthand (`-m`, `-y`)
 - ✅ Positional date range (start/end dates)
 - ✅ Customer and project filtering (`-c`, `-p`)
-- ✅ Data aggregation: `Customer → Project → TaskID → Description → []*TimeEntry`
-- ✅ Statistics calculation (days worked, average time per day/weekday/week)
 - ✅ Sort by alphabetical or time-spent, ascending/descending
-- ✅ Grain options (task/description level) with smart defaults based on date range
+- ✅ Grain options (task/description level)
 - ✅ Rate and total calculations
-- ✅ Color formatting (bold, cyan, yellow, green)
-- ✅ Table alignment with ANSI-aware width calculation
-- ✅ Ellipsization of long strings (40 char limit)
-- ✅ Professional table formatting with proper padding
+- ✅ Statistics (days worked, averages)
 
-**Implemented Files:**
-- `internal/report/report.go` - Core report logic, data aggregation, and shared formatting functions
-- `internal/report/stdout.go` - Text report generation with colors (complete)
-- `internal/report/markdown.go` - Markdown export with HTML entity escaping (complete)
-- `internal/report/html.go` - HTML export via goldmark markdown conversion (complete)
-- `internal/report/typst.go` - Typst export for PDF generation (complete)
-- `internal/report/pdf.go` - PDF export via go-typst library (complete)
-- `internal/report/statistics.go` - Statistics calculations
-- `internal/report/sorting.go` - Sort logic for customers/projects/tasks (all functions private)
+#### Sync Command
 
-**✅ Implemented Export Formats:**
-- Stdout (with colors and ANSI-aware formatting) - Complete!
-- Markdown export (.md with proper table formatting) - Complete!
-- HTML export (.html via goldmark markdown conversion) - Complete!
-- Typst export (.typ for PDF generation via `typst compile`) - Complete!
-- PDF export (.pdf via go-typst library) - Complete!
-
-**Note:** All report export formats are **100% complete**. PDF export requires the `typst` binary to be installed on the system. The go-typst library provides a clean Go-native API for compiling Typst documents to PDF without temporary files.
-
-#### Sync Command Details
-
-**Current State:**
-- Accepts month argument with default "this month"
-- Spawns synchroniser goroutines
-- Has no blocking/completion logic
-
-**Missing:**
-- Actual API calls to external services
-- Reading/writing `.synced` files
-- Error handling and reporting
-- Synchroniser coordination
+**Current state:** Aggregates the month's time entries, reads the `.synced` file, dispatches to registered `Importer` and `Exporter` instances, writes updated `.synced` file. Framework is complete; no concrete importers or exporters are registered yet so it is effectively a no-op.
 
 ---
 
-## Synchronisers
+## Resolvers and Sync Framework
 
-### 🚧 Partially Implemented
+The Go implementation uses a three-package architecture (replacing the old monolithic `Synchroniser` interface):
 
-| Service | File | What Works | What's Missing |
-|---------|------|------------|----------------|
-| **GitHub** | `internal/synchroniser/github.go` | Task ID formatting, task link generation | API calls, actual sync logic, task description fetching |
+### `internal/resolver` — Work Item Metadata
 
-**Interface Definition:** `internal/synchroniser/syncroniser.go`
+**`ItemResolver` interface:**
+```go
+type ItemResolver interface {
+    Init(cfg config.SyncConfig)
+    Handles(entry *timeentry.TimeEntry) bool
+    GetFormattedTaskID(entry *timeentry.TimeEntry) string
+    GetTaskLink(entry *timeentry.TimeEntry) string
+    FetchDescription(ctx context.Context, entry *timeentry.TimeEntry) (string, error)
+}
+```
 
-**Implemented Methods:**
-- `Init()` - Config loading ✅
-- `Name()` - Returns "GitHub" ✅
-- `GetFormattedTaskID()` - Formats as `#123` ✅
-- `GetTaskLink()` - Generates GitHub issue/PR URL ✅
-- `GetTaskDescription()` - Stub (returns empty string) ❌
-- `Sync()` - Stub (no-op) ❌
+**`ItemCache`** wraps all resolvers and provides a persistent CSV cache at `~/.tracktime/item-cache.csv` with soft TTL semantics: stale entries are refreshed on access but never deleted on failure, so descriptions survive loss of API access (e.g. leaving a company). TTL defaults to 30 days and is configurable via `item_cache_ttl_days` in `tracktimerc`.
 
-**Missing Synchronisers:**
-- GitLab (Python has `tracktime/synchronisers/gitlab.py`)
-- Sourcehut (Python has `tracktime/synchronisers/sourcehut.py`)
-- Linear (Python has `tracktime/synchronisers/linear.py`)
+**Concrete resolvers:**
+
+| Service | File | Formatted ID | Task Link | Fetch Description |
+|---------|------|-------------|-----------|-------------------|
+| **GitHub** | `internal/resolver/github.go` | `#123` | ✅ | ❌ stub |
+| **Linear** | `internal/resolver/linear.go` | `ENG-123` | ✅ | ✅ GraphQL API |
+| **GitLab** | `internal/resolver/gitlab.go` | `#123` / `!42` | ✅ | ✅ REST API |
+| **Sourcehut** | `internal/resolver/sourcehut.go` | `#123` | ✅ | ✅ REST API |
+
+### `internal/exporter` — Push Time to External Services
+
+**`Exporter` interface:**
+```go
+type Exporter interface {
+    Name() string
+    Init(cfg config.SyncConfig)
+    Export(ctx context.Context, aggregatedTime, syncedTime timeentry.AggregatedTime, month types.Month) (timeentry.AggregatedTime, error)
+}
+```
+
+`.synced` file I/O lives here (`ReadSyncedFile` / `WriteSyncedFile`).
+
+**Concrete exporters:** None yet. GitLab is the obvious first candidate.
+
+### `internal/importer` — Pull Time from External Services
+
+**`Importer` interface:**
+```go
+type Importer interface {
+    Name() string
+    Init(cfg config.SyncConfig)
+    Import(ctx context.Context, month types.Month) (timeentry.AggregatedTime, error)
+}
+```
+
+**Concrete importers:** None yet. Tempo (Atlassian) is the planned first candidate.
 
 ---
 
 ## Python Implementation Features Not Yet in Go
 
-### Commands
-- None! All Python commands have Go equivalents (though sync needs completion)
-
-### Synchronisers
-- ❌ GitLab synchroniser
-- ❌ Sourcehut synchroniser
-- ❌ Linear synchroniser
-
-### Report Functionality
-- ✅ Stdout output (complete with colors and formatting!)
-- ✅ Markdown export (.md files) - Complete!
-- ✅ HTML export (.html via goldmark) - Complete!
-- ✅ Typst export (.typ files for PDF generation) - Complete!
-- ✅ PDF export (.pdf via go-typst library) - Complete!
-
 ### Sync Functionality
-- ❌ `.synced` file reading/writing
-- ❌ API integration with external services
-- ❌ Time aggregation and submission logic
-- ❌ Deduplication (checking what's already synced)
+- ❌ GitLab exporter (push time to issues/MRs via `/add_spent_time`)
+- ❌ Sourcehut exporter (update tracktime comment on tickets)
+- ❌ Tempo importer (pull logged time from Jira/Tempo)
+- ❌ GitHub `FetchDescription` (GraphQL fetch of issue/PR title)
 
 ---
 
@@ -246,52 +177,33 @@ tracktime/                  # Legacy Python implementation
 
 | Package | Test Coverage | Notes |
 |---------|---------------|-------|
-| `internal/types/` | ✅ 61.1% coverage | Time, Month, Date parsing and operations all tested |
-| `internal/config/` | ✅ 100% coverage | Config loading fully tested (valid, minimal, env vars, errors) |
-| `internal/timeentry/` | ✅ 85.2% coverage | Comprehensive tests for EntryList, AddEntry, Save, Stop, Resume, CSV I/O |
-| `internal/commands/` | ✅ 23.8% coverage | Tests for Start, Stop, List, Resume, Edit, Sync commands, plus full workflow integration test |
-| `internal/report/` | ✅ 26.5% coverage | Tests for report creation, filtering, statistics, rates, sorting, formatting |
-| `internal/synchroniser/` | ❌ 0% coverage | No tests yet |
+| `internal/types/` | ✅ ~61% | Time, Month, Date parsing and operations |
+| `internal/config/` | ✅ 100% | Config loading fully tested |
+| `internal/timeentry/` | ✅ ~85% | EntryList, AddEntry, Save, Stop, Resume, CSV I/O |
+| `internal/commands/` | ✅ ~24% | Start, Stop, List, Resume, Edit, Sync + integration test |
+| `internal/report/` | ✅ ~27% | Report creation, filtering, statistics, rates, sorting |
+| `internal/resolver/` | ✅ Linear tested | Guard clauses, formatted ID, task link; no HTTP tests |
+| `internal/exporter/` | ❌ 0% | No tests yet |
+| `internal/importer/` | ❌ 0% | No tests yet |
 
-**Current test status:** All core packages have test coverage. Tests use testify/assert library for clean assertions. All tests pass with linters (go-imports, go-vet, go-staticcheck).
+All tests pass with all linters (go-imports, go-vet, go-staticcheck).
 
 ---
 
 ## Migration Priorities
 
-Based on current state and user needs:
+1. **Low Priority** — Concrete exporters/importers:
+   - GitLab exporter (push time to issues/MRs)
+   - Sourcehut exporter (update tracktime comments on tickets)
+   - Tempo importer (pull time from Jira/Tempo)
+   - GitHub `FetchDescription` implementation
 
-1. **~~High Priority~~ - Complete report export formats:** ✅ **COMPLETE!**
-   - ✅ ~~Stdout formatting~~ (DONE!)
-   - ✅ ~~Implement Markdown export~~ (DONE!)
-   - ✅ ~~Implement HTML export~~ (DONE!)
-   - ✅ ~~Implement Typst export~~ (DONE!)
-   - ✅ ~~Implement PDF export~~ (DONE!)
-   - Note: All export formats are complete and production-ready
-   - Note: PDF export requires `typst` binary installed on the system
+2. **Low Priority** — Test coverage:
+   - Exporter `.synced` file I/O tests
+   - Resolver HTTP fetch tests (with httptest)
+   - More edge cases in commands/report
 
-2. **~~Medium Priority~~ - Testing:** ✅ **SUBSTANTIALLY COMPLETE!**
-   - ✅ ~~Add unit tests for commands~~ (DONE! - Start, Stop, List, Resume, Edit, Sync)
-   - ✅ ~~Add unit tests for report generation~~ (DONE! - Report creation, filtering, statistics, rates, sorting, formatting)
-   - ✅ ~~Add tests for EntryList operations and CSV I/O~~ (DONE! - 85.2% coverage)
-   - ✅ ~~Add tests for config loading~~ (DONE! - 100% coverage)
-   - ✅ ~~Add integration tests~~ (DONE! - Full workflow test in commands_test.go)
-   - ✅ All tests use testify/assert library for clean, maintainable assertions
-   - ⚠️ Could add more edge case tests (overlapping entries, invalid times, etc.)
-   - ⚠️ Could increase command/report coverage (currently 23-26%, core logic tested but not all branches)
-
-3. **Low Priority** - Sync command and synchronizers:
-   - Implement `.synced` file I/O
-   - Add aggregation logic
-   - Complete GitHub synchroniser API calls
-   - Add GitLab, Sourcehut, Linear synchronisers
-   - Add synchroniser tests
-   - Note: Synchronizers are not critical for current workflow
-
-4. **Low Priority** - Documentation and polish:
-   - Update user documentation
-   - Add examples
-   - Performance optimization
+3. **Low Priority** — Documentation and polish
 
 ---
 
@@ -314,20 +226,17 @@ go build -o tt ./cmd/tt
 **Run:**
 ```bash
 go run ./cmd/tt --help
+go run ./cmd/tt --config examples/tracktimerc.go-example report --thisweek
 ```
 
 **Run tests:**
 ```bash
-go test ./...                                      # All tests
-go test -v ./internal/types/... -run TestName     # Specific test
+go test ./...
+go test -v ./internal/resolver/... -run TestName
 ```
 
 **Lint:**
 ```bash
-pre-commit run -av go-imports-repo
-pre-commit run -av go-vet-repo-mod
-pre-commit run -av go-staticcheck-repo-mod
-# Or run all hooks:
 pre-commit run --all-files
 ```
 
@@ -339,11 +248,19 @@ pre-commit run --all-files
 
 **Directory Structure:** `~/.tracktime/YEAR/MONTH/DAY`
 
+**Item Cache:** `~/.tracktime/item-cache.csv`
+```csv
+type,project,taskid,description,fetched_at
+gitlab,acme-web,#123,Implement feature X,2026-01-15T10:30:00Z
+linear,ENG,456,Fix the login bug,2026-03-01T08:00:00Z
+```
+
 **Synced File Format:** `~/.tracktime/YEAR/MONTH/.synced`
 ```csv
 type,project,taskid,synced
-gitlab,acme-web,123,3.5h
+gitlab,acme-web,#123,12600
 ```
+(duration stored as integer seconds)
 
 **Auto-stop Logic:** When starting a new entry, any currently running entry is automatically stopped at the new entry's start time.
 
@@ -353,34 +270,29 @@ gitlab,acme-web,123,3.5h
 
 ## Version
 
-Current version: **v0.11.0** (as declared in `cmd/tt/main.go:28`)
+Current version: **v0.11.0** (as declared in `cmd/tt/main.go`)
 
 ---
 
 ## Summary
 
-The Go rewrite is **~87% complete** and production-ready for daily time tracking:
+The Go rewrite is **~90% complete** and production-ready for daily time tracking:
 
 | Component | Completion |
 |-----------|------------|
 | Core library (types, config, entry list) | **100%** ✅ |
 | Basic commands (start, stop, resume, list, edit) | **100%** ✅ |
-| Report command (stdout output) | **100%** ✅ |
-| Report command (markdown export) | **100%** ✅ |
-| Report command (HTML export) | **100%** ✅ |
-| Report command (Typst export) | **100%** ✅ |
-| Report command (PDF export) | **100%** ✅ |
-| Sync command | **10%** ❌ |
-| Synchronizers | **5%** ❌ |
-| Test coverage | **~50%** (types: 61%, config: 100%, timeentry: 85%, commands: 24%, report: 27%) ✅ |
-
-**Ready for use:** Yes! All core functionality works perfectly. All report export formats are complete with professional formatting.
+| Report command (all formats) | **100%** ✅ |
+| Resolver framework + item cache | **100%** ✅ |
+| Item resolvers (GitHub, Linear, GitLab, Sourcehut) | **~85%** ✅ (GitHub FetchDescription stub) |
+| Exporter/Importer framework | **100%** ✅ |
+| Concrete exporters (GitLab, Sourcehut) | **0%** ❌ |
+| Concrete importers (Tempo) | **0%** ❌ |
+| Test coverage | **~50%** ✅ |
 
 **Usage:**
-- Stdout report: `go run ./cmd/tt report --thisweek`
-- Markdown report: `go run ./cmd/tt report --thisweek -o report.md`
-- HTML report: `go run ./cmd/tt report --thisweek -o report.html`
-- Typst report: `go run ./cmd/tt report --thisweek -o report.typ`
-- PDF report: `go run ./cmd/tt report --thisweek -o report.pdf` (requires `typst` binary)
-
-**Next major milestone:** Complete sync command and synchronizers implementation.
+```bash
+go run ./cmd/tt report --thisweek
+go run ./cmd/tt report --thisweek -o report.pdf   # requires typst binary
+go run ./cmd/tt sync                               # no-op until exporters implemented
+```

@@ -1,12 +1,14 @@
+// Package report aggregates time entries and renders them in various output formats.
 package report
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/sumnerevans/tracktime/internal/config"
-	"github.com/sumnerevans/tracktime/internal/synchroniser"
+	"github.com/sumnerevans/tracktime/internal/resolver"
 	"github.com/sumnerevans/tracktime/internal/timeentry"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
@@ -25,6 +27,7 @@ type RateTotal struct {
 
 // Report holds aggregated time entry data and statistics
 type Report struct {
+	ctx       context.Context
 	StartDate types.Date
 	EndDate   types.Date
 	Config    *config.Config
@@ -44,8 +47,8 @@ type Report struct {
 	TaskGrain        bool
 	DescriptionGrain bool
 
-	// Synchronisers for formatting task IDs and getting links
-	Synchronisers []synchroniser.Synchroniser
+	// Cache for resolving work item metadata (formatted ID, link, description).
+	Cache *resolver.ItemDetailCache
 }
 
 // Sort represents how to sort report entries
@@ -57,8 +60,9 @@ const (
 )
 
 // New creates a new Report by aggregating time entries over the date range
-func New(config *config.Config, start, end types.Date, customer timeentry.Customer, project timeentry.Project, sort Sort, reverse, taskGrain, descriptionGrain bool) (*Report, error) {
+func New(ctx context.Context, config *config.Config, start, end types.Date, customer timeentry.Customer, project timeentry.Project, sort Sort, reverse, taskGrain, descriptionGrain bool) (*Report, error) {
 	r := &Report{
+		ctx:              ctx,
 		StartDate:        start,
 		EndDate:          end,
 		Config:           config,
@@ -71,13 +75,7 @@ func New(config *config.Config, start, end types.Date, customer timeentry.Custom
 		AggregatedTime:   make(map[CustomerProject]map[timeentry.TaskID]map[string][]*timeentry.TimeEntry),
 		DayStats:         make(map[types.Date]time.Duration),
 		RateTotals:       make(map[CustomerProject]RateTotal),
-		Synchronisers:    make([]synchroniser.Synchroniser, len(synchroniser.Synchronisers)),
-	}
-
-	// Initialize synchronisers with config
-	for i, sync := range synchroniser.Synchronisers {
-		r.Synchronisers[i] = sync
-		r.Synchronisers[i].Init(config.Sync)
+		Cache:            resolver.NewItemDetailCache(string(config.Directory), config, resolver.Resolvers),
 	}
 
 	// Aggregate time entries across date range
@@ -264,59 +262,43 @@ func (r *Report) addressLines() []string {
 	return lines
 }
 
-// formatTaskName formats a task name with ID and description
-func (r *Report) formatTaskName(cp CustomerProject, taskID timeentry.TaskID) string {
-	// Get first entry to check type
-	var firstEntry *timeentry.TimeEntry
+// firstEntryFor returns the first TimeEntry for the given customer/project and task ID.
+func (r *Report) firstEntryFor(cp CustomerProject, taskID timeentry.TaskID) *timeentry.TimeEntry {
 	for _, entries := range r.AggregatedTime[cp][taskID] {
 		if len(entries) > 0 {
-			firstEntry = entries[0]
-			break
+			return entries[0]
 		}
 	}
-
-	if firstEntry == nil {
-		return "<NO TASK>"
-	}
-
-	// Try to get formatted task ID from synchronisers
-	for _, sync := range r.Synchronisers {
-		if formattedID := sync.GetFormattedTaskID(firstEntry); formattedID != "" {
-			return formattedID
-		}
-	}
-
-	// Fallback: if no synchroniser handles this entry, use raw task ID
-	if taskID != "" {
-		return string(taskID)
-	}
-
-	return "<NO TASK>"
+	return nil
 }
 
-// getTaskLink returns a link to the task from any applicable synchroniser
-func (r *Report) getTaskLink(cp CustomerProject, taskID timeentry.TaskID) string {
-	// Get first entry to check type
-	var firstEntry *timeentry.TimeEntry
-	for _, entries := range r.AggregatedTime[cp][taskID] {
-		if len(entries) > 0 {
-			firstEntry = entries[0]
-			break
-		}
+// formatTaskName returns the service-formatted task ID optionally followed by
+// the item description fetched from the cache, e.g. "#123: FIX THE THING".
+func (r *Report) formatTaskName(cp CustomerProject, taskID timeentry.TaskID) string {
+	entry := r.firstEntryFor(cp, taskID)
+	if entry == nil {
+		return "<NO TASK>"
 	}
+	name := r.Cache.GetFormattedTaskID(entry)
+	if name == "" {
+		if taskID == "" {
+			return "<NO TASK>"
+		}
+		name = string(taskID)
+	}
+	if desc := r.Cache.GetDescription(r.ctx, entry); desc != "" {
+		name += ": " + strings.ToUpper(desc)
+	}
+	return name
+}
 
-	if firstEntry == nil {
+// getTaskLink returns the URL for the task, or "" if unknown.
+func (r *Report) getTaskLink(cp CustomerProject, taskID timeentry.TaskID) string {
+	entry := r.firstEntryFor(cp, taskID)
+	if entry == nil {
 		return ""
 	}
-
-	// Try to get task link from synchronisers
-	for _, sync := range r.Synchronisers {
-		if link := sync.GetTaskLink(firstEntry); link != "" {
-			return link
-		}
-	}
-
-	return ""
+	return r.Cache.GetTaskLink(entry)
 }
 
 // totalMinutes returns total minutes across all entries

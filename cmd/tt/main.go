@@ -1,12 +1,14 @@
+// Package main is the entry point for the tt command-line tool.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
 
 	arg "github.com/alexflint/go-arg"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 
 	"github.com/sumnerevans/tracktime/internal/commands"
 	"github.com/sumnerevans/tracktime/internal/config"
@@ -41,32 +43,43 @@ func (args) Epilogue() string {
 }
 
 func main() {
+	// Bootstrap logger used only until the config is loaded.
+	bootstrap := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).With().Timestamp().Logger()
+	ctx := bootstrap.WithContext(context.Background())
+
 	var args args
 	arg.MustParse(&args)
 
 	cfg, err := config.ReadConfig(args.ConfigFile)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Couldn't read config file")
+		zerolog.Ctx(ctx).Fatal().Err(err).Msg("Couldn't read config file")
 	}
+
+	// Replace bootstrap logger with the one from config.
+	logger, err := cfg.Logging.Compile()
+	if err != nil {
+		zerolog.Ctx(ctx).Fatal().Err(err).Msg("Couldn't compile logging config")
+	}
+	ctx = logger.WithContext(context.Background())
 
 	switch {
 	case args.Start != nil:
-		err = args.Start.Run(cfg)
+		err = args.Start.Run(ctx, cfg)
 	case args.Stop != nil:
-		err = args.Stop.Run(cfg)
+		err = args.Stop.Run(ctx, cfg)
 	case args.Resume != nil:
-		err = args.Resume.Run(cfg)
+		err = args.Resume.Run(ctx, cfg)
 	case args.List != nil:
-		err = args.List.Run(cfg)
+		err = args.List.Run(ctx, cfg)
 	case args.Edit != nil:
-		err = args.Edit.Run(cfg)
+		err = args.Edit.Run(ctx, cfg)
 	case args.Sync != nil:
-		err = args.Sync.Run(cfg)
+		err = args.Sync.Run(ctx, cfg)
 	case args.Report != nil:
-		err = args.Report.Run(cfg)
+		err = args.Report.Run(ctx, cfg)
 	default:
 		args.List = &commands.List{Date: types.Date{Time: time.Now()}}
-		err = args.List.Run(cfg)
+		err = args.List.Run(ctx, cfg)
 	}
 
 	if err != nil {
