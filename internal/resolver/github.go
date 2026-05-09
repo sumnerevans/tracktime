@@ -1,8 +1,11 @@
 package resolver
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/sumnerevans/tracktime/internal/config"
@@ -55,8 +58,65 @@ func (gh *GitHubResolver) GetTaskLink(entry *timeentry.TimeEntry) string {
 	return fmt.Sprintf("%s/%s/%s/issues/%s", gh.Config.RootURI, owner, project, gh.cleanTaskID(entry.TaskID))
 }
 
-func (gh *GitHubResolver) FetchDescription(_ context.Context, _ *timeentry.TimeEntry) (string, error) {
-	// GitHub description fetch not yet implemented.
+func (gh *GitHubResolver) FetchDescription(ctx context.Context, entry *timeentry.TimeEntry) (string, error) {
+	if gh.Config.AccessToken == "" {
+		return "", nil
+	}
+
+	var owner, repo string
+	parts := strings.Split(string(entry.Project), "/")
+	switch len(parts) {
+	case 1:
+		if gh.Config.Username == "" {
+			return "", nil
+		}
+		owner = gh.Config.Username
+		repo = parts[0]
+	case 2:
+		owner = parts[0]
+		repo = parts[1]
+	default:
+		return "", nil
+	}
+	id := gh.cleanTaskID(entry.TaskID)
+
+	gqlQuery := fmt.Sprintf(
+		`query{repository(owner:"%s",name:"%s"){issue(number:%s){title}pullRequest(number:%s){title}}}`,
+		owner, repo, id, id,
+	)
+	body, _ := json.Marshal(map[string]string{"query": gqlQuery})
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.github.com/graphql", bytes.NewReader(body))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "bearer "+gh.Config.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Data struct {
+			Repository struct {
+				Issue       *struct{ Title string } `json:"issue"`
+				PullRequest *struct{ Title string } `json:"pullRequest"`
+			} `json:"repository"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	repo2 := result.Data.Repository
+	if repo2.Issue != nil {
+		return repo2.Issue.Title, nil
+	}
+	if repo2.PullRequest != nil {
+		return repo2.PullRequest.Title, nil
+	}
 	return "", nil
 }
 

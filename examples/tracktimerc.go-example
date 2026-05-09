@@ -17,16 +17,15 @@ sync:
   enable: true  # Based on sync_time: true from original
 
 github:
-  access_token: /nix/store/00bc157nm93q5fjz551fwk60ihlbilvj-coreutils-9.7/bin/cat /home/sumner/.config/home-manager/secrets/github-tracktime-access-token|
+  access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/github-tracktime-access-token|
   username: sumnerevans
 gitlab:
-  api_key: /nix/store/00bc157nm93q5fjz551fwk60ihlbilvj-coreutils-9.7/bin/cat /home/sumner/.config/home-manager/secrets/gitlab-api-key|
+  api_key: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/gitlab-api-key|
   api_root: https://gitlab.com/api/v4/
 sourcehut:
-  access_token: /nix/store/00bc157nm93q5fjz551fwk60ihlbilvj-coreutils-9.7/bin/cat /home/sumner/.config/home-manager/secrets/sourcehut-access-token|
+  access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/sourcehut-access-token|
   api_root: https://todo.sr.ht/api/
   username: ~sumner
-
 
 # Item description cache TTL in days (default: 30).
 # Stale entries are refreshed on access; on fetch failure the stale description

@@ -3,7 +3,9 @@ package config
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"go.mau.fi/zeroconfig"
@@ -100,6 +102,19 @@ func expandEnvXDG(s string) string {
 	})
 }
 
+// resolveSecret returns the string as-is unless it ends with "|", in which
+// case the prefix is run as a shell command and its trimmed stdout is returned.
+func resolveSecret(s string) string {
+	if !strings.HasSuffix(s, "|") {
+		return s
+	}
+	out, err := exec.Command("sh", "-c", strings.TrimSuffix(s, "|")).Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
 func ReadConfig(f types.Filename) (*Config, error) {
 	config := Config{
 		Reporting: ReportingConfig{FullName: "<Not Specified>"},
@@ -114,5 +129,9 @@ func ReadConfig(f types.Filename) (*Config, error) {
 	for i := range config.Logging.Writers {
 		config.Logging.Writers[i].Filename = expandEnvXDG(config.Logging.Writers[i].Filename)
 	}
+	config.GitHub.AccessToken = resolveSecret(config.GitHub.AccessToken)
+	config.GitLab.APIKey = resolveSecret(config.GitLab.APIKey)
+	config.SourceHut.AccessToken = resolveSecret(config.SourceHut.AccessToken)
+	config.Linear.APIKey = resolveSecret(config.Linear.APIKey)
 	return &config, err
 }

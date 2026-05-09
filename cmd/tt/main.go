@@ -62,6 +62,8 @@ func main() {
 	}
 	ctx = logger.WithContext(context.Background())
 
+	logger.Info().Any("args", args).Msg("Starting tracktime")
+
 	switch {
 	case args.Start != nil:
 		err = args.Start.Run(ctx, cfg)
@@ -69,8 +71,6 @@ func main() {
 		err = args.Stop.Run(ctx, cfg)
 	case args.Resume != nil:
 		err = args.Resume.Run(ctx, cfg)
-	case args.List != nil:
-		err = args.List.Run(ctx, cfg)
 	case args.Edit != nil:
 		err = args.Edit.Run(ctx, cfg)
 	case args.Sync != nil:
@@ -78,7 +78,9 @@ func main() {
 	case args.Report != nil:
 		err = args.Report.Run(ctx, cfg)
 	default:
-		args.List = &commands.List{Date: types.Date{Time: time.Now()}}
+		if args.List == nil {
+			args.List = &commands.List{Date: types.Date{Time: time.Now()}}
+		}
 		err = args.List.Run(ctx, cfg)
 	}
 
