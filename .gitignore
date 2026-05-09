@@ -1,4 +1,5 @@
-tt
+/tt
+/result
 .direnv
 .vscode/
 *.orig
