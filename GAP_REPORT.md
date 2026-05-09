@@ -5,32 +5,20 @@ implementation (`internal/`, `cmd/tt/`, branch `golang`), as of 2026-05-09.
 
 ---
 
-## 1. Critical Gaps — Python features absent in Go
-
-### 1.1 Sync push not implemented
-
-The Go `sync` command has the **infrastructure** (interfaces in `internal/exporter/` and
-`internal/importer/`) but **no concrete implementations are registered**. `exporter.Exporters`
-and `importer.Importers` are always empty slices, so the sync command:
-
-- Reads aggregated time ✓
-- Reads the `.synced` file ✓
-- Loops over zero exporters — does nothing
-- Writes the `.synced` file back unchanged ✓
-
-Python pushes spent time to **GitLab** (via `POST .../add_spent_time`) and **Sourcehut** (via
-ticket comment create/edit). Neither exists in Go. GitHub and Linear have no push sync in Python
-either (they are read-only resolvers in both implementations).
-
-**Files affected:** `internal/exporter/exporter.go` (interface only, no registrations)
-
----
-
-## 2. Intentionally Not Ported
+## 1. Intentionally Not Ported
 
 These Python features were deliberately excluded from the Go rewrite.
 
-### 2.1 External synchroniser plugin system
+### 1.1 Sync push to external services
+
+Python pushes spent time to **GitLab** (via `POST .../add_spent_time`) and **Sourcehut** (via
+ticket comment create/edit). Go deliberately omits the push direction: the `sync` command runs
+importers only. GitHub and Linear were read-only in Python too.
+
+The `.synced` file tracking and `Exporter` interface have been removed. Custom push integrations
+should be implemented as standalone tools that read the CSV data directly.
+
+### 1.2 External synchroniser plugin system
 
 Python supports `external_synchroniser_files`, allowing user-supplied Python files to implement
 `ExternalSynchroniser` (e.g. `examples/jira.py`). Go's static type system and compilation model
@@ -38,19 +26,19 @@ make a dynamic plugin system impractical without significant complexity (e.g. Go
 `plugin.Open` are fragile and platform-limited). Custom integrations should instead be implemented
 as standalone tools that read the CSV data directly.
 
-### 2.2 Internet connectivity check before sync
+### 1.3 Internet connectivity check before sync
 
 Python pings `8.8.8.8` before syncing and silently skips on failure. In Go this is replaced by
 `context.Context` timeouts and cancellation: sync operations respect the request context and will
 fail fast with a clear error rather than hanging or silently skipping.
 
-### 2.3 RST report format
+### 1.4 RST report format
 
 Python exports `.rst` via `RSTExporter` (a thin wrapper around the tabulate text output). In Go,
 Markdown (`.md`) and Typst (`.typ`) cover the structured-document use cases better. RST is not
 planned.
 
-### 2.4 `tableformat` config / tabulate-style output
+### 1.5 `tableformat` config / tabulate-style output
 
 Python's stdout report is rendered via the `tabulate` library, with the format controlled by
 `tableformat` in config (e.g. `fancy_grid`, `rst`). Go uses `rodaine/table` with ANSI-color
@@ -84,8 +72,7 @@ These features exist in Go but have no Python equivalent.
 |------|--------|----|--------|
 | `start` / `stop` / `resume` / `list` / `edit` | ✓ | ✓ | — |
 | Auto-sync after mutations | ✓ | ✓ | Done |
-| Sync push to GitLab | ✓ | ✗ | **Gap — high** |
-| Sync push to Sourcehut | ✓ | ✗ | **Gap — high** |
+| Sync push to GitLab/Sourcehut | ✓ | n/a | Intentionally not ported |
 | Task hyperlinks in reports | ✓ | ✓ | Done |
 | Config auto-migration (configupgrade) | — | ✓ | Done |
 | Description case-folding in report | ✓ | ✓ | Done |
