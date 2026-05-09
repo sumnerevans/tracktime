@@ -108,10 +108,9 @@ func New(ctx context.Context, config *config.Config, start, end types.Date, cust
 			if r.AggregatedTime[cp][entry.TaskID] == nil {
 				r.AggregatedTime[cp][entry.TaskID] = make(map[string][]*timeentry.TimeEntry)
 			}
-			// Note: Python uppercases description (line 191 in report.py)
-			// We'll keep it as-is for now and can uppercase in formatter if needed
-			r.AggregatedTime[cp][entry.TaskID][entry.Description] = append(
-				r.AggregatedTime[cp][entry.TaskID][entry.Description],
+			desc := strings.ToUpper(entry.Description)
+			r.AggregatedTime[cp][entry.TaskID][desc] = append(
+				r.AggregatedTime[cp][entry.TaskID][desc],
 				entry,
 			)
 		}

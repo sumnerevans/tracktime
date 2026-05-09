@@ -83,27 +83,6 @@ Python formats total as `H:MM` with `int` minutes. Go formats the same way but u
 `int(duration.Minutes())%60` which can differ slightly due to floating-point rounding on very long
 sessions. Edge case, not a practical problem.
 
-### 3.2 Report description uppercasing
-
-Python uppercases descriptions when building the report map (`entry.description.upper()`). Go
-stores descriptions as-is. This means the same description with different cases is counted as
-distinct entries in Go but merged in Python.
-
-**Files affected:** `internal/report/report.go:113`
-
-### 3.3 `resume` entry numbering
-
-Python uses Python-style indexing (negative allowed, default `-1` = last). Go takes a positional
-integer with default `-1`. The semantics match for the common case.
-
-### 3.4 `edit` opens today, not the specified date
-
-Python `edit` opens `args.date`. Go `edit` creates the entry list for `Today()` (hardcoded) but
-opens `s.Date` in the editor — inconsistent; the ensure-header step uses today regardless of
-`--date`.
-
-**Files affected:** `internal/commands/edit.go:23`
-
 ---
 
 ## 4. New in Go (not in Python)
@@ -135,7 +114,7 @@ These features exist in Go but have no Python equivalent.
 | Sync push to Sourcehut | ✓ | ✗ | **Gap — high** |
 | Task hyperlinks in reports | ✓ | ✗ | **Gap — medium** |
 | Config auto-migration (configupgrade) | — | ✓ | Done |
-| Description case-folding in report | ✓ | ✗ | **Gap — low** |
+| Description case-folding in report | ✓ | ✓ | Done |
 | Abbreviated weekday date parsing | ✓ | ✓ | Done |
 | External synchroniser plugins | ✓ | n/a | Intentionally not ported |
 | Internet check before sync | ✓ | n/a | Replaced by context timeouts |

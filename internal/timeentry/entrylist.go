@@ -200,10 +200,8 @@ func (el *EntryList) Stop(stop *types.Time) error {
 
 func (el *EntryList) Resume(resumeIndex int, description *string, start *types.Time) error {
 	var oldEntry *TimeEntry
-	if resumeIndex == -1 {
-		if len(el.Entries) > 0 {
-			oldEntry = el.Entries[len(el.Entries)-1]
-		} else {
+	if resumeIndex < 0 {
+		if len(el.Entries) == 0 {
 			yesterdayEntries, err := EntryListForDay(el.Config, el.Date.AddDays(-1))
 			if err != nil {
 				return err
@@ -211,9 +209,22 @@ func (el *EntryList) Resume(resumeIndex int, description *string, start *types.T
 			if len(yesterdayEntries.Entries) == 0 {
 				return fmt.Errorf("no time entry to resume")
 			}
-			oldEntry = yesterdayEntries.Entries[len(yesterdayEntries.Entries)-1]
+			idx := len(yesterdayEntries.Entries) + resumeIndex
+			if idx < 0 {
+				return fmt.Errorf("entry index %d out of range", resumeIndex)
+			}
+			oldEntry = yesterdayEntries.Entries[idx]
+		} else {
+			idx := len(el.Entries) + resumeIndex
+			if idx < 0 {
+				return fmt.Errorf("entry index %d out of range", resumeIndex)
+			}
+			oldEntry = el.Entries[idx]
 		}
 	} else {
+		if resumeIndex == 0 || resumeIndex > len(el.Entries) {
+			return fmt.Errorf("entry index %d out of range", resumeIndex)
+		}
 		oldEntry = el.Entries[resumeIndex-1]
 	}
 

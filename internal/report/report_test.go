@@ -99,11 +99,11 @@ func TestReportCreation(t *testing.T) {
 		Config:    cfg,
 		AggregatedTime: map[CustomerProject]map[timeentry.TaskID]map[string][]*timeentry.TimeEntry{
 			{Customer: "ACME Corp", Project: "project1"}: {
-				"123": {"Task 1": {entries[0]}},
-				"789": {"Task 3": {entries[2]}},
+				"123": {"TASK 1": {entries[0]}},
+				"789": {"TASK 3": {entries[2]}},
 			},
 			{Customer: "Client B", Project: "project2"}: {
-				"456": {"Task 2": {entries[1]}},
+				"456": {"TASK 2": {entries[1]}},
 			},
 		},
 		DayStats: map[types.Date]time.Duration{

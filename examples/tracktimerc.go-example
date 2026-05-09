@@ -1,44 +1,37 @@
-# Tracktime configuration file - Go structure
-# This is the same content as the existing tracktimerc but restructured
-# to match the Go Config struct expectations
-
+directory: $HOME/.tracktime
 reporting:
-  fullname: Sumner Evans
-  day_worked_min_threshold: 120
-  report_statistics: true  # Default in Python, must be explicit in Go
-  project_rates:
-    teaching/tutoring: 50
-  customer_rates: {}
-  customer_aliases: {}
-  customer_addresses: {}
-
+    fullname: Sumner Evans
+    day_worked_min_threshold: 120
+    report_statistics: true # Default in Python, must be explicit in Go
+    project_rates:
+        teaching/tutoring: 50
+    customer_rates: {}
+    customer_aliases: {}
+    customer_addresses: {}
 sync:
-  enable: true  # Based on sync_time: true from original
-
+    enable: true # Based on sync_time: true from original
 github:
-  access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/github-tracktime-access-token|
-  username: sumnerevans
+    access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/github-tracktime-access-token|
+    username: sumnerevans
 gitlab:
-  api_key: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/gitlab-api-key|
-  api_root: https://gitlab.com/api/v4/
+    api_key: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/gitlab-api-key|
+    api_root: https://gitlab.com/api/v4/
 sourcehut:
-  access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/sourcehut-access-token|
-  api_root: https://todo.sr.ht/api/
-  username: ~sumner
-
-# Item description cache TTL in days (default: 30).
-# Stale entries are refreshed on access; on fetch failure the stale description
-# is kept so descriptions survive loss of API access.
+    access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/sourcehut-access-token|
+    api_root: https://todo.sr.ht/api/
+    username: ~sumner
+linear:
+    default_org: ""
+    api_key: ""
 item_cache_ttl_days: 30
-
+editor: ""
+editor_args: []
+typst_path: ""
 logging:
-  min_level: info
-  writers:
-    - type: file
-      format: json
-      filename: $XDG_STATE_HOME/tracktime/tracktime.log
-      max_size: 10    # megabytes
-      max_age: 90     # days
-
-# Note: sync_time field from original config is not currently in Go Config struct
-# It would need to be added as a top-level field if still needed
+    min_level: info
+    writers:
+        - type: file
+          format: json
+          filename: $XDG_STATE_HOME/tracktime/tracktime.log
+          max_size: 10 # megabytes
+          max_age: 90 # days

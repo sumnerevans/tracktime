@@ -475,6 +475,60 @@ func TestResume(t *testing.T) {
 		assert.EqualValues(t, expected, el.Entries)
 	})
 
+	t.Run("resume second-to-last entry with -2", func(t *testing.T) {
+		el := &timeentry.EntryList{
+			Date:   date,
+			Config: cfg,
+			Entries: []*timeentry.TimeEntry{
+				{
+					Start:       mustParseTime(t, "09:00"),
+					Stop:        mustParseTime(t, "10:00"),
+					Type:        "gitlab",
+					Project:     "project1",
+					Customer:    "Client A",
+					TaskID:      "111",
+					Description: "First task",
+				},
+				{
+					Start:       mustParseTime(t, "11:00"),
+					Stop:        mustParseTime(t, "12:00"),
+					Type:        "github",
+					Project:     "project2",
+					Customer:    "Client B",
+					TaskID:      "222",
+					Description: "Second task",
+				},
+			},
+		}
+
+		err := el.Resume(-2, nil, mustParseTime(t, "13:00"))
+		assert.NoError(t, err)
+		assert.Equal(t, "First task", el.Entries[len(el.Entries)-1].Description)
+		assert.Equal(t, timeentry.TimeEntryType("gitlab"), el.Entries[len(el.Entries)-1].Type)
+	})
+
+	t.Run("resume index out of range returns error", func(t *testing.T) {
+		el := &timeentry.EntryList{
+			Date:   date,
+			Config: cfg,
+			Entries: []*timeentry.TimeEntry{
+				{
+					Start:       mustParseTime(t, "09:00"),
+					Stop:        mustParseTime(t, "10:00"),
+					Type:        "github",
+					Project:     "myproject",
+					Customer:    "ACME",
+					TaskID:      "123",
+					Description: "Only task",
+				},
+			},
+		}
+
+		assert.Error(t, el.Resume(-5, nil, mustParseTime(t, "11:00")))
+		assert.Error(t, el.Resume(0, nil, mustParseTime(t, "11:00")))
+		assert.Error(t, el.Resume(99, nil, mustParseTime(t, "11:00")))
+	})
+
 	t.Run("resume with custom description", func(t *testing.T) {
 		el := &timeentry.EntryList{
 			Date:   date,
