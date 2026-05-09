@@ -31,15 +31,6 @@ editor closes. All Go command handlers carry a `// TODO sync` comment with no im
 
 **Files affected:** `internal/commands/start.go:26`, `stop.go:21`, `resume.go:23`, `edit.go:55`
 
-### 1.3 Task hyperlinks missing from all report formats
-
-Python's HTML report wraps task names in `<a href>` anchors using `get_task_link()`. Go's
-`GetTaskLink()` exists in the cache layer (`internal/resolver/cache.go`) but **none of the
-renderers call it** — not stdout, not Markdown, not HTML. The HTML renderer generates via
-Markdown conversion so it cannot insert per-cell anchors anyway.
-
-**Files affected:** `internal/report/stdout.go`, `markdown.go`, `html.go`
-
 ---
 
 ## 2. Intentionally Not Ported
@@ -102,7 +93,7 @@ These features exist in Go but have no Python equivalent.
 | Auto-sync after mutations | ✓ | ✗ (TODO) | **Gap — high** |
 | Sync push to GitLab | ✓ | ✗ | **Gap — high** |
 | Sync push to Sourcehut | ✓ | ✗ | **Gap — high** |
-| Task hyperlinks in reports | ✓ | ✗ | **Gap — medium** |
+| Task hyperlinks in reports | ✓ | ✓ | Done |
 | Config auto-migration (configupgrade) | — | ✓ | Done |
 | Description case-folding in report | ✓ | ✓ | Done |
 | Abbreviated weekday date parsing | ✓ | ✓ | Done |

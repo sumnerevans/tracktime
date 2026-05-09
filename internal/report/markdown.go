@@ -81,9 +81,14 @@ func (r *Report) GenerateMarkdownReport(w io.Writer) {
 		// Task level
 		for _, taskID := range r.sortedTaskIDs(cp) {
 			taskName := r.formatTaskName(cp, taskID)
+			if link := r.getTaskLink(cp, taskID); link != "" {
+				taskName = fmt.Sprintf("[%s](%s)", html.EscapeString(taskName), link)
+			} else {
+				taskName = html.EscapeString(taskName)
+			}
 			// Use &nbsp; for indentation in markdown tables
 			exerrors.Must(fmt.Fprintf(w, "| &nbsp;&nbsp;• %s | %.2f | | |\n",
-				html.EscapeString(taskName),
+				taskName,
 				r.totalMinutesForTask(cp, taskID)/60.0))
 
 			if !r.DescriptionGrain {

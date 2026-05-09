@@ -101,9 +101,12 @@ func (r *Report) GenerateTypstReport(w io.Writer) {
 
 		// Task level
 		for _, taskID := range r.sortedTaskIDs(cp) {
-			taskName := r.formatTaskName(cp, taskID)
+			taskName := escapeTypst(r.formatTaskName(cp, taskID))
+			if link := r.getTaskLink(cp, taskID); link != "" {
+				taskName = fmt.Sprintf("#link(%q)[%s]", link, taskName)
+			}
 			rows = append(rows, fmt.Sprintf("  [#h(1em)• %s], [%.2f], [], [],",
-				escapeTypst(taskName),
+				taskName,
 				r.totalMinutesForTask(cp, taskID)/60.0))
 
 			if !r.DescriptionGrain {

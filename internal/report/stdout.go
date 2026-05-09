@@ -9,8 +9,8 @@ import (
 	"github.com/rodaine/table"
 )
 
-// ansiRegex matches ANSI escape codes
-var ansiRegex = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+// ansiRegex matches ANSI CSI sequences (colors) and OSC sequences (e.g. hyperlinks)
+var ansiRegex = regexp.MustCompile(`\x1b(?:\[[0-9;]*m|\][^\x1b]*(?:\x1b\\|\x07))`)
 
 // stripAnsi removes ANSI escape codes from a string
 func stripAnsi(s string) string {
@@ -138,8 +138,11 @@ func (r *Report) GenerateTextReport() string {
 
 		// Task level
 		for _, taskID := range r.sortedTaskIDs(cp) {
-			taskName := " * " + r.formatTaskName(cp, taskID)
-			reportTable.AddRow(ellipsize(taskName, 40), fmt.Sprintf("%.2f", r.totalMinutesForTask(cp, taskID)/60.0), "", "")
+			name := ellipsize(r.formatTaskName(cp, taskID), 37)
+			if link := r.getTaskLink(cp, taskID); link != "" {
+				name = fmt.Sprintf("\x1b]8;;%s\x1b\\%s\x1b]8;;\x1b\\", link, name)
+			}
+			reportTable.AddRow(" * "+name, fmt.Sprintf("%.2f", r.totalMinutesForTask(cp, taskID)/60.0), "", "")
 
 			if !r.DescriptionGrain {
 				continue
