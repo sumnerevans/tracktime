@@ -20,7 +20,7 @@ type Edit struct {
 
 func (s *Edit) Run(ctx context.Context, config *config.Config) error {
 	// Make sure the header exists
-	if entryList, err := timeentry.EntryListForDay(config, types.Today()); err != nil {
+	if entryList, err := timeentry.EntryListForDay(config, s.Date); err != nil {
 		return err
 	} else if err := entryList.Save(); err != nil {
 		return err
