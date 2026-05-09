@@ -115,11 +115,11 @@ func (d *Date) UnmarshalText(text []byte) error {
 }
 
 func (d Date) AddDays(numDays int) Date {
-	return Date{Time: d.Time.AddDate(0, 0, numDays)}
+	return Date{Time: d.AddDate(0, 0, numDays)}
 }
 
 func (d Date) AddMonths(numMonths int) Date {
-	return Date{Time: d.Time.AddDate(0, numMonths, 0)}
+	return Date{Time: d.AddDate(0, numMonths, 0)}
 }
 
 func (d Date) DaysInMonth() int {
