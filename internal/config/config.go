@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	up "go.mau.fi/util/configupgrade"
 	"go.mau.fi/zeroconfig"
 	"gopkg.in/yaml.v3"
 
@@ -115,13 +116,14 @@ func resolveSecret(s string) string {
 }
 
 func ReadConfig(f types.Filename) (*Config, error) {
+	configData, _, err := up.Do(f.Expand(), true, Upgrader)
+	if err != nil {
+		return nil, err
+	}
+
 	config := Config{
 		Reporting: ReportingConfig{FullName: "<Not Specified>"},
 		Directory: types.Filename("$HOME/.tracktime"),
-	}
-	configData, err := os.ReadFile(f.Expand())
-	if err != nil {
-		return nil, err
 	}
 	err = yaml.Unmarshal(configData, &config)
 	config.Directory = types.Filename(config.Directory.Expand())

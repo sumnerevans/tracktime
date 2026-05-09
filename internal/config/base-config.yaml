@@ -1,0 +1,40 @@
+directory: $HOME/.tracktime
+
+reporting:
+  fullname: <Not Specified>
+  day_worked_min_threshold: 120
+  report_statistics: true
+  project_rates: {}
+  customer_rates: {}
+  customer_aliases: {}
+  customer_addresses: {}
+
+sync:
+  enable: false
+
+github:
+  username: ""
+  root_uri: ""
+  access_token: ""
+
+gitlab:
+  api_root: https://gitlab.com/api/v4/
+  api_key: ""
+
+sourcehut:
+  api_root: ""
+  access_token: ""
+  username: ""
+
+linear:
+  default_org: ""
+  api_key: ""
+
+item_cache_ttl_days: 30
+editor: ""
+editor_args: []
+typst_path: ""
+
+logging:
+  min_level: warn
+  writers: []

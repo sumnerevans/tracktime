@@ -75,24 +75,44 @@ output, which is a deliberate improvement and not configurable by format name. T
 
 ---
 
-## 3. Configuration Incompatibilities (Breaking)
+## 3. Configuration Migration
 
-The config file format changed significantly; existing Python `tracktimerc` files will **not** work
-with the Go binary without manual editing.
+The config file format changed significantly between Python and Go. The plan is to use
+`go.mau.fi/util/configupgrade` (already in `go.mod` as part of `go.mau.fi/util v0.9.1`) to
+automatically migrate existing Python `tracktimerc` files on first run, rewriting the file in-place
+so users do not need to manually edit it.
 
-| Python key (flat)           | Go key (nested)                     | Notes |
-|-----------------------------|-------------------------------------|-------|
-| `fullname`                  | `reporting.fullname`                | nested |
-| `project_rates`             | `reporting.project_rates`           | nested |
-| `customer_rates`            | `reporting.customer_rates`          | nested |
-| `customer_aliases`          | `reporting.customer_aliases`        | nested |
-| `customer_addresses`        | `reporting.customer_addresses`      | nested |
-| `day_worked_min_threshold`  | `reporting.day_worked_min_threshold`| nested |
-| `report_statistics`         | `reporting.report_statistics`       | nested |
-| `tableformat`               | `reporting.table_format`            | nested + renamed |
-| `sync_time`                 | `sync.enable`                       | nested + renamed |
-| `editor_args` (comma string)| `editor_args` (YAML list)           | type change |
-| `external_synchroniser_files`| *(intentionally absent)*            | plugin system not ported |
+### How configupgrade works
+
+`configupgrade.Do(path, save=true, upgrader)` reads the existing YAML as a raw node tree, runs
+`upgrader.DoUpgrade(helper)` to copy/rename/transform fields, marshals the result from a "base"
+template (the new example config), and atomically replaces the file. Fields absent from the old
+config fall back to defaults from the base template.
+
+### Required migrations
+
+| Python key (old path)        | Go key (new path)                    | Migration |
+|------------------------------|--------------------------------------|-----------|
+| `fullname`                   | `reporting.fullname`                 | `Get` + `Set` |
+| `project_rates`              | `reporting.project_rates`            | `Get` + `Set` (map) |
+| `customer_rates`             | `reporting.customer_rates`           | `Get` + `Set` (map) |
+| `customer_aliases`           | `reporting.customer_aliases`         | `Get` + `Set` (map) |
+| `customer_addresses`         | `reporting.customer_addresses`       | `Get` + `Set` (map) |
+| `day_worked_min_threshold`   | `reporting.day_worked_min_threshold` | `Get` + `Set` |
+| `report_statistics`          | `reporting.report_statistics`        | `Get` + `Set` |
+| `tableformat`                | *(drop — intentionally not ported)*  | ignore |
+| `sync_time`                  | `sync.enable`                        | `Get` + `Set` |
+| `editor_args` (comma string) | `editor_args` (YAML sequence)        | read string, split, `SetMap` |
+| `github`, `gitlab`, `sourcehut`, `linear` | *(same paths)* | `Copy` |
+| `directory`                  | `directory`                          | `Copy` |
+| `editor`                     | `editor`                             | `Copy` |
+| `external_synchroniser_files`| *(drop — intentionally not ported)*  | ignore |
+
+### Integration point
+
+`config.ReadConfig` in `internal/config/config.go` should call `configupgrade.Do` before
+unmarshalling. A `version` field in the config (already in the Go `Config` struct) can gate the
+migration so it only runs once and is a no-op thereafter.
 
 ---
 
@@ -162,7 +182,7 @@ These features exist in Go but have no Python equivalent.
 | Sync push to GitLab | ✓ | ✗ | **Gap — high** |
 | Sync push to Sourcehut | ✓ | ✗ | **Gap — high** |
 | Task hyperlinks in reports | ✓ | ✗ | **Gap — medium** |
-| Config backward compatibility | — | ✗ (breaking) | **Gap — high** |
+| Config auto-migration (configupgrade) | — | ✗ (planned) | **Gap — high** |
 | Description case-folding in report | ✓ | ✗ | **Gap — low** |
 | Abbreviated weekday date parsing | ✓ | ✗ | **Gap — low** |
 | External synchroniser plugins | ✓ | n/a | Intentionally not ported |
