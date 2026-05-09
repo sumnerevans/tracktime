@@ -15,12 +15,16 @@ func NewMonth(year int, month time.Month) Month {
 	return Month{year: year, month: month}
 }
 
+func MonthOf(d Date) Month {
+	return Month{year: d.Year(), month: d.Month()}
+}
+
 func ThisMonth() Month {
 	now := time.Now().Local()
 	return Month{year: now.Year(), month: now.Month()}
 }
 
-func (d *Month) UnmarshalText(text []byte) error {
+func (m *Month) UnmarshalText(text []byte) error {
 	now := time.Now().Local()
 	s := string(text)
 
@@ -28,23 +32,23 @@ func (d *Month) UnmarshalText(text []byte) error {
 	if strings.Contains(s, "-") {
 		parsed, err := time.Parse("2006-01", s)
 		if err == nil {
-			d.year = parsed.Year()
-			d.month = parsed.Month()
+			m.year = parsed.Year()
+			m.month = parsed.Month()
 			return nil
 		}
 	}
 
 	switch strings.ToLower(s) {
 	case "this month", "thismonth":
-		d.year = now.Year()
-		d.month = now.Month()
+		m.year = now.Year()
+		m.month = now.Month()
 	default:
 		formats := []string{"01", "January", "Jan", "1"}
 		for _, format := range formats {
 			parsed, err := time.Parse(format, s)
 			if err == nil {
-				d.year = now.Year()
-				d.month = parsed.Month()
+				m.year = now.Year()
+				m.month = parsed.Month()
 				return nil
 			}
 		}

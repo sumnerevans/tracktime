@@ -12,11 +12,14 @@ type Stop struct {
 	Stop *types.Time `arg:"-s,--stop" help:"the time at which to stop the current time entry" default:"now"`
 }
 
-func (s *Stop) Run(_ context.Context, config *config.Config) error {
-	entryList, err := timeentry.EntryListForDay(config, types.Today())
+func (s *Stop) Run(ctx context.Context, config *config.Config) error {
+	today := types.Today()
+	entryList, err := timeentry.EntryListForDay(config, today)
 	if err != nil {
 		return err
 	}
-	// TODO sync
-	return entryList.Stop(s.Stop)
+	if err := entryList.Stop(s.Stop); err != nil {
+		return err
+	}
+	return syncMonth(ctx, config, types.MonthOf(today))
 }

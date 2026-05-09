@@ -14,11 +14,14 @@ type Resume struct {
 	Start       *types.Time `arg:"-s,--start" help:"the start time of the resumed time entry" default:"now"`
 }
 
-func (s *Resume) Run(_ context.Context, config *config.Config) error {
-	entryList, err := timeentry.EntryListForDay(config, types.Today())
+func (s *Resume) Run(ctx context.Context, config *config.Config) error {
+	today := types.Today()
+	entryList, err := timeentry.EntryListForDay(config, today)
 	if err != nil {
 		return err
 	}
-	// TODO sync
-	return entryList.Resume(s.Entry, s.Description, s.Start)
+	if err := entryList.Resume(s.Entry, s.Description, s.Start); err != nil {
+		return err
+	}
+	return syncMonth(ctx, config, types.MonthOf(today))
 }

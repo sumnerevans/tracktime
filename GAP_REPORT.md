@@ -24,13 +24,6 @@ either (they are read-only resolvers in both implementations).
 
 **Files affected:** `internal/exporter/exporter.go` (interface only, no registrations)
 
-### 1.2 Auto-sync after mutations is TODO
-
-Python calls `EntryList.sync()` after every `start`, `stop`, `resume`, and (via `edit`) after the
-editor closes. All Go command handlers carry a `// TODO sync` comment with no implementation.
-
-**Files affected:** `internal/commands/start.go:26`, `stop.go:21`, `resume.go:23`, `edit.go:55`
-
 ---
 
 ## 2. Intentionally Not Ported
@@ -90,7 +83,7 @@ These features exist in Go but have no Python equivalent.
 | Area | Python | Go | Status |
 |------|--------|----|--------|
 | `start` / `stop` / `resume` / `list` / `edit` | ✓ | ✓ | — |
-| Auto-sync after mutations | ✓ | ✗ (TODO) | **Gap — high** |
+| Auto-sync after mutations | ✓ | ✓ | Done |
 | Sync push to GitLab | ✓ | ✗ | **Gap — high** |
 | Sync push to Sourcehut | ✓ | ✗ | **Gap — high** |
 | Task hyperlinks in reports | ✓ | ✓ | Done |

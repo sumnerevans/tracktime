@@ -17,8 +17,11 @@ type Sync struct {
 }
 
 func (s *Sync) Run(ctx context.Context, cfg *config.Config) error {
+	return syncMonth(ctx, cfg, *s.Month)
+}
+
+func syncMonth(ctx context.Context, cfg *config.Config, month types.Month) error {
 	log := zerolog.Ctx(ctx)
-	month := *s.Month
 
 	aggregatedTime, err := aggregateMonth(cfg, month)
 	if err != nil {

@@ -52,6 +52,5 @@ func (s *Edit) Run(ctx context.Context, config *config.Config) error {
 		zerolog.Ctx(ctx).Error().Err(err).Msg("Couldn't open editor")
 		return err
 	}
-	// TODO Sync
-	return nil
+	return syncMonth(ctx, config, types.MonthOf(s.Date))
 }

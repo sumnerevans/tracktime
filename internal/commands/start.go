@@ -17,11 +17,14 @@ type Start struct {
 	TaskID      timeentry.TaskID        `arg:"-i,--taskid" help:"the task ID of the time entry"`
 }
 
-func (s *Start) Run(_ context.Context, config *config.Config) error {
-	entryList, err := timeentry.EntryListForDay(config, types.Today())
+func (s *Start) Run(ctx context.Context, config *config.Config) error {
+	today := types.Today()
+	entryList, err := timeentry.EntryListForDay(config, today)
 	if err != nil {
 		return err
 	}
-	// TODO sync
-	return entryList.Start(s.Start, s.Description, s.Type, s.Project, s.Customer, s.TaskID)
+	if err := entryList.Start(s.Start, s.Description, s.Type, s.Project, s.Customer, s.TaskID); err != nil {
+		return err
+	}
+	return syncMonth(ctx, config, types.MonthOf(today))
 }
