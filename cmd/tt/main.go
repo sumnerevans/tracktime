@@ -24,8 +24,16 @@ type args struct {
 	ConfigFile types.Filename   `arg:"--config" help:"the configuration file to use" default:"$HOME/.config/tracktime/tracktimerc"`
 }
 
+var _ arg.Versioned = (*args)(nil)
+var _ arg.Epilogued = (*args)(nil)
+var _ arg.Described = (*args)(nil)
+
 func (args) Version() string {
 	return "tracktime v0.11.0"
+}
+
+func (a *args) Description() string {
+	return "tracktime -- a filesystem-backed time tracking solution"
 }
 
 func (args) Epilogue() string {
