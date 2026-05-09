@@ -54,8 +54,12 @@ func (gh *GitHubResolver) GetTaskLink(entry *timeentry.TimeEntry) string {
 	default:
 		return ""
 	}
+	root := gh.Config.RootURI
+	if root == "" {
+		root = "https://github.com"
+	}
 	// Link to /issues/ — GitHub redirects to /pull/ for PRs.
-	return fmt.Sprintf("%s/%s/%s/issues/%s", gh.Config.RootURI, owner, project, gh.cleanTaskID(entry.TaskID))
+	return fmt.Sprintf("%s/%s/%s/issues/%s", root, owner, project, gh.cleanTaskID(entry.TaskID))
 }
 
 func (gh *GitHubResolver) FetchDescription(ctx context.Context, entry *timeentry.TimeEntry) (string, error) {
@@ -81,8 +85,8 @@ func (gh *GitHubResolver) FetchDescription(ctx context.Context, entry *timeentry
 	id := gh.cleanTaskID(entry.TaskID)
 
 	gqlQuery := fmt.Sprintf(
-		`query{repository(owner:"%s",name:"%s"){issue(number:%s){title}pullRequest(number:%s){title}}}`,
-		owner, repo, id, id,
+		`query{repository(owner:"%s",name:"%s"){issue(number:%s){title}pullRequest(number:%s){title}discussion(number:%s){title}}}`,
+		owner, repo, id, id, id,
 	)
 	body, _ := json.Marshal(map[string]string{"query": gqlQuery})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.github.com/graphql", bytes.NewReader(body))
@@ -103,6 +107,7 @@ func (gh *GitHubResolver) FetchDescription(ctx context.Context, entry *timeentry
 			Repository struct {
 				Issue       *struct{ Title string } `json:"issue"`
 				PullRequest *struct{ Title string } `json:"pullRequest"`
+				Discussion  *struct{ Title string } `json:"discussion"`
 			} `json:"repository"`
 		} `json:"data"`
 	}
@@ -116,6 +121,9 @@ func (gh *GitHubResolver) FetchDescription(ctx context.Context, entry *timeentry
 	}
 	if repo2.PullRequest != nil {
 		return repo2.PullRequest.Title, nil
+	}
+	if repo2.Discussion != nil {
+		return repo2.Discussion.Title, nil
 	}
 	return "", nil
 }
