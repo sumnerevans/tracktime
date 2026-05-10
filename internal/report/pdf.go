@@ -28,7 +28,7 @@ func (r *Report) GeneratePDFReport(outputPath string) error {
 	}
 
 	// Compile Typst to PDF
-	options := &typst.CLIOptions{
+	options := &typst.OptionsCompile{
 		Format: typst.OutputFormatPDF,
 	}
 
