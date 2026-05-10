@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/Dadido3/go-typst v0.3.0
-	github.com/alexflint/go-arg v1.4.4-0.20221010154157-dbc2ba5d0c9a
+	github.com/alexflint/go-arg v1.6.1
 	github.com/fatih/color v1.13.0
 	github.com/rodaine/table v1.0.1
 	github.com/rs/zerolog v1.34.0
