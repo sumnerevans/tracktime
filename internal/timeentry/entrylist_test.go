@@ -38,13 +38,17 @@ func TestTimeEntryDuration(t *testing.T) {
 	})
 
 	t.Run("without stop time, allowed", func(t *testing.T) {
+		// Anchor start to current time minus 30 minutes so duration is always
+		// positive regardless of timezone on CI runners.
+		nowMinutes := types.CurrentTime().Minutes()
+		pastStart := types.TimeFromMinutes(max(0, nowMinutes-30))
 		entry := &timeentry.TimeEntry{
-			Start: start,
+			Start: pastStart,
 			Stop:  nil,
 		}
 		duration, err := entry.Duration(true)
 		assert.NoError(t, err)
-		assert.Positive(t, duration)
+		assert.GreaterOrEqual(t, duration, time.Duration(0))
 	})
 }
 

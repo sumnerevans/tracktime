@@ -58,6 +58,10 @@ func (t *Time) String() string {
 	return fmt.Sprintf("%02d:%02d", t.minutes/60, t.minutes%60)
 }
 
+func (t *Time) Minutes() int {
+	return t.minutes
+}
+
 func (t *Time) Sub(other *Time) time.Duration {
 	return time.Duration(t.minutes-other.minutes) * time.Minute
 }
