@@ -6,7 +6,7 @@ require (
 	github.com/Dadido3/go-typst v0.3.0
 	github.com/alexflint/go-arg v1.4.4-0.20221010154157-dbc2ba5d0c9a
 	github.com/fatih/color v1.13.0
-	github.com/rodaine/table v1.0.1
+	github.com/rodaine/table v1.3.1
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.11.1
 	github.com/yuin/goldmark v1.7.13
@@ -19,7 +19,6 @@ require (
 	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
