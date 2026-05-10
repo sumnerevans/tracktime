@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"time"
 
 	arg "github.com/alexflint/go-arg"
@@ -14,6 +15,31 @@ import (
 	"github.com/sumnerevans/tracktime/internal/config"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
+
+// resumeEntryRe matches a bare signed integer like "-1" or "-2".
+var resumeEntryRe = regexp.MustCompile(`^-?\d+$`)
+
+// rewriteResumeArgs rewrites "resume -N" to "resume --entry=-N" so that
+// go-arg doesn't mistake the negative number for an unknown flag.
+func rewriteResumeArgs(argv []string) []string {
+	for i, arg := range argv {
+		if arg == "resume" {
+			result := make([]string, len(argv))
+			copy(result, argv)
+			for j := i + 1; j < len(result); j++ {
+				if result[j] == "--" {
+					break
+				}
+				if resumeEntryRe.MatchString(result[j]) {
+					result[j] = "--entry=" + result[j]
+					break
+				}
+			}
+			return result
+		}
+	}
+	return argv
+}
 
 type args struct {
 	Start      *commands.Start  `arg:"subcommand" help:"start a new time entry for today"`
@@ -46,6 +72,8 @@ func main() {
 	// Bootstrap logger used only until the config is loaded.
 	bootstrap := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).With().Timestamp().Logger()
 	ctx := bootstrap.WithContext(context.Background())
+
+	os.Args = rewriteResumeArgs(os.Args)
 
 	var args args
 	arg.MustParse(&args)
