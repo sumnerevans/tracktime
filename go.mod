@@ -3,7 +3,7 @@ module github.com/sumnerevans/tracktime
 go 1.25
 
 require (
-	github.com/Dadido3/go-typst v0.3.0
+	github.com/Dadido3/go-typst v0.10.0
 	github.com/alexflint/go-arg v1.4.4-0.20221010154157-dbc2ba5d0c9a
 	github.com/fatih/color v1.13.0
 	github.com/rodaine/table v1.0.1

@@ -1,5 +1,5 @@
-github.com/Dadido3/go-typst v0.3.0 h1:Itix2FtQgBiOuHUNqgGUAK11Oo2WMlZGGGpCiQNK1IA=
-github.com/Dadido3/go-typst v0.3.0/go.mod h1:QYis9sT70u65kn1SkFfyPRmHsPxgoxWbAixwfPReOZA=
+github.com/Dadido3/go-typst v0.10.0 h1:EFjlFa7Ydp43nDkyqsZ1Oz+vRroKA14wu8Zk4/Rprks=
+github.com/Dadido3/go-typst v0.10.0/go.mod h1:QYis9sT70u65kn1SkFfyPRmHsPxgoxWbAixwfPReOZA=
 github.com/alexflint/go-arg v1.4.4-0.20221010154157-dbc2ba5d0c9a h1:4JY3EW/+yP4zjLP+VIVgXEFDFDfiqPA5YtFZjqp1ftM=
 github.com/alexflint/go-arg v1.4.4-0.20221010154157-dbc2ba5d0c9a/go.mod h1:cvvMa6/gSOo2bVT2ZsEelYssHG9EBxF9mONTo7dhk1g=
 github.com/alexflint/go-scalar v1.2.0 h1:WR7JPKkeNpnYIOfHRa7ivM21aWAdHD0gEWHCx+WQBRw=
