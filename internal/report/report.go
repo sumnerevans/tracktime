@@ -75,7 +75,7 @@ func New(ctx context.Context, config *config.Config, start, end types.Date, cust
 		AggregatedTime:   make(map[CustomerProject]map[timeentry.TaskID]map[string][]*timeentry.TimeEntry),
 		DayStats:         make(map[types.Date]time.Duration),
 		RateTotals:       make(map[CustomerProject]RateTotal),
-		Cache:            resolver.NewItemDetailCache(string(config.Directory), config, resolver.Resolvers),
+		Cache:            resolver.NewItemDetailCache(ctx, string(config.Directory), config, resolver.Resolvers),
 	}
 
 	// Aggregate time entries across date range

@@ -90,7 +90,7 @@ func TestReportCreation(t *testing.T) {
 	report, err := New(context.Background(), cfg, date, date, "", "", SortAlphabetical, false, false, false)
 	require.NoError(t, err)
 
-	expectedCache := resolver.NewItemDetailCache(string(cfg.Directory), cfg, resolver.Resolvers)
+	expectedCache := resolver.NewItemDetailCache(context.Background(), string(cfg.Directory), cfg, resolver.Resolvers)
 
 	assert.EqualValues(t, &Report{
 		ctx:       context.Background(),

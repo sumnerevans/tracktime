@@ -39,7 +39,7 @@ type ItemDetailCache struct {
 
 // NewItemDetailCache creates an ItemDetailCache, loads the persistent CSV from
 // dir, and initialises all resolvers with cfg.
-func NewItemDetailCache(dir string, cfg *config.Config, resolvers []ItemDetailResolver) *ItemDetailCache {
+func NewItemDetailCache(ctx context.Context, dir string, cfg *config.Config, resolvers []ItemDetailResolver) *ItemDetailCache {
 	c := &ItemDetailCache{
 		dir:       dir,
 		ttl:       cfg.CacheTTL(),
@@ -50,6 +50,7 @@ func NewItemDetailCache(dir string, cfg *config.Config, resolvers []ItemDetailRe
 		r.Init(cfg)
 	}
 	c.load()
+	zerolog.Ctx(ctx).Debug().Int("entries", len(c.entries)).Str("path", c.cacheFilePath()).Msg("item cache: loaded")
 	return c
 }
 
@@ -161,7 +162,14 @@ func (c *ItemDetailCache) GetDescription(ctx context.Context, entry *timeentry.T
 
 	now := time.Now()
 	if exists && now.Sub(cached.FetchedAt) <= c.ttl {
+		log.Debug().Str("type", key.Type).Str("project", key.Project).Str("taskid", key.TaskID).Msg("item cache: hit")
 		return cached.Description
+	}
+
+	if exists {
+		log.Debug().Str("type", key.Type).Str("project", key.Project).Str("taskid", key.TaskID).Msg("item cache: stale, refreshing")
+	} else {
+		log.Debug().Str("type", key.Type).Str("project", key.Project).Str("taskid", key.TaskID).Msg("item cache: miss, fetching")
 	}
 
 	// Stale or missing — attempt fetch.
@@ -178,8 +186,10 @@ func (c *ItemDetailCache) GetDescription(ctx context.Context, entry *timeentry.T
 						Msg("item cache: refresh failed, keeping stale entry")
 					return cached.Description
 				}
+				log.Warn().Err(err).Str("type", key.Type).Str("project", key.Project).Str("taskid", key.TaskID).Msg("item cache: fetch failed")
 				return ""
 			}
+			log.Debug().Str("type", key.Type).Str("project", key.Project).Str("taskid", key.TaskID).Str("description", fetched).Msg("item cache: fetched")
 			desc = fetched
 			break
 		}

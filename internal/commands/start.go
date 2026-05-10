@@ -3,6 +3,8 @@ package commands
 import (
 	"context"
 
+	"github.com/rs/zerolog"
+
 	"github.com/sumnerevans/tracktime/internal/config"
 	"github.com/sumnerevans/tracktime/internal/timeentry"
 	"github.com/sumnerevans/tracktime/internal/types"
@@ -18,6 +20,7 @@ type Start struct {
 }
 
 func (s *Start) Run(ctx context.Context, config *config.Config) error {
+	log := zerolog.Ctx(ctx)
 	today := types.Today()
 	entryList, err := timeentry.EntryListForDay(config, today)
 	if err != nil {
@@ -26,5 +29,13 @@ func (s *Start) Run(ctx context.Context, config *config.Config) error {
 	if err := entryList.Start(s.Start, s.Description, s.Type, s.Project, s.Customer, s.TaskID); err != nil {
 		return err
 	}
+	log.Info().
+		Str("description", s.Description).
+		Str("type", string(s.Type)).
+		Str("project", string(s.Project)).
+		Str("customer", string(s.Customer)).
+		Str("taskid", string(s.TaskID)).
+		Stringer("start", s.Start).
+		Msg("started time entry")
 	return syncMonth(ctx, config, types.MonthOf(today))
 }
