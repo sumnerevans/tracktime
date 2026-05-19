@@ -1,3 +1,7 @@
+# v1.0.1
+
+Patch release to fix the Nix flake and update Nix instructions in the README.
+
 # v1.0.0
 
 tracktime has been rewritten in Go. Your existing data files and config work as
