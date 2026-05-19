@@ -30,7 +30,7 @@
               version = "1.0.0";
               src = self;
               subPackages = [ "cmd/tt" ];
-              vendorHash = "sha256-dQbkpgdt9ajzj1GodSpTHF/M3VcgaGwebT9xJgAIaFQ=";
+              vendorHash = "sha256-w+/aj8r7Bi+buexCVSqgD7xcUwK/giQ/bwDXk73NpZY=";
             };
           };
 
