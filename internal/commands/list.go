@@ -41,7 +41,7 @@ func (l *List) Run(_ context.Context, config *config.Config) error {
 	duration := entryList.TotalTimeForCustomer(l.Customer)
 
 	color.New(color.FgGreen, color.Bold).
-		Printf("\nTotal: %d:%d\n", int(duration.Minutes())/60, int(duration.Minutes())%60)
+		Printf("\nTotal: %d:%02d\n", int(duration.Minutes())/60, int(duration.Minutes())%60)
 
 	return nil
 }
