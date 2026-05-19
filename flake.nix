@@ -24,8 +24,8 @@
           _module.args.pkgs = import inputs.nixpkgs { inherit system; };
 
           packages = rec {
-            default = tt;
-            tt = pkgs.buildGoModule {
+            default = tracktime;
+            tracktime = pkgs.buildGoModule {
               pname = "tt";
               version = "1.0.0";
               src = self;
