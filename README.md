@@ -27,8 +27,25 @@ go install github.com/sumnerevans/tracktime/cmd/tt@latest
 
 ### Using Nix
 
+Run tracktime ad-hoc:
+
 ```
-nix profile install github:sumnerevans/tracktime
+nix run github:sumnerevans/tracktime
+```
+
+Using flakes:
+
+```nix
+{
+  inputs.tracktime = {
+    url = "github:sumnerevans/tracktime";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs = { tracktime, ... }: {
+    // use the package: tracktime.packages."x86_64-linux".tracktime
+  };
+}
 ```
 
 ### From source
