@@ -392,22 +392,21 @@ func TestSynchroniserIntegration(t *testing.T) {
 		assert.Equal(t, "https://github.com/testuser/myproject/issues/123", link)
 	})
 
-	t.Run("formatTaskName returns fallback for non-GitHub entries", func(t *testing.T) {
-		// Create a non-GitHub entry
+	t.Run("formatTaskName returns fallback for unhandled entry types", func(t *testing.T) {
 		createTestEntries(t, cfg, date, []struct {
 			start, stop                                       string
 			entryType, project, customer, taskID, description string
 		}{
-			{"11:00", "12:00", "jira", "jiraproject", "Client B", "JIRA-789", "Some work"},
+			{"11:00", "12:00", "custom", "myproject", "Client B", "TASK-789", "Some work"},
 		})
 
 		report2, err := New(context.Background(), cfg, date, date, "", "", SortAlphabetical, false, false, false)
 		require.NoError(t, err)
 
-		cp := CustomerProject{Customer: "Client B", Project: "jiraproject"}
-		taskName := report2.formatTaskName(cp, "JIRA-789")
-		// Jira resolver formats as PROJECT-TASKID
-		assert.Equal(t, "jiraproject-JIRA-789", taskName)
+		cp := CustomerProject{Customer: "Client B", Project: "myproject"}
+		taskName := report2.formatTaskName(cp, "TASK-789")
+		// No resolver handles "custom" type — falls back to raw task ID
+		assert.Equal(t, "TASK-789", taskName)
 	})
 
 	t.Run("Linear formatTaskName returns formatted task IDs", func(t *testing.T) {
