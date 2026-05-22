@@ -1,8 +1,8 @@
 directory: $HOME/.tracktime
 reporting:
-    fullname: Sumner Evans
+    fullname: John Doe
     day_worked_min_threshold: 120
-    report_statistics: true # Default in Python, must be explicit in Go
+    report_statistics: true
     project_rates:
         teaching/tutoring: 50
     customer_rates: {}
@@ -11,18 +11,18 @@ reporting:
 sync:
     enable: true # Based on sync_time: true from original
 github:
-    access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/github-tracktime-access-token|
-    username: sumnerevans
+    access_token: cat /path/to/my/github/access/token/secret|
+    username: example
 gitlab:
-    api_key: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/gitlab-api-key|
+    api_key: cat /path/to/my/gitlab/api/key/secret|
     api_root: https://gitlab.com/api/v4/
 sourcehut:
-    access_token: /nix/store/74sind1d6vf2bfwd7yklg8chsvzqxmmq-coreutils-9.10/bin/cat /etc/nixos/secrets/sourcehut-access-token|
+    access_token: cat /path/to/my/sourcehut/access/token|
     api_root: https://todo.sr.ht/api/
-    username: ~sumner
+    username: ~example
 linear:
-    default_org: ""
-    api_key: ""
+    default_org: my-org
+    api_key: cat /etc/nixos/secrets/linear-api-key|
 item_cache_ttl_days: 30
 editor: ""
 editor_args: []
