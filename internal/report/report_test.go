@@ -406,8 +406,8 @@ func TestSynchroniserIntegration(t *testing.T) {
 
 		cp := CustomerProject{Customer: "Client B", Project: "jiraproject"}
 		taskName := report2.formatTaskName(cp, "JIRA-789")
-		// Should fall back to raw task ID since no synchroniser handles "jira" type
-		assert.Equal(t, "JIRA-789", taskName)
+		// Jira resolver formats as PROJECT-TASKID
+		assert.Equal(t, "jiraproject-JIRA-789", taskName)
 	})
 
 	t.Run("Linear formatTaskName returns formatted task IDs", func(t *testing.T) {

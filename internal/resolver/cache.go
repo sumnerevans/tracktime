@@ -97,7 +97,7 @@ func (c *ItemDetailCache) save(ctx context.Context) {
 	_ = w.Write([]string{"type", "project", "taskid", "description", "fetched_at"})
 	for key, entry := range c.entries {
 		_ = w.Write([]string{
-			string(key.Type), string(key.Project), string(key.TaskID),
+			key.Type.String(), key.Project.String(), key.TaskID.String(),
 			entry.Description,
 			entry.FetchedAt.UTC().Format(time.RFC3339),
 		})
@@ -133,7 +133,7 @@ func (c *ItemDetailCache) GetFormattedTaskID(entry *timeentry.TimeEntry) string 
 			}
 		}
 	}
-	return string(entry.TaskID)
+	return entry.TaskID.String()
 }
 
 // GetTaskLink returns the URL for the work item, or "" if unknown.
@@ -168,14 +168,14 @@ func (c *ItemDetailCache) GetDescription(ctx context.Context, entry *timeentry.T
 
 	now := time.Now()
 	if exists && now.Sub(cached.FetchedAt) <= c.ttl {
-		log.Debug().Str("type", string(key.Type)).Str("project", string(key.Project)).Str("taskid", string(key.TaskID)).Msg("item cache: hit")
+		log.Debug().Stringer("type", key.Type).Stringer("project", key.Project).Stringer("taskid", key.TaskID).Msg("item cache: hit")
 		return cached.Description
 	}
 
 	if exists {
-		log.Debug().Str("type", string(key.Type)).Str("project", string(key.Project)).Str("taskid", string(key.TaskID)).Msg("item cache: stale, refreshing")
+		log.Debug().Stringer("type", key.Type).Stringer("project", key.Project).Stringer("taskid", key.TaskID).Msg("item cache: stale, refreshing")
 	} else {
-		log.Debug().Str("type", string(key.Type)).Str("project", string(key.Project)).Str("taskid", string(key.TaskID)).Msg("item cache: miss, fetching")
+		log.Debug().Stringer("type", key.Type).Stringer("project", key.Project).Stringer("taskid", key.TaskID).Msg("item cache: miss, fetching")
 	}
 
 	// Stale or missing — attempt fetch.
@@ -186,16 +186,16 @@ func (c *ItemDetailCache) GetDescription(ctx context.Context, entry *timeentry.T
 			if err != nil {
 				if exists {
 					log.Warn().Err(err).
-						Str("type", string(key.Type)).
-						Str("project", string(key.Project)).
-						Str("taskid", string(key.TaskID)).
+						Stringer("type", key.Type).
+						Stringer("project", key.Project).
+						Stringer("taskid", key.TaskID).
 						Msg("item cache: refresh failed, keeping stale entry")
 					return cached.Description
 				}
-				log.Warn().Err(err).Str("type", string(key.Type)).Str("project", string(key.Project)).Str("taskid", string(key.TaskID)).Msg("item cache: fetch failed")
+				log.Warn().Err(err).Stringer("type", key.Type).Stringer("project", key.Project).Stringer("taskid", key.TaskID).Msg("item cache: fetch failed")
 				return ""
 			}
-			log.Debug().Str("type", string(key.Type)).Str("project", string(key.Project)).Str("taskid", string(key.TaskID)).Str("description", fetched).Msg("item cache: fetched")
+			log.Debug().Stringer("type", key.Type).Stringer("project", key.Project).Stringer("taskid", key.TaskID).Str("description", fetched).Msg("item cache: fetched")
 			desc = fetched
 			break
 		}

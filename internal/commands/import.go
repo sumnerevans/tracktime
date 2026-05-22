@@ -114,9 +114,9 @@ func applyImport(ctx context.Context, cfg *config.Config, result *importer.Impor
 				log.Debug().
 					Str("date", dateKey).
 					Str("start", ie.Entry.Start.String()).
-					Str("type", string(ie.Entry.Type)).
-					Str("project", string(ie.Entry.Project)).
-					Str("taskid", string(ie.Entry.TaskID)).
+					Stringer("type", ie.Entry.Type).
+					Stringer("project", ie.Entry.Project).
+					Stringer("taskid", ie.Entry.TaskID).
 					Msg("skipping duplicate entry")
 				skipped++
 				continue
@@ -125,9 +125,9 @@ func applyImport(ctx context.Context, cfg *config.Config, result *importer.Impor
 				Str("date", dateKey).
 				Str("start", ie.Entry.Start.String()).
 				Str("stop", ie.Entry.Stop.String()).
-				Str("type", string(ie.Entry.Type)).
-				Str("project", string(ie.Entry.Project)).
-				Str("taskid", string(ie.Entry.TaskID)).
+				Stringer("type", ie.Entry.Type).
+				Stringer("project", ie.Entry.Project).
+				Stringer("taskid", ie.Entry.TaskID).
 				Msg("adding entry")
 			seen[k] = true
 			el.Entries = append(el.Entries, ie.Entry)

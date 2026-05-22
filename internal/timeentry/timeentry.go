@@ -12,6 +12,8 @@ import (
 
 type TimeEntryType string
 
+func (t TimeEntryType) String() string { return string(t) }
+
 func ParseTimeEntryType(typeStr string) TimeEntryType {
 	switch strings.ToLower(typeStr) {
 	case "gh":
@@ -26,6 +28,9 @@ func ParseTimeEntryType(typeStr string) TimeEntryType {
 type Customer string
 type Project string
 type TaskID string
+
+func (p Project) String() string { return string(p) }
+func (t TaskID) String() string  { return string(t) }
 
 type TimeEntry struct {
 	Index       int
