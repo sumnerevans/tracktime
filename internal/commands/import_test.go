@@ -65,7 +65,7 @@ func TestApplyImport_AddsNewEntries(t *testing.T) {
 		},
 	}
 
-	added, skipped, err := applyImport(context.Background(), cfg, result)
+	added, skipped, _, err := applyImport(context.Background(), cfg, result)
 	require.NoError(t, err)
 	assert.Equal(t, 2, added)
 	assert.Equal(t, 0, skipped)
@@ -89,13 +89,13 @@ func TestApplyImport_SkipsDuplicateOnReimport(t *testing.T) {
 	}
 
 	// First import
-	added, skipped, err := applyImport(context.Background(), cfg, result)
+	added, skipped, _, err := applyImport(context.Background(), cfg, result)
 	require.NoError(t, err)
 	assert.Equal(t, 1, added)
 	assert.Equal(t, 0, skipped)
 
 	// Second import — same entry, should be skipped
-	added, skipped, err = applyImport(context.Background(), cfg, result)
+	added, skipped, _, err = applyImport(context.Background(), cfg, result)
 	require.NoError(t, err)
 	assert.Equal(t, 0, added)
 	assert.Equal(t, 1, skipped)
@@ -114,7 +114,7 @@ func TestApplyImport_SameStartDifferentTaskBothKept(t *testing.T) {
 			importEntry(date, "09:00", "09:30", "github", "myrepo", "42"),
 		},
 	}
-	_, _, err := applyImport(context.Background(), cfg, existing)
+	_, _, _, err := applyImport(context.Background(), cfg, existing)
 	require.NoError(t, err)
 
 	// Import a jira entry at the same start time
@@ -123,7 +123,7 @@ func TestApplyImport_SameStartDifferentTaskBothKept(t *testing.T) {
 			importEntry(date, "09:00", "09:30", "jira", "IMP", "13"),
 		},
 	}
-	added, skipped, err := applyImport(context.Background(), cfg, incoming)
+	added, skipped, _, err := applyImport(context.Background(), cfg, incoming)
 	require.NoError(t, err)
 	assert.Equal(t, 1, added)
 	assert.Equal(t, 0, skipped)
@@ -143,7 +143,7 @@ func TestApplyImport_SortsByStartTime(t *testing.T) {
 			importEntry(date, "11:00", "12:00", "jira", "IMP", "11"),
 		},
 	}
-	_, _, err := applyImport(context.Background(), cfg, existing)
+	_, _, _, err := applyImport(context.Background(), cfg, existing)
 	require.NoError(t, err)
 
 	// Import an earlier entry
@@ -152,7 +152,7 @@ func TestApplyImport_SortsByStartTime(t *testing.T) {
 			importEntry(date, "09:00", "09:30", "jira", "IMP", "13"),
 		},
 	}
-	_, _, err = applyImport(context.Background(), cfg, incoming)
+	_, _, _, err = applyImport(context.Background(), cfg, incoming)
 	require.NoError(t, err)
 
 	entries := loadEntries(t, cfg, date)
@@ -174,7 +174,7 @@ func TestApplyImport_MultipleDates(t *testing.T) {
 		},
 	}
 
-	added, skipped, err := applyImport(context.Background(), cfg, result)
+	added, skipped, _, err := applyImport(context.Background(), cfg, result)
 	require.NoError(t, err)
 	assert.Equal(t, 3, added)
 	assert.Equal(t, 0, skipped)
@@ -193,7 +193,7 @@ func TestApplyImport_PreservesNonMatchingExistingEntries(t *testing.T) {
 			importEntry(date, "08:30", "09:00", "github", "myrepo", "42"),
 		},
 	}
-	_, _, err := applyImport(context.Background(), cfg, existing)
+	_, _, _, err := applyImport(context.Background(), cfg, existing)
 	require.NoError(t, err)
 
 	// Import jira entries
@@ -202,7 +202,7 @@ func TestApplyImport_PreservesNonMatchingExistingEntries(t *testing.T) {
 			importEntry(date, "09:00", "09:30", "jira", "IMP", "13"),
 		},
 	}
-	added, skipped, err := applyImport(context.Background(), cfg, incoming)
+	added, skipped, _, err := applyImport(context.Background(), cfg, incoming)
 	require.NoError(t, err)
 	assert.Equal(t, 1, added)
 	assert.Equal(t, 0, skipped)
@@ -216,10 +216,103 @@ func TestApplyImport_PreservesNonMatchingExistingEntries(t *testing.T) {
 func TestApplyImport_EmptyResult(t *testing.T) {
 	cfg := testConfig(t)
 
-	added, skipped, err := applyImport(context.Background(), cfg, &importer.ImportResult{})
+	added, skipped, _, err := applyImport(context.Background(), cfg, &importer.ImportResult{})
 	require.NoError(t, err)
 	assert.Equal(t, 0, added)
 	assert.Equal(t, 0, skipped)
+}
+
+func TestApplyImport_UpdatesCustomerOnReimport(t *testing.T) {
+	cfg := testConfig(t)
+	date := types.NewDate(2025, 9, 24)
+
+	// First import: no customer set
+	first := &importer.ImportResult{
+		Entries: []importer.ImportEntry{
+			importEntry(date, "09:00", "09:30", "jira", "IMP", "13"),
+		},
+	}
+	added, skipped, updated, err := applyImport(context.Background(), cfg, first)
+	require.NoError(t, err)
+	assert.Equal(t, 1, added)
+	assert.Equal(t, 0, skipped)
+	assert.Equal(t, 0, updated)
+
+	// Re-import with customer — same key, no customer on existing entry
+	withCustomer := &importer.ImportResult{
+		Entries: []importer.ImportEntry{
+			{
+				Date: date,
+				Entry: &timeentry.TimeEntry{
+					Start:    mustParseTimeInTest("09:00"),
+					Stop:     mustParseTimeInTest("09:30"),
+					Type:     timeentry.TimeEntryType("jira"),
+					Project:  timeentry.Project("IMP"),
+					TaskID:   timeentry.TaskID("13"),
+					Customer: timeentry.Customer("ACME"),
+				},
+			},
+		},
+	}
+	added, skipped, updated, err = applyImport(context.Background(), cfg, withCustomer)
+	require.NoError(t, err)
+	assert.Equal(t, 0, added)
+	assert.Equal(t, 0, skipped)
+	assert.Equal(t, 1, updated)
+
+	entries := loadEntries(t, cfg, date)
+	require.Len(t, entries, 1)
+	assert.Equal(t, timeentry.Customer("ACME"), entries[0].Customer)
+}
+
+func TestApplyImport_DoesNotOverwriteExistingCustomer(t *testing.T) {
+	cfg := testConfig(t)
+	date := types.NewDate(2025, 9, 24)
+
+	// First import with customer already set
+	first := &importer.ImportResult{
+		Entries: []importer.ImportEntry{
+			{
+				Date: date,
+				Entry: &timeentry.TimeEntry{
+					Start:    mustParseTimeInTest("09:00"),
+					Stop:     mustParseTimeInTest("09:30"),
+					Type:     timeentry.TimeEntryType("jira"),
+					Project:  timeentry.Project("IMP"),
+					TaskID:   timeentry.TaskID("13"),
+					Customer: timeentry.Customer("ACME"),
+				},
+			},
+		},
+	}
+	_, _, _, err := applyImport(context.Background(), cfg, first)
+	require.NoError(t, err)
+
+	// Re-import with a different customer — should be skipped, not overwritten
+	second := &importer.ImportResult{
+		Entries: []importer.ImportEntry{
+			{
+				Date: date,
+				Entry: &timeentry.TimeEntry{
+					Start:    mustParseTimeInTest("09:00"),
+					Stop:     mustParseTimeInTest("09:30"),
+					Type:     timeentry.TimeEntryType("jira"),
+					Project:  timeentry.Project("IMP"),
+					TaskID:   timeentry.TaskID("13"),
+					Customer: timeentry.Customer("OTHER"),
+				},
+			},
+		},
+	}
+	added, skipped, updated, err := applyImport(context.Background(), cfg, second)
+	require.NoError(t, err)
+	assert.Equal(t, 0, added)
+	assert.Equal(t, 1, skipped)
+	assert.Equal(t, 0, updated)
+
+	entries := loadEntries(t, cfg, date)
+	require.Len(t, entries, 1)
+	assert.Equal(t, timeentry.Customer("ACME"), entries[0].Customer)
 }
 
 func TestApplyImport_MustTime(t *testing.T) {

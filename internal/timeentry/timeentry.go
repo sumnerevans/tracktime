@@ -29,8 +29,9 @@ type Customer string
 type Project string
 type TaskID string
 
-func (p Project) String() string { return string(p) }
-func (t TaskID) String() string  { return string(t) }
+func (c Customer) String() string { return string(c) }
+func (p Project) String() string  { return string(p) }
+func (t TaskID) String() string   { return string(t) }
 
 type TimeEntry struct {
 	Index       int

@@ -16,9 +16,10 @@ import (
 )
 
 type Import struct {
-	Type          string         `arg:"positional,required" help:"importer type (e.g. tempo)"`
-	File          types.Filename `arg:"positional,required" help:"path to the file to import"`
-	NoItemDetails bool           `arg:"--no-item-details" help:"skip seeding the item detail cache"`
+	Type          string             `arg:"positional,required" help:"importer type (e.g. tempo)"`
+	File          types.Filename     `arg:"positional,required" help:"path to the file to import"`
+	Customer      timeentry.Customer `arg:"--customer" help:"default customer for imported entries (overridden by importer-supplied customer)"`
+	NoItemDetails bool               `arg:"--no-item-details" help:"skip seeding the item detail cache"`
 }
 
 func (i *Import) Run(ctx context.Context, cfg *config.Config) error {
@@ -47,7 +48,15 @@ func (i *Import) Run(ctx context.Context, cfg *config.Config) error {
 		Int("item_details", len(result.ItemDetails)).
 		Msg("importer returned results")
 
-	added, skipped, err := applyImport(ctx, cfg, result)
+	if i.Customer != "" {
+		for idx := range result.Entries {
+			if result.Entries[idx].Entry.Customer == "" {
+				result.Entries[idx].Entry.Customer = i.Customer
+			}
+		}
+	}
+
+	added, skipped, updated, err := applyImport(ctx, cfg, result)
 	if err != nil {
 		return err
 	}
@@ -61,13 +70,18 @@ func (i *Import) Run(ctx context.Context, cfg *config.Config) error {
 	}
 
 	log.Info().Str("importer", i.Type).Msg("import complete")
-	fmt.Fprintf(os.Stderr, "import complete: %d added, %d skipped\n", added, skipped)
+	msg := fmt.Sprintf("import complete: %d added, %d skipped", added, skipped)
+	if updated > 0 {
+		msg += fmt.Sprintf(", %d updated", updated)
+	}
+	fmt.Fprintln(os.Stderr, msg)
 	return nil
 }
 
 // applyImport writes result.Entries to disk: append-only, deduped by {start, type, project, taskID}.
-// Returns the total number of entries added and skipped.
-func applyImport(ctx context.Context, cfg *config.Config, result *importer.ImportResult) (totalAdded, totalSkipped int, err error) {
+// Existing entries with no customer are updated if the incoming entry has one.
+// Returns the total number of entries added, skipped, and updated.
+func applyImport(ctx context.Context, cfg *config.Config, result *importer.ImportResult) (totalAdded, totalSkipped, totalUpdated int, err error) {
 	log := zerolog.Ctx(ctx)
 
 	// Group entries by date string to avoid time.Time map key issues.
@@ -87,13 +101,14 @@ func applyImport(ctx context.Context, cfg *config.Config, result *importer.Impor
 			continue
 		}
 
+		log := log.With().Str("date", dateKey).Logger()
+
 		log.Debug().
-			Str("date", dateKey).
 			Int("existing", len(el.Entries)).
 			Int("incoming", len(incoming)).
 			Msg("processing day")
 
-		// Build set of existing entry keys for dedup.
+		// Build map from dedup key to existing entry pointer so we can update in place.
 		type entryKey struct {
 			start int
 			timeentry.AggregatedTimeKey
@@ -101,56 +116,60 @@ func applyImport(ctx context.Context, cfg *config.Config, result *importer.Impor
 		entKey := func(e *timeentry.TimeEntry) entryKey {
 			return entryKey{e.Start.Minutes(), timeentry.AggregatedTimeKey{Type: e.Type, Project: e.Project, TaskID: e.TaskID}}
 		}
-		seen := make(map[entryKey]bool, len(el.Entries))
+		seen := make(map[entryKey]*timeentry.TimeEntry, len(el.Entries))
 		for _, e := range el.Entries {
-			seen[entKey(e)] = true
+			seen[entKey(e)] = e
 		}
 
 		added := 0
 		skipped := 0
+		updated := 0
 		for _, ie := range incoming {
-			k := entKey(ie.Entry)
-			if seen[k] {
-				log.Debug().
-					Str("date", dateKey).
-					Str("start", ie.Entry.Start.String()).
-					Stringer("type", ie.Entry.Type).
-					Stringer("project", ie.Entry.Project).
-					Stringer("taskid", ie.Entry.TaskID).
-					Msg("skipping duplicate entry")
-				skipped++
-				continue
-			}
-			log.Debug().
-				Str("date", dateKey).
+			log := log.With().
 				Str("start", ie.Entry.Start.String()).
 				Str("stop", ie.Entry.Stop.String()).
 				Stringer("type", ie.Entry.Type).
 				Stringer("project", ie.Entry.Project).
 				Stringer("taskid", ie.Entry.TaskID).
-				Msg("adding entry")
-			seen[k] = true
+				Stringer("customer", ie.Entry.Customer).
+				Logger()
+
+			k := entKey(ie.Entry)
+			if existing, ok := seen[k]; ok {
+				if existing.Customer == "" && ie.Entry.Customer != "" {
+					log.Debug().Msg("updating customer on existing entry")
+					existing.Customer = ie.Entry.Customer
+					updated++
+				} else {
+					log.Debug().Msg("skipping duplicate entry")
+					skipped++
+				}
+				continue
+			}
+			log.Debug().Msg("adding entry")
+			seen[k] = ie.Entry
 			el.Entries = append(el.Entries, ie.Entry)
 			added++
 		}
 
-		log.Info().Str("date", dateKey).Int("added", added).Int("skipped", skipped).Msg("processed day")
+		log.Info().Int("added", added).Int("skipped", skipped).Int("updated", updated).Msg("processed day")
 		totalAdded += added
 		totalSkipped += skipped
+		totalUpdated += updated
 
 		sort.Slice(el.Entries, func(a, b int) bool {
 			return el.Entries[a].Start.Before(el.Entries[b].Start)
 		})
 
 		if err := el.Save(); err != nil {
-			log.Error().Err(err).Str("date", dateKey).Msg("failed to save entry list")
+			log.Err(err).Msg("failed to save entry list")
 		} else {
-			log.Debug().Str("date", dateKey).Msg("saved entry list")
+			log.Debug().Msg("saved entry list")
 		}
 	}
 
-	log.Info().Int("total_added", totalAdded).Int("total_skipped", totalSkipped).Msg("apply complete")
-	return totalAdded, totalSkipped, nil
+	log.Info().Int("total_added", totalAdded).Int("total_skipped", totalSkipped).Int("total_updated", totalUpdated).Msg("apply complete")
+	return totalAdded, totalSkipped, totalUpdated, nil
 }
 
 func parseDate(s string) (types.Date, error) {
