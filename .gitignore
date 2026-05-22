@@ -3,4 +3,4 @@
 .direnv
 .vscode/
 *.orig
-.claude/
+.claude/settings.local.json
