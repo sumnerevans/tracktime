@@ -27,10 +27,10 @@
             default = tracktime;
             tracktime = pkgs.buildGoModule {
               pname = "tt";
-              version = "1.0.0";
+              version = "unstable";
               src = self;
               subPackages = [ "cmd/tt" ];
-              vendorHash = "sha256-w+/aj8r7Bi+buexCVSqgD7xcUwK/giQ/bwDXk73NpZY=";
+              vendorHash = "sha256-pWuARzx4O6pFzd7l1YJ1Jt2HJajhX71UiwTvZ9T9AI4=";
             };
           };
 
