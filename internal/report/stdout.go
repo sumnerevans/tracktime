@@ -33,6 +33,25 @@ func ellipsize(s string, maxLen int) string {
 	return s[:maxLen-3] + "..."
 }
 
+type reportRow struct {
+	label string
+	hours string
+	rate  string
+	total string
+}
+
+// rightAlign prepends spaces to s so its visual width equals width.
+// Empty strings are returned as-is (hidden cells).
+func rightAlign(s string, width int) string {
+	if s == "" {
+		return ""
+	}
+	if pad := width - visualWidth(s); pad > 0 {
+		return strings.Repeat(" ", pad) + s
+	}
+	return s
+}
+
 // GenerateTextReport generates a plain text report matching Python's output format
 func (r *Report) GenerateTextReport() string {
 	var buf strings.Builder
@@ -49,8 +68,7 @@ func (r *Report) GenerateTextReport() string {
 	boldUnderline := color.New(color.Bold, color.Underline)
 
 	// Header
-	header := r.headerText()
-	buf.WriteString(boldUnderline.Sprint(header))
+	buf.WriteString(boldUnderline.Sprint(r.headerText()))
 	buf.WriteString("\n\n")
 
 	// User
@@ -97,58 +115,48 @@ func (r *Report) GenerateTextReport() string {
 	buf.WriteString(bold.Sprint("Detailed Time Report:"))
 	buf.WriteString("\n\n")
 
-	// Create table
-	reportTable := table.New("", "Hours", "Rate ($/h)", "Total ($)").
-		WithWidthFunc(visualWidth).
-		WithPadding(3).
-		WithHeaderFormatter(greenUnderline.SprintfFunc())
+	// Collect all rows before adding to the table so we can right-align numeric columns.
+	var rows []reportRow
 
-	// TOTAL row
-	reportTable.AddRow(
-		boldYellow.Sprint(ellipsize("TOTAL", 40)),
-		bold.Sprintf("%.2f", r.totalMinutes()/60.0),
-		"",
-		bold.Sprint(cyan.Sprintf("$%.2f", r.grandTotal())),
-	)
+	rows = append(rows, reportRow{
+		label: boldYellow.Sprint(ellipsize("TOTAL", 40)),
+		hours: bold.Sprintf("%.2f", r.totalMinutes()/60.0),
+		total: bold.Sprint(cyan.Sprintf("$%.2f", r.grandTotal())),
+	})
 
-	// Customer/Project rows
 	for _, cp := range r.sortedCustomerProjects() {
-		// Customer/project summary row
 		rt := r.RateTotals[cp]
-
-		rate := fmt.Sprintf("%.2f", rt.Rate)
-		total := fmt.Sprintf("%.2f", rt.Total)
-
-		// Hide zero rates
+		rateStr := fmt.Sprintf("%.2f", rt.Rate)
+		totalStr := fmt.Sprintf("%.2f", rt.Total)
 		if rt.Rate == 0.0 {
-			rate = ""
-			total = ""
+			rateStr = ""
+			totalStr = ""
 		}
-
-		reportTable.AddRow(
-			boldYellow.Sprint(ellipsize(r.customerProjectStr(cp), 40)),
-			fmt.Sprintf("%.2f", r.totalMinutesForCustomerProject(cp)/60.0),
-			rate,
-			total,
-		)
+		rows = append(rows, reportRow{
+			label: boldYellow.Sprint(ellipsize(r.customerProjectStr(cp), 40)),
+			hours: fmt.Sprintf("%.2f", r.totalMinutesForCustomerProject(cp)/60.0),
+			rate:  rateStr,
+			total: totalStr,
+		})
 
 		if !r.TaskGrain {
 			continue
 		}
 
-		// Task level
 		for _, taskID := range r.sortedTaskIDs(cp) {
 			name := ellipsize(r.formatTaskName(cp, taskID), 37)
 			if link := r.getTaskLink(cp, taskID); link != "" {
 				name = fmt.Sprintf("\x1b]8;;%s\x1b\\%s\x1b]8;;\x1b\\", link, name)
 			}
-			reportTable.AddRow(" * "+name, fmt.Sprintf("%.2f", r.totalMinutesForTask(cp, taskID)/60.0), "", "")
+			rows = append(rows, reportRow{
+				label: " * " + name,
+				hours: fmt.Sprintf("%.2f", r.totalMinutesForTask(cp, taskID)/60.0),
+			})
 
 			if !r.DescriptionGrain {
 				continue
 			}
 
-			// Skip if only one empty description
 			descriptions := r.AggregatedTime[cp][taskID]
 			if len(descriptions) == 1 {
 				if _, hasEmpty := descriptions[""]; hasEmpty {
@@ -156,15 +164,46 @@ func (r *Report) GenerateTextReport() string {
 				}
 			}
 
-			// Description level
 			for _, desc := range r.sortedDescriptions(cp, taskID) {
 				if desc == "" {
 					desc = "<NO DESCRIPTION>"
 				}
-				descName := "    * " + desc
-				reportTable.AddRow(ellipsize(descName, 40), fmt.Sprintf("%.2f", r.totalMinutesForDescription(cp, taskID, desc)/60.0), "", "")
+				rows = append(rows, reportRow{
+					label: ellipsize("    * "+desc, 40),
+					hours: fmt.Sprintf("%.2f", r.totalMinutesForDescription(cp, taskID, desc)/60.0),
+				})
 			}
 		}
+	}
+
+	// Compute max visual widths for numeric columns (seed with header widths).
+	maxHours := len("Hours")
+	maxRate := len("Rate ($/h)")
+	maxTotal := len("Total ($)")
+	for _, row := range rows {
+		if w := visualWidth(row.hours); w > maxHours {
+			maxHours = w
+		}
+		if w := visualWidth(row.rate); w > maxRate {
+			maxRate = w
+		}
+		if w := visualWidth(row.total); w > maxTotal {
+			maxTotal = w
+		}
+	}
+
+	reportTable := table.New("", "Hours", "Rate ($/h)", "Total ($)").
+		WithWidthFunc(visualWidth).
+		WithPadding(3).
+		WithHeaderFormatter(greenUnderline.SprintfFunc())
+
+	for _, row := range rows {
+		reportTable.AddRow(
+			row.label,
+			rightAlign(row.hours, maxHours),
+			rightAlign(row.rate, maxRate),
+			rightAlign(row.total, maxTotal),
+		)
 	}
 
 	reportTable.WithWriter(&buf).Print()
