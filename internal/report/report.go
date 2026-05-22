@@ -108,7 +108,8 @@ func New(ctx context.Context, config *config.Config, start, end types.Date, cust
 			if r.AggregatedTime[cp][entry.TaskID] == nil {
 				r.AggregatedTime[cp][entry.TaskID] = make(map[string][]*timeentry.TimeEntry)
 			}
-			desc := strings.ToUpper(entry.Description)
+			firstLine, _, _ := strings.Cut(entry.Description, "\n")
+			desc := strings.ToUpper(strings.TrimSpace(firstLine))
 			r.AggregatedTime[cp][entry.TaskID][desc] = append(
 				r.AggregatedTime[cp][entry.TaskID][desc],
 				entry,
