@@ -3,10 +3,7 @@ package commands
 import (
 	"context"
 
-	"github.com/rs/zerolog"
-
 	"github.com/sumnerevans/tracktime/internal/config"
-	"github.com/sumnerevans/tracktime/internal/importer"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
 
@@ -18,13 +15,7 @@ func (s *Sync) Run(ctx context.Context, cfg *config.Config) error {
 	return syncMonth(ctx, cfg, *s.Month)
 }
 
-func syncMonth(ctx context.Context, cfg *config.Config, month types.Month) error {
-	log := zerolog.Ctx(ctx)
-	for _, imp := range importer.Importers {
-		imp.Init(cfg.Sync)
-		if _, err := imp.Import(ctx, month); err != nil {
-			log.Error().Err(err).Str("importer", imp.Name()).Msg("import failed")
-		}
-	}
+func syncMonth(_ context.Context, _ *config.Config, _ types.Month) error {
+	// TODO: push metadata to external services
 	return nil
 }

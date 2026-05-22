@@ -14,6 +14,7 @@ import (
 
 	"github.com/sumnerevans/tracktime/internal/commands"
 	"github.com/sumnerevans/tracktime/internal/config"
+	_ "github.com/sumnerevans/tracktime/internal/importer/tempo"
 	"github.com/sumnerevans/tracktime/internal/types"
 )
 
@@ -57,7 +58,8 @@ type args struct {
 	Resume     *commands.Resume `arg:"subcommand" help:"resume a time entry from today"`
 	List       *commands.List   `arg:"subcommand" help:"list the time entries for a date"`
 	Edit       *commands.Edit   `arg:"subcommand" help:"edit time entries for a date"`
-	Sync       *commands.Sync   `arg:"subcommand" help:"pull task metadata from external services for a month"`
+	Sync       *commands.Sync   `arg:"subcommand" help:"push task metadata to external services for a month"`
+	Import     *commands.Import `arg:"subcommand" help:"import time entries from a file"`
 	Report     *commands.Report `arg:"subcommand" help:"output a report about time spent in a time range"`
 	ConfigFile types.Filename   `arg:"--config" help:"the configuration file to use" default:"$HOME/.config/tracktime/tracktimerc"`
 }
@@ -113,6 +115,8 @@ func main() {
 		err = args.Edit.Run(ctx, cfg)
 	case args.Sync != nil:
 		err = args.Sync.Run(ctx, cfg)
+	case args.Import != nil:
+		err = args.Import.Run(ctx, cfg)
 	case args.Report != nil:
 		err = args.Report.Run(ctx, cfg)
 	default:
