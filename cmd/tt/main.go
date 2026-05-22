@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	arg "github.com/alexflint/go-arg"
@@ -26,13 +27,22 @@ func rewriteResumeArgs(argv []string) []string {
 		if arg == "resume" {
 			result := make([]string, len(argv))
 			copy(result, argv)
+			skipNext := false
 			for j := i + 1; j < len(result); j++ {
 				if result[j] == "--" {
 					break
 				}
+				if skipNext {
+					skipNext = false
+					continue
+				}
 				if resumeEntryRe.MatchString(result[j]) {
 					result[j] = "--entry=" + result[j]
 					break
+				}
+				// Flag without inline value: next token is its value, skip it
+				if strings.HasPrefix(result[j], "-") && !strings.Contains(result[j], "=") {
+					skipNext = true
 				}
 			}
 			return result
