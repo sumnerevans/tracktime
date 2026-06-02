@@ -25,6 +25,14 @@ type Importer struct{}
 
 func (i *Importer) Name() string { return "tempo" }
 
+// colVal returns rec[col[primary]] if primary exists in col, else rec[col[fallback]].
+func colVal(col map[string]int, rec []string, primary, fallback string) string {
+	if idx, ok := col[primary]; ok {
+		return rec[idx]
+	}
+	return rec[col[fallback]]
+}
+
 func (i *Importer) Import(ctx context.Context, _ *config.Config, path string) (*importer.ImportResult, error) {
 	log := zerolog.Ctx(ctx)
 
@@ -67,9 +75,9 @@ func (i *Importer) Import(ctx context.Context, _ *config.Config, path string) (*
 			continue
 		}
 
-		issueKey := rec[col["Issue Key"]]
-		projectKey := rec[col["Project Key"]]
-		issueSummary := rec[col["Issue summary"]]
+		issueKey := colVal(col, rec, "Issue Key", "Work Item Key")
+		projectKey := colVal(col, rec, "Project Key", "Space Key")
+		issueSummary := colVal(col, rec, "Issue summary", "Work Item summary")
 
 		// Store just the numeric part of the issue key (e.g. "276" not "CCDEV-276").
 		// The Jira resolver reconstructs the full key for display.
