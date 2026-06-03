@@ -66,3 +66,27 @@ func formatDuration(d time.Duration) string {
 	minutes := int(d.Minutes())
 	return fmt.Sprintf("%d:%02d", minutes/60, minutes%60)
 }
+
+// formatFloat formats f with 2 decimal places and thousands separators.
+func formatFloat(f float64) string {
+	s := fmt.Sprintf("%.2f", f)
+	dotIdx := len(s) - 3 // always ends in .XX
+	intPart := s[:dotIdx]
+	fracPart := s[dotIdx:]
+	negative := len(intPart) > 0 && intPart[0] == '-'
+	if negative {
+		intPart = intPart[1:]
+	}
+	n := len(intPart)
+	var b []byte
+	for i := range intPart {
+		if i > 0 && (n-i)%3 == 0 {
+			b = append(b, ',')
+		}
+		b = append(b, intPart[i])
+	}
+	if negative {
+		return "-" + string(b) + fracPart
+	}
+	return string(b) + fracPart
+}

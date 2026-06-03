@@ -86,7 +86,7 @@ func (r *Report) GenerateTextReport() string {
 	}
 
 	// Grand Total
-	fmt.Fprintf(&buf, "%s %s\n", bold.Sprint("Grand Total:"), boldCyan.Sprintf("$%.2f", r.grandTotal()))
+	fmt.Fprintf(&buf, "%s %s\n", bold.Sprint("Grand Total:"), boldCyan.Sprintf("$%s", formatFloat(r.grandTotal())))
 	buf.WriteString("\n")
 
 	// Statistics (if enabled)
@@ -101,7 +101,7 @@ func (r *Report) GenerateTextReport() string {
 			AddRow("    Days worked:", cyan.Sprint(stats.DaysWorked)).
 			AddRow("    Average time per day worked:", cyan.Sprint(formatDuration(stats.AvgTimePerDay))).
 			AddRow("    Average time per weekday worked:", cyan.Sprint(formatDuration(stats.AvgTimePerWeekday))).
-			AddRow("    Weeks* worked:", cyan.Sprintf("%.2f", stats.WeeksWorked)).
+			AddRow("    Weeks* worked:", cyan.Sprint(formatFloat(stats.WeeksWorked))).
 			AddRow("    Average time per week* worked:", cyan.Sprint(formatDuration(stats.AvgTimePerWeek))).
 			WithWriter(&buf).
 			Print()
@@ -120,21 +120,21 @@ func (r *Report) GenerateTextReport() string {
 
 	rows = append(rows, reportRow{
 		label: boldYellow.Sprint(ellipsize("TOTAL", 40)),
-		hours: bold.Sprintf("%.2f", r.totalMinutes()/60.0),
-		total: bold.Sprint(cyan.Sprintf("$%.2f", r.grandTotal())),
+		hours: bold.Sprint(formatFloat(r.totalMinutes() / 60.0)),
+		total: bold.Sprint(cyan.Sprintf("$%s", formatFloat(r.grandTotal()))),
 	})
 
 	for _, cp := range r.sortedCustomerProjects() {
 		rt := r.RateTotals[cp]
-		rateStr := fmt.Sprintf("%.2f", rt.Rate)
-		totalStr := fmt.Sprintf("%.2f", rt.Total)
+		rateStr := "$" + formatFloat(rt.Rate)
+		totalStr := "$" + formatFloat(rt.Total)
 		if rt.Rate == 0.0 {
 			rateStr = ""
 			totalStr = ""
 		}
 		rows = append(rows, reportRow{
 			label: boldYellow.Sprint(ellipsize(r.customerProjectStr(cp), 40)),
-			hours: fmt.Sprintf("%.2f", r.totalMinutesForCustomerProject(cp)/60.0),
+			hours: formatFloat(r.totalMinutesForCustomerProject(cp) / 60.0),
 			rate:  rateStr,
 			total: totalStr,
 		})
@@ -150,7 +150,7 @@ func (r *Report) GenerateTextReport() string {
 			}
 			rows = append(rows, reportRow{
 				label: " * " + name,
-				hours: fmt.Sprintf("%.2f", r.totalMinutesForTask(cp, taskID)/60.0),
+				hours: formatFloat(r.totalMinutesForTask(cp, taskID) / 60.0),
 			})
 
 			if !r.DescriptionGrain {
@@ -170,7 +170,7 @@ func (r *Report) GenerateTextReport() string {
 				}
 				rows = append(rows, reportRow{
 					label: ellipsize("    * "+desc, 40),
-					hours: fmt.Sprintf("%.2f", r.totalMinutesForDescription(cp, taskID, desc)/60.0),
+					hours: formatFloat(r.totalMinutesForDescription(cp, taskID, desc) / 60.0),
 				})
 			}
 		}
