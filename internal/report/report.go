@@ -94,7 +94,7 @@ func New(ctx context.Context, config *config.Config, start, end types.Date, cust
 			// Check for unended entries
 			duration, err := entry.Duration(false)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%s: %w", day.Format("2006-01-02"), err)
 			}
 
 			// Add to day stats
