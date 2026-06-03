@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"strings"
 
 	"go.mau.fi/util/exerrors"
 )
+
+func escapeTableCell(s string) string {
+	return strings.ReplaceAll(html.EscapeString(s), "|", `\|`)
+}
 
 // GenerateMarkdownReport generates a markdown-formatted report
 func (r *Report) GenerateMarkdownReport(w io.Writer) {
@@ -69,7 +74,7 @@ func (r *Report) GenerateMarkdownReport(w io.Writer) {
 		}
 
 		exerrors.Must(fmt.Fprintf(w, "| **%s** | %s | %s | %s |\n",
-			html.EscapeString(r.customerProjectStr(cp)),
+			escapeTableCell(r.customerProjectStr(cp)),
 			formatFloat(r.totalMinutesForCustomerProject(cp)/60.0),
 			rate,
 			total))
@@ -82,9 +87,9 @@ func (r *Report) GenerateMarkdownReport(w io.Writer) {
 		for _, taskID := range r.sortedTaskIDs(cp) {
 			taskName := r.formatTaskName(cp, taskID)
 			if link := r.getTaskLink(cp, taskID); link != "" {
-				taskName = fmt.Sprintf("[%s](%s)", html.EscapeString(taskName), link)
+				taskName = fmt.Sprintf("[%s](%s)", escapeTableCell(taskName), link)
 			} else {
-				taskName = html.EscapeString(taskName)
+				taskName = escapeTableCell(taskName)
 			}
 			// Use &nbsp; for indentation in markdown tables
 			exerrors.Must(fmt.Fprintf(w, "| &nbsp;&nbsp;• %s | %s | | |\n",
@@ -111,7 +116,7 @@ func (r *Report) GenerateMarkdownReport(w io.Writer) {
 				}
 				// Use more &nbsp; for deeper indentation
 				exerrors.Must(fmt.Fprintf(w, "| &nbsp;&nbsp;&nbsp;&nbsp;◦ %s | %s | | |\n",
-					html.EscapeString(displayDesc),
+					escapeTableCell(displayDesc),
 					formatFloat(r.totalMinutesForDescription(cp, taskID, desc)/60.0)))
 			}
 		}
