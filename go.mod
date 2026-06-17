@@ -10,7 +10,7 @@ require (
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
 	github.com/yuin/goldmark v1.8.2
-	go.mau.fi/util v0.9.9
+	go.mau.fi/util v0.9.10
 	go.mau.fi/zeroconfig v0.2.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -26,8 +26,8 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/smasher164/xid v0.1.2 // indirect
 	go.mau.fi/zeroparse v1.0.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )

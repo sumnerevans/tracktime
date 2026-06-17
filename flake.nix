@@ -30,7 +30,8 @@
               version = "unstable";
               src = self;
               subPackages = [ "cmd/tt" ];
-              vendorHash = "sha256-pWuARzx4O6pFzd7l1YJ1Jt2HJajhX71UiwTvZ9T9AI4=";
+              vendorHash = "sha256-2ohu2lWPK0ckpdT8dfjnsrgrn9ZuvpzrrieAOoiIBik=";
+              propagatedBuildInputs = [ pkgs.typst ];
             };
           };
 
