@@ -20,6 +20,7 @@ type Import struct {
 	File          types.Filename     `arg:"positional,required" help:"path to the file to import"`
 	Customer      timeentry.Customer `arg:"--customer" help:"default customer for imported entries (overridden by importer-supplied customer)"`
 	NoItemDetails bool               `arg:"--no-item-details" help:"skip seeding the item detail cache"`
+	DryRun        bool               `arg:"--dry-run" help:"show what would be imported without writing anything"`
 }
 
 func (i *Import) Run(ctx context.Context, cfg *config.Config) error {
@@ -56,9 +57,20 @@ func (i *Import) Run(ctx context.Context, cfg *config.Config) error {
 		}
 	}
 
-	added, skipped, updated, err := applyImport(ctx, cfg, result)
+	added, skipped, updated, err := applyImport(ctx, cfg, result, i.DryRun)
 	if err != nil {
 		return err
+	}
+
+	if i.DryRun {
+		log.Info().Str("importer", i.Type).Msg("dry run complete")
+		msg := fmt.Sprintf("dry run: would import %d entries (%d skipped", added, skipped)
+		if updated > 0 {
+			msg += fmt.Sprintf(", %d updated", updated)
+		}
+		msg += ")"
+		fmt.Fprintln(os.Stderr, msg)
+		return nil
 	}
 
 	if i.NoItemDetails {
@@ -78,10 +90,11 @@ func (i *Import) Run(ctx context.Context, cfg *config.Config) error {
 	return nil
 }
 
-// applyImport writes result.Entries to disk: append-only, deduped by {start, type, project, taskID}.
+// applyImport applies result.Entries: append-only, deduped by {start, type, project, taskID}.
 // Existing entries with no customer are updated if the incoming entry has one.
+// When dryRun is true, computes counts but skips writing to disk.
 // Returns the total number of entries added, skipped, and updated.
-func applyImport(ctx context.Context, cfg *config.Config, result *importer.ImportResult) (totalAdded, totalSkipped, totalUpdated int, err error) {
+func applyImport(ctx context.Context, cfg *config.Config, result *importer.ImportResult, dryRun bool) (totalAdded, totalSkipped, totalUpdated int, err error) {
 	log := zerolog.Ctx(ctx)
 
 	// Group entries by date string to avoid time.Time map key issues.
@@ -161,7 +174,9 @@ func applyImport(ctx context.Context, cfg *config.Config, result *importer.Impor
 			return el.Entries[a].Start.Before(el.Entries[b].Start)
 		})
 
-		if err := el.Save(); err != nil {
+		if dryRun {
+			log.Debug().Msg("dry run: skipping save")
+		} else if err := el.Save(); err != nil {
 			log.Err(err).Msg("failed to save entry list")
 		} else {
 			log.Debug().Msg("saved entry list")
