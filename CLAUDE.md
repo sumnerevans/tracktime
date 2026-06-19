@@ -1,31 +1,20 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Also read **README.md** for installation, configuration reference, usage examples, and architecture overview.
 
-## Overview
-
-tracktime is a filesystem-backed time tracking solution. The project is **transitioning from Python to Go** — both implementations coexist, with the Go version on the `golang` branch being actively developed. The README describes the Python version; this file focuses on the Go implementation.
-
-### Key Architecture Principles
-
-- Filesystem-based: Git-friendly CSV files in `YEAR/MONTH/DAY` directory structure
-- Offline-first: must work without internet connectivity
-- Manual editing support: CSV format allows direct file editing
-- External sync: importers only (pull from external services); push sync is intentionally not ported
-
-## Commands
-
-### Go Development (current branch: golang)
+## Development Commands
 
 **Configuration:**
-Use the example config at `examples/tracktimerc.go-example`. Either:
-- Copy it to `~/.config/tracktime/tracktimerc`, or
-- Use the `--config` flag: `go run ./cmd/tt --config examples/tracktimerc.go-example`
+Copy `examples/tracktimerc` to `~/.config/tracktime/tracktimerc`, or use the `--config` flag:
+```bash
+go run ./cmd/tt --config examples/tracktimerc
+```
 
 **Run:**
 ```bash
 go run ./cmd/tt --help
-go run ./cmd/tt --config examples/tracktimerc.go-example report --thisweek
+go run ./cmd/tt report --thisweek
 ```
 
 **Run tests:**
@@ -41,26 +30,27 @@ pre-commit run -av go-vet-repo-mod
 pre-commit run -av go-staticcheck-repo-mod
 ```
 
-## Go Code Architecture
+## Code Architecture
 
 ### Directory Structure
 
 ```
-cmd/tt/                # CLI entry point
+cmd/tt/                # CLI entry point (go-arg parsing, dispatch)
 internal/
-  ├── commands/        # Subcommand implementations (start, stop, resume, list, edit, sync, report)
+  ├── commands/        # Subcommand implementations (start, stop, resume, list, edit, sync, import, report)
   ├── config/          # Config parsing + auto-migration (go.mau.fi/util/configupgrade)
   ├── importer/        # Importer interface; concrete importers registered here
+  │   └── tempo/       # Tempo (Jira time-tracking) importer
   ├── report/          # Report aggregation and rendering (stdout, markdown, html, typst, pdf)
   ├── resolver/        # Work item metadata cache (formatted ID, description, hyperlink)
+  ├── timeentry/       # TimeEntry and EntryList types; CSV read/write
   └── types/           # Date, Time, Month, Filename types
 ```
 
-### Key Types and Concepts
+### Key Types
 
-**TimeEntry** (`internal/timeentry/entrylist.go`)
+**TimeEntry** (`internal/timeentry/timeentry.go`)
 - Fields: `Start`, `Stop`, `Type`, `Project`, `TaskID`, `Customer`, `Description`
-- CSV header: `start,stop,type,project,taskid,customer,description`
 
 **EntryList** (`internal/timeentry/entrylist.go`)
 - All time entries for a single day
@@ -69,21 +59,27 @@ internal/
 
 **Config** (`internal/config/config.go`)
 - Loaded from `~/.config/tracktime/tracktimerc` (YAML)
-- Auto-migrated from Python flat format on first read via `configupgrade`
-- Secrets support pipe notation: `cat /path/to/secret|` runs the command and uses stdout
+- Auto-migrated from older flat format on first read via `configupgrade`
+- Secrets support pipe notation: a value ending with `|` is run as a shell command
 
-**Resolver / ItemDetailCache** (`internal/resolver/`)
-- Fetches formatted task IDs, descriptions, and hyperlinks from GitHub/GitLab/Linear/Sourcehut
-- Caches results in `item-cache.csv` with configurable TTL (`item_cache_ttl_days`, default 30 days)
+**ItemDetailCache** (`internal/resolver/cache.go`)
+- Caches formatted task IDs, descriptions, and hyperlinks in `item-cache.csv`
+- Resolvers: GitHub, GitLab, Linear, Sourcehut, Jira (descriptions seeded from Tempo import only)
 
 ### Command Flow
 
 1. `cmd/tt/` parses arguments using `go-arg`
 2. Loads and auto-migrates config from `tracktimerc`
-3. Dispatches to appropriate command in `internal/commands/`
+3. Dispatches to the appropriate command in `internal/commands/`
 4. Mutation commands (`start`, `stop`, `resume`, `edit`) call `syncMonth` after saving
 
-### Time Entry Type Shortcuts
+### Importers
+
+Importers implement `importer.Importer` and self-register via `init()`. Currently: `tempo`.
+The import command deduplicates entries by `{start, type, project, taskID}` and can update
+the `customer` field on existing entries. `--dry-run` computes counts without writing.
+
+### Type Shortcuts
 
 - `gh` → `github`
 - `gl` → `gitlab`
@@ -91,15 +87,14 @@ internal/
 
 ## Coding Style
 
-- **Go Visibility Rules**: export only identifiers that need to be used outside the package.
-
-- **Avoid single-use variables**: inline function calls unless the invocation is complex enough to hurt readability.
+- **Go Visibility Rules**: export only identifiers used outside the package.
+- **Avoid single-use variables**: inline calls unless the invocation hurts readability.
   - Bad: `header := r.headerText(); buf.WriteString(header)`
   - Good: `buf.WriteString(r.headerText())`
 
 ## Important Notes
 
-- **Unsupported edge cases**: daylight saving time, multi-day entries, timezone switches within a day
-- Time format is always `HH:MM` in 24-hour format
+- Unsupported edge cases: daylight saving time, multi-day entries, timezone switches within a day
+- Time format is always `HH:MM` (24-hour)
 - Default action (no subcommand): lists today's entries
-- No `.synced` files — the Go version does not push to external services
+- No push sync — the Go version pulls metadata only; it does not push to external services

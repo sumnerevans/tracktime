@@ -75,6 +75,8 @@ The file is YAML. Key options:
 | `reporting.day_worked_min_threshold` | int | 120 | Minimum minutes to count a day as worked |
 | `reporting.report_statistics` | bool | true | Include statistics section in reports |
 | `sync.enable` | bool | false | Enable sync on `tt sync` |
+| `logging.min_level` | string | `info` | Log level (`debug`, `info`, `warn`, `error`) |
+| `logging.writers` | list | | Log destinations (type `file` or `stdout`, with `format`, `filename`, etc.) |
 | `github.username` | string | | GitHub username |
 | `github.access_token` | string | | GitHub access token (supports pipe notation) |
 | `github.root_uri` | string | `https://github.com` | Override for GitHub Enterprise |
@@ -107,6 +109,8 @@ tt list -d monday           # list entries for last Monday
 tt edit                     # open today's file in $EDITOR
 tt edit -d 2024-03-15       # open a specific date
 tt sync                     # pull task metadata from external services
+tt import tempo entries.csv # import from a Tempo export
+tt import tempo entries.csv --dry-run  # preview without writing
 tt report --thisweek        # report for the current week
 tt report --lastmonth -f html -o report.html
 ```
@@ -150,8 +154,9 @@ start,stop,type,project,taskid,customer,description
 ```
 
 `type` is the service the task lives on (`github`, `gitlab`, `sourcehut`,
-`linear`, or arbitrary text). `taskid` is the issue/PR/MR number. `tt` uses
-these to fetch task titles and hyperlinks.
+`linear`, `jira`, or arbitrary text). `taskid` is the issue/PR/MR number. `tt`
+uses these to fetch task titles and hyperlinks. For `jira`, descriptions are
+seeded from a Tempo import rather than fetched at sync time.
 
 ## Guiding Principles
 
